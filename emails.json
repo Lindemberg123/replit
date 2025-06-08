@@ -6,7 +6,7 @@
     "subject": "Bem-vindo ao nosso sistema!",
     "body": "Olá! Bem-vindo ao nosso sistema de email. Esperamos que você tenha uma ótima experiência usando nossa plataforma.",
     "date": "2025-06-07T23:16:30.836248",
-    "read": false,
+    "read": true,
     "starred": false,
     "folder": "inbox"
   },
@@ -17,7 +17,7 @@
     "subject": "Configuração da sua conta",
     "body": "Sua conta foi configurada com sucesso. Você já pode começar a usar todos os recursos disponíveis.",
     "date": "2025-06-07T20:16:30.836260",
-    "read": false,
+    "read": true,
     "starred": true,
     "folder": "inbox"
   },
@@ -31,5 +31,27 @@
     "read": true,
     "starred": false,
     "folder": "sent"
+  },
+  {
+    "id": "58ed356b-6485-4219-921f-e2c02ca448b3",
+    "from": "contato@parceiro.com",
+    "to": "usuario@gmail.com",
+    "subject": "Convite para evento",
+    "body": "Você está convidado para nosso evento especial.",
+    "date": "2025-06-08T01:17:30.837090",
+    "read": true,
+    "starred": false,
+    "folder": "inbox"
+  },
+  {
+    "id": "94e32177-93b5-4b0b-bc6c-2180d947386c",
+    "from": "newsletter@empresa.com",
+    "to": "usuario@gmail.com",
+    "subject": "Novidades da semana",
+    "body": "Confira as novidades desta semana em nosso site.",
+    "date": "2025-06-08T01:19:32.035789",
+    "read": false,
+    "starred": false,
+    "folder": "inbox"
   }
 ]
