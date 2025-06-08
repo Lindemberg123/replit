@@ -296,6 +296,105 @@ curl -X POST http://sua-url.replit.dev/api/external/check-user \
         </div>
     </div>
 
+    <h2>🚀 APIs de Login Rápido</h2>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> /api/quick-login/accounts</h3>
+        <p>Obtém todas as contas cadastradas no sistema para login rápido.</p>
+        
+        <div class="code">
+curl -X GET http://sua-url.replit.dev/api/quick-login/accounts
+        </div>
+
+        <div class="response">
+            <h4>Resposta:</h4>
+            <div class="code">
+{
+  "success": true,
+  "accounts": [
+    {
+      "email": "usuario@exemplo.com",
+      "name": "Nome do Usuário",
+      "user_id": "user_001",
+      "profile_pic": "https://...",
+      "is_admin": false,
+      "created_at": "2025-01-01T00:00:00",
+      "last_login": "2025-01-02T10:30:00"
+    }
+  ],
+  "total": 1
+}
+            </div>
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> /api/quick-login/recent</h3>
+        <p>Obtém as 5 contas com login mais recente.</p>
+        
+        <div class="code">
+curl -X GET http://sua-url.replit.dev/api/quick-login/recent
+        </div>
+
+        <div class="response">
+            <h4>Resposta:</h4>
+            <div class="code">
+{
+  "success": true,
+  "recent_accounts": [
+    {
+      "email": "usuario@exemplo.com",
+      "name": "Nome do Usuário",
+      "user_id": "user_001",
+      "profile_pic": "https://...",
+      "is_admin": false,
+      "last_login": "2025-01-02T10:30:00"
+    }
+  ],
+  "total": 1
+}
+            </div>
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> /api/quick-login/validate</h3>
+        <p>Realiza login rápido sem necessidade de senha (para contas já cadastradas).</p>
+        
+        <div class="params">
+            <h4>Parâmetros obrigatórios:</h4>
+            <table>
+                <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td>email</td><td>string</td><td>Email da conta</td></tr>
+            </table>
+        </div>
+
+        <div class="code">
+curl -X POST http://sua-url.replit.dev/api/quick-login/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "usuario@exemplo.com"
+  }'
+        </div>
+
+        <div class="response">
+            <h4>Resposta de sucesso:</h4>
+            <div class="code">
+{
+  "success": true,
+  "message": "Login rápido realizado com sucesso",
+  "user": {
+    "email": "usuario@exemplo.com",
+    "name": "Nome do Usuário",
+    "user_id": "user_001",
+    "is_admin": false,
+    "profile_pic": "https://..."
+  }
+}
+            </div>
+        </div>
+    </div>
+
     <h2>🔧 Exemplos de Integração</h2>
 
     <h3>PHP</h3>

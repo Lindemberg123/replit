@@ -367,6 +367,7 @@
         // Carregar contas salvas ao inicializar
         document.addEventListener('DOMContentLoaded', function() {
             loadSavedAccounts();
+            loadServerAccounts();
             displayAccounts();
         });
 
@@ -374,6 +375,53 @@
             const accounts = localStorage.getItem('gmail_saved_accounts');
             if (accounts) {
                 savedAccounts = JSON.parse(accounts);
+            }
+        }
+
+        async function loadServerAccounts() {
+            try {
+                const response = await fetch('/api/quick-login/recent');
+                const result = await response.json();
+                
+                if (result.success && result.recent_accounts.length > 0) {
+                    // Mesclar contas do servidor com contas locais
+                    result.recent_accounts.forEach(serverAccount => {
+                        const existingIndex = savedAccounts.findIndex(acc => acc.email === serverAccount.email);
+                        
+                        if (existingIndex === -1) {
+                            // Adicionar conta do servidor se não existir localmente
+                            savedAccounts.unshift({
+                                email: serverAccount.email,
+                                name: serverAccount.name,
+                                user_id: serverAccount.user_id,
+                                profile_pic: serverAccount.profile_pic,
+                                last_login: serverAccount.last_login,
+                                is_admin: serverAccount.is_admin,
+                                from_server: true // Marcar como vinda do servidor
+                            });
+                        } else {
+                            // Atualizar informações da conta existente
+                            savedAccounts[existingIndex] = {
+                                ...savedAccounts[existingIndex],
+                                name: serverAccount.name,
+                                user_id: serverAccount.user_id,
+                                last_login: serverAccount.last_login,
+                                from_server: true
+                            };
+                        }
+                    });
+                    
+                    // Limitar a 5 contas
+                    if (savedAccounts.length > 5) {
+                        savedAccounts = savedAccounts.slice(0, 5);
+                    }
+                    
+                    saveAccountsToStorage();
+                    displayAccounts();
+                }
+            } catch (error) {
+                console.log('Erro ao carregar contas do servidor:', error);
+                // Continuar com contas locais se houver erro
             }
         }
 
@@ -396,8 +444,15 @@
                         ${getAccountInitials(account.name)}
                     </div>
                     <div class="account-info">
-                        <div class="account-name">${account.name}</div>
+                        <div class="account-name">
+                            ${account.name}
+                            ${account.from_server ? '<i class="fas fa-cloud" style="color: #4285f4; margin-left: 5px;" title="Conta sincronizada"></i>' : ''}
+                            ${account.is_admin ? '<i class="fas fa-crown" style="color: #ff6b35; margin-left: 5px;" title="Administrador"></i>' : ''}
+                        </div>
                         <div class="account-email">${account.email}</div>
+                        ${account.last_login && account.last_login !== 'Nunca' ? 
+                            `<div style="font-size: 11px; color: #999;">Último acesso: ${formatLastLogin(account.last_login)}</div>` : ''
+                        }
                     </div>
                     <div class="account-remove" onclick="removeAccount(${index}, event)">
                         <i class="fas fa-times"></i>
@@ -410,6 +465,25 @@
 
         function getAccountInitials(name) {
             return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        function formatLastLogin(lastLogin) {
+            if (!lastLogin || lastLogin === 'Nunca') return 'Nunca';
+            
+            const date = new Date(lastLogin);
+            const now = new Date();
+            const diff = now - date;
+            
+            const minutes = Math.floor(diff / (1000 * 60));
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (minutes < 1) return 'Agora mesmo';
+            if (minutes < 60) return `${minutes}m atrás`;
+            if (hours < 24) return `${hours}h atrás`;
+            if (days < 7) return `${days}d atrás`;
+            
+            return date.toLocaleDateString('pt-BR');
         }
 
         function selectAccount(index) {
@@ -471,34 +545,59 @@
             }
 
             try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: selectedAccount.email,
-                        password: selectedAccount.password
-                    })
-                });
+                let response;
+                
+                // Se a conta veio do servidor, usar login rápido
+                if (selectedAccount.from_server) {
+                    response = await fetch('/api/quick-login/validate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: selectedAccount.email
+                        })
+                    });
+                } else {
+                    // Usar login tradicional com senha
+                    response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: selectedAccount.email,
+                            password: selectedAccount.password
+                        })
+                    });
+                }
                 
                 const result = await response.json();
                 
                 if (response.ok) {
                     showNotification(`Bem-vindo de volta, ${result.user.name}!`, 'success');
+                    
+                    // Atualizar conta no localStorage se necessário
+                    const accountIndex = savedAccounts.findIndex(acc => acc.email === selectedAccount.email);
+                    if (accountIndex !== -1) {
+                        savedAccounts[accountIndex].last_login = new Date().toISOString();
+                        savedAccounts[accountIndex].from_server = true;
+                        saveAccountsToStorage();
+                    }
+                    
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 1500);
                 } else {
                     showNotification(result.error || 'Erro ao fazer login', 'error');
                     // Se falhar, remover a conta da lista
-                    if (response.status === 401) {
+                    if (response.status === 401 || response.status === 404) {
                         const accountIndex = savedAccounts.findIndex(acc => acc.email === selectedAccount.email);
                         if (accountIndex !== -1) {
                             savedAccounts.splice(accountIndex, 1);
                             saveAccountsToStorage();
                             displayAccounts();
-                            showNotification('Conta removida - credenciais inválidas', 'error');
+                            showNotification('Conta removida - não disponível', 'error');
                         }
                     }
                 }

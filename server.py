@@ -830,6 +830,102 @@ def check_user_exists():
         'user_info': user_info
     })
 
+@app.route('/api/quick-login/accounts')
+def get_quick_login_accounts():
+    """API para obter todas as contas cadastradas para login rápido"""
+    accounts_list = []
+    
+    for email, user_data in users_db.items():
+        # Não incluir senhas por segurança, apenas informações básicas
+        account_info = {
+            'email': email,
+            'name': user_data['name'],
+            'user_id': user_data.get('user_id', 'N/A'),
+            'profile_pic': user_data.get('profile_pic', f'https://ui-avatars.com/api/?name={user_data["name"]}&background=4285f4&color=fff'),
+            'is_admin': user_data.get('is_admin', False),
+            'created_at': user_data.get('created_at', datetime.now().isoformat()),
+            'last_login': user_data.get('last_login', 'Nunca')
+        }
+        accounts_list.append(account_info)
+    
+    # Ordenar por data de criação mais recente
+    accounts_list.sort(key=lambda x: x['created_at'], reverse=True)
+    
+    return jsonify({
+        'success': True,
+        'accounts': accounts_list,
+        'total': len(accounts_list)
+    })
+
+@app.route('/api/quick-login/validate', methods=['POST'])
+def validate_quick_login():
+    """API para validar login rápido com email"""
+    data = request.get_json()
+    
+    if not data or 'email' not in data:
+        return jsonify({'error': 'Email é obrigatório'}), 400
+    
+    email = data['email']
+    
+    # Verificar se usuário existe
+    if email not in users_db:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    
+    user = users_db[email]
+    
+    # Atualizar último login
+    user['last_login'] = datetime.now().isoformat()
+    save_data()
+    
+    # Criar sessão
+    session['user_id'] = user['user_id']
+    session['user_email'] = email
+    session['is_admin'] = user.get('is_admin', False)
+    
+    print(f"Login rápido realizado: {email}, Admin: {user.get('is_admin', False)}")
+    
+    return jsonify({
+        'success': True,
+        'message': 'Login rápido realizado com sucesso',
+        'user': {
+            'email': email,
+            'name': user['name'],
+            'user_id': user['user_id'],
+            'is_admin': user.get('is_admin', False),
+            'profile_pic': user.get('profile_pic', '')
+        }
+    })
+
+@app.route('/api/quick-login/recent')
+def get_recent_accounts():
+    """API para obter contas com login recente (últimas 5)"""
+    recent_accounts = []
+    
+    # Filtrar contas que têm last_login
+    for email, user_data in users_db.items():
+        if 'last_login' in user_data and user_data['last_login'] != 'Nunca':
+            account_info = {
+                'email': email,
+                'name': user_data['name'],
+                'user_id': user_data.get('user_id', 'N/A'),
+                'profile_pic': user_data.get('profile_pic', ''),
+                'is_admin': user_data.get('is_admin', False),
+                'last_login': user_data['last_login']
+            }
+            recent_accounts.append(account_info)
+    
+    # Ordenar por último login mais recente
+    recent_accounts.sort(key=lambda x: x['last_login'], reverse=True)
+    
+    # Retornar apenas as 5 mais recentes
+    recent_accounts = recent_accounts[:5]
+    
+    return jsonify({
+        'success': True,
+        'recent_accounts': recent_accounts,
+        'total': len(recent_accounts)
+    })
+
 if __name__ == '__main__':
     print("📧 Sistema Gmail Independente iniciado!")
     print(f"👑 Admin: {ADMIN_EMAIL} (senha: admin123)")
