@@ -106,7 +106,8 @@
     "body": "Fds ",
     "date": "2025-06-08T01:36:51.636931",
     "read": true,
-    "starred": false,
-    "folder": "sent"
+    "starred": true,
+    "folder": "sent",
+    "highlighted": true
   }
 ]
