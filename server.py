@@ -149,6 +149,11 @@ def login_page():
 def api_docs():
     return send_from_directory('.', 'api_docs.html')
 
+@app.route('/docs')
+def docs():
+    """Rota principal de documentação da API"""
+    return send_from_directory('.', 'api_docs.html')
+
 @app.route('/<path:filename>')
 def serve_static(filename):
     """Servir arquivos estáticos"""

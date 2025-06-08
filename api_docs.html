@@ -489,6 +489,65 @@ curl -X GET http://sua-url.replit.dev/api/domain-info/minhaempresa.nay.com
         </div>
     </div>
 
+    <h2>🧪 Teste Rápido da API</h2>
+
+    <div class="endpoint">
+        <h3>⚡ Testar Agora - Envio de Verificação</h3>
+        <p>Copie e cole este comando no terminal para testar imediatamente:</p>
+        
+        <div class="code">
+curl -X POST https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev/api/external/send-verification \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: gmail-verification-api-2024" \
+  -d '{
+    "to_email": "suport.com@gmail.oficial",
+    "site_name": "Teste API",
+    "verification_code": "123456",
+    "verification_url": "https://exemplo.com/verify?token=abc123"
+  }'
+        </div>
+
+        <div class="response">
+            <h4>✅ Resposta esperada:</h4>
+            <div class="code">
+{
+  "success": true,
+  "message": "Email de verificação avançado enviado",
+  "email_id": "uuid-do-email",
+  "tracking_id": "track123"
+}
+            </div>
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3>🚀 Testar Verificação Premium</h3>
+        <div class="code">
+curl -X POST https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev/api/external/send-advanced-verification \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: gmail-verification-api-2024" \
+  -d '{
+    "to_email": "suport.com@gmail.oficial",
+    "site_name": "Meu App Premium",
+    "verification_code": "VIP999",
+    "type": "premium",
+    "theme": "modern"
+  }'
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3>📋 Verificar Usuário Existe</h3>
+        <div class="code">
+curl -X POST https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev/api/external/check-user \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: gmail-verification-api-2024" \
+  -d '{
+    "email": "suport.com@gmail.oficial"
+  }'
+        </div>
+    </div>
+
     <h2>🔧 Exemplos de Integração</h2>
 
     <h3>PHP</h3>
@@ -600,8 +659,120 @@ def send_verification_email(email, code, url):
         </ul>
     </div>
 
+    <h2>🤖 Script de Teste Automático</h2>
+    
+    <div class="endpoint">
+        <h3>Python - Teste Completo</h3>
+        <div class="code">
+#!/usr/bin/env python3
+import requests
+import json
+
+# Configuração da API
+BASE_URL = "https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev"
+API_KEY = "gmail-verification-api-2024"
+
+headers = {
+    "Content-Type": "application/json",
+    "X-API-Key": API_KEY
+}
+
+def test_api():
+    print("🧪 Testando API do Sistema Gmail...")
+    
+    # 1. Verificar se usuário existe
+    print("\n1. Verificando usuário...")
+    response = requests.post(f"{BASE_URL}/api/external/check-user", 
+                           headers=headers,
+                           json={"email": "suport.com@gmail.oficial"})
+    print(f"Status: {response.status_code}")
+    print(f"Resposta: {response.json()}")
+    
+    # 2. Enviar verificação básica
+    print("\n2. Enviando verificação básica...")
+    response = requests.post(f"{BASE_URL}/api/external/send-verification",
+                           headers=headers,
+                           json={
+                               "to_email": "suport.com@gmail.oficial",
+                               "site_name": "Teste Automatizado",
+                               "verification_code": "AUTO123",
+                               "verification_url": "https://teste.com/verify"
+                           })
+    print(f"Status: {response.status_code}")
+    print(f"Resposta: {response.json()}")
+    
+    # 3. Enviar verificação premium
+    print("\n3. Enviando verificação premium...")
+    response = requests.post(f"{BASE_URL}/api/external/send-advanced-verification",
+                           headers=headers,
+                           json={
+                               "to_email": "suport.com@gmail.oficial",
+                               "site_name": "App Premium",
+                               "verification_code": "PREMIUM999",
+                               "type": "premium",
+                               "theme": "modern"
+                           })
+    print(f"Status: {response.status_code}")
+    print(f"Resposta: {response.json()}")
+    
+    print("\n✅ Testes concluídos!")
+
+if __name__ == "__main__":
+    test_api()
+        </div>
+        
+        <p><strong>Para executar:</strong> Salve como <code>test_api.py</code> e execute <code>python test_api.py</code></p>
+    </div>
+
+    <div class="endpoint">
+        <h3>JavaScript - Teste no Browser</h3>
+        <div class="code">
+// Teste direto no console do navegador
+async function testarAPI() {
+    const baseURL = 'https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev';
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': 'gmail-verification-api-2024'
+    };
+    
+    try {
+        // Verificar usuário
+        console.log('🔍 Verificando usuário...');
+        const checkUser = await fetch(`${baseURL}/api/external/check-user`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({email: 'suport.com@gmail.oficial'})
+        });
+        console.log('Usuário existe:', await checkUser.json());
+        
+        // Enviar verificação
+        console.log('📧 Enviando verificação...');
+        const sendVerif = await fetch(`${baseURL}/api/external/send-verification`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                to_email: 'suport.com@gmail.oficial',
+                site_name: 'Teste Browser',
+                verification_code: 'JS123',
+                verification_url: 'https://teste.com/verify'
+            })
+        });
+        console.log('Verificação enviada:', await sendVerif.json());
+        
+        console.log('✅ Teste concluído!');
+    } catch (error) {
+        console.error('❌ Erro:', error);
+    }
+}
+
+// Execute no console: testarAPI()
+        </div>
+    </div>
+
     <div style="text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
         <p><strong>Sistema Gmail Independente - API Externa</strong></p>
+        <p>📍 URL da Documentação: <a href="/docs">/docs</a> ou <a href="/api-docs">/api-docs</a></p>
+        <p>🔗 URL da API: https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev</p>
         <p>Para suporte técnico, entre em contato através do sistema</p>
     </div>
 </body>
