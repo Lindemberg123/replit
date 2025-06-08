@@ -7,19 +7,18 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from config import Config
 
 app = Flask(__name__)
 CORS(app)
 
-# Configuration
-API_KEY = "gmail-api-pro-key-2024"
-EMAILS_FILE = "emails_data.json"
-
-# Gmail SMTP Configuration (configure with your credentials)
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-GMAIL_USER = "your-email@gmail.com"  # Configure with your Gmail
-GMAIL_PASSWORD = "your-app-password"  # Use App Password, not regular password
+# Use configuration from config.py
+API_KEY = Config.API_KEY
+EMAILS_FILE = Config.EMAILS_FILE
+SMTP_SERVER = Config.SMTP_SERVER
+SMTP_PORT = Config.SMTP_PORT
+GMAIL_USER = Config.GMAIL_USER
+GMAIL_PASSWORD = Config.GMAIL_PASSWORD
 
 def authenticate_request():
     """Check if request has valid API key"""
