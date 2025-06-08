@@ -181,20 +181,27 @@ async function loadEmails() {
 
         if (response.ok) {
             const emails = await response.json();
-            displayEmails(emails);
+            
+            // Garantir que emails é um array
+            if (Array.isArray(emails)) {
+                displayEmails(emails);
+            } else {
+                console.error('Resposta não é um array:', emails);
+                displayEmails([]);
+            }
         } else {
-            throw new Error('Falha ao carregar emails');
+            throw new Error(`Falha ao carregar emails: ${response.status}`);
         }
     } catch (error) {
         console.error('Erro ao carregar emails:', error);
-        showEmptyState('Erro ao carregar emails');
+        showEmptyState('Erro ao carregar emails. Tente novamente.');
     }
 }
 
 function displayEmails(emails) {
     const container = document.getElementById('emailsContainer');
 
-    if (emails.length === 0) {
+    if (!emails || emails.length === 0) {
         showEmptyState(getEmptyMessage());
         return;
     }
@@ -338,10 +345,14 @@ function switchFolder(folder) {
 
     // Carregar emails
     currentFolder = folder;
+    
+    // Garantir que estamos na visualização de lista
+    document.getElementById('emailList').style.display = 'flex';
+    document.getElementById('emailView').style.display = 'none';
+    currentEmail = null;
+    
+    // Carregar emails
     loadEmails();
-
-    // Voltar para lista
-    backToList();
 }
 
 async function openEmail(emailId) {
@@ -539,6 +550,9 @@ function backToList() {
         document.getElementById('emailList').style.display = 'flex';
         document.getElementById('emailView').style.display = 'none';
         currentEmail = null;
+        
+        // Recarregar emails para mostrar a lista corretamente
+        loadEmails();
     }
 }
 
@@ -1000,12 +1014,21 @@ function showEmailViewMobile(email) {
 function backToListMobile() {
     if (window.innerWidth <= 768) {
         const emailView = document.getElementById('emailView');
+        const emailList = document.getElementById('emailList');
+        
         if (emailView) {
             emailView.classList.remove('active');
         }
 
         setTimeout(() => {
-            backToList();
+            if (emailView && emailList) {
+                emailView.style.display = 'none';
+                emailList.style.display = 'flex';
+            }
+            currentEmail = null;
+            
+            // Recarregar emails para mostrar a lista corretamente
+            loadEmails();
         }, 300);
     } else {
         backToList();
