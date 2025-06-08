@@ -13,8 +13,7 @@
     "created_at": "2025-06-08T01:25:33.863107",
     "profile_pic": "https://ui-avatars.com/api/?name=Admin&background=ff0000&color=fff",
     "is_admin": true,
-    "user_id": "admin_001",
-    "last_login": "2025-06-08T18:32:45.761067"
+    "user_id": "admin_001"
   },
   "lindembergs297@dono": {
     "email": "lindembergs297@dono",
@@ -33,5 +32,21 @@
     "profile_pic": "https://ui-avatars.com/api/?name=lindembergs038&background=4285f4&color=fff",
     "is_admin": false,
     "user_id": "user_004"
+  },
+  "lindembergs297@gmail.com": {
+    "email": "lindembergs297@gmail.com",
+    "name": "Lindemberg oliveira",
+    "password": "04445c3aba7d2eea083a0c4222309e06",
+    "user_id": "user_005",
+    "created_at": "2025-06-08T18:38:34.691780",
+    "profile_pic": "https://ui-avatars.com/api/?name=Lindemberg oliveira&background=4285f4&color=fff",
+    "is_admin": false,
+    "security_questions": {
+      "question1": "Qual o nome da sua primeira escola?",
+      "answer1_hash": "70d5c017158a635272db360ef3c7e945",
+      "question2": "Qual o seu livro favorito?",
+      "answer2_hash": "70d5c017158a635272db360ef3c7e945",
+      "created_at": "2025-06-08T18:38:34.691792"
+    }
   }
 }
