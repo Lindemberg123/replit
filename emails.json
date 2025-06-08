@@ -1,0 +1,35 @@
+[
+  {
+    "id": "e65f2322-ccfc-4bbe-8251-97282be0ba8a",
+    "from": "contato@empresa.com",
+    "to": "usuario@gmail.com",
+    "subject": "Bem-vindo ao nosso sistema!",
+    "body": "Olá! Bem-vindo ao nosso sistema de email. Esperamos que você tenha uma ótima experiência usando nossa plataforma.",
+    "date": "2025-06-07T23:16:30.836248",
+    "read": false,
+    "starred": false,
+    "folder": "inbox"
+  },
+  {
+    "id": "05ff9361-f58e-4c65-9d81-5803e9a79ba3",
+    "from": "suporte@sistema.com",
+    "to": "usuario@gmail.com",
+    "subject": "Configuração da sua conta",
+    "body": "Sua conta foi configurada com sucesso. Você já pode começar a usar todos os recursos disponíveis.",
+    "date": "2025-06-07T20:16:30.836260",
+    "read": false,
+    "starred": true,
+    "folder": "inbox"
+  },
+  {
+    "id": "28f9e74b-eb64-4a58-b598-d9aa9951b055",
+    "from": "usuario@gmail.com",
+    "to": "cliente@exemplo.com",
+    "subject": "Resposta sobre o projeto",
+    "body": "Obrigado pelo seu interesse. Vamos analisar sua proposta e retornar em breve.",
+    "date": "2025-06-08T00:16:30.836266",
+    "read": true,
+    "starred": false,
+    "folder": "sent"
+  }
+]
