@@ -1,0 +1,446 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar Token - Sistema Gmail</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .token-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            color: #4285f4;
+            margin-bottom: 20px;
+        }
+
+        .token-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .request-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #4285f4;
+            text-align: left;
+        }
+
+        .request-info h3 {
+            color: #4285f4;
+            margin-bottom: 10px;
+        }
+
+        .request-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4285f4;
+        }
+
+        .generate-btn {
+            width: 100%;
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .generate-btn:hover {
+            background: #3367d6;
+        }
+
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .token-result {
+            display: none;
+            background: #e8f5e8;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 2px solid #28a745;
+        }
+
+        .token-result h3 {
+            color: #28a745;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .token-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            color: #333;
+            border: 1px solid #dee2e6;
+            margin: 15px 0;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .back-btn {
+            width: 100%;
+            background: transparent;
+            color: #4285f4;
+            border: 2px solid #4285f4;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .back-btn:hover {
+            background: #4285f4;
+            color: white;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .info-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #856404;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        @media (max-width: 480px) {
+            .token-container {
+                padding: 30px 20px;
+            }
+            
+            .logo {
+                font-size: 36px;
+            }
+            
+            .token-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="token-container">
+        <div class="logo">
+            <i class="fas fa-key"></i>
+        </div>
+        <h1 class="token-title">Gerar Token de Conta</h1>
+
+        <div id="alertContainer"></div>
+
+        <div class="request-info" id="requestInfo">
+            <h3><i class="fas fa-info-circle"></i> Solicitação de Token</h3>
+            <p><strong>Status:</strong> <span id="requestStatus">Verificando...</span></p>
+            <p><strong>Email:</strong> <span id="requestEmail">Carregando...</span></p>
+            <p><strong>Data:</strong> <span id="requestTime">Carregando...</span></p>
+        </div>
+
+        <div id="tokenForm">
+            <div class="info-box">
+                <h4><i class="fas fa-shield-alt"></i> Verificação de Identidade</h4>
+                <p>Para gerar seu token, confirme suas informações de conta:</p>
+            </div>
+
+            <form id="generateForm">
+                <div class="form-group">
+                    <label for="email">Email da conta:</label>
+                    <input type="email" id="email" required placeholder="seu-email@exemplo.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" required placeholder="Sua senha atual">
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Nome completo:</label>
+                    <input type="text" id="name" required placeholder="Seu nome completo">
+                </div>
+
+                <div class="form-group">
+                    <label for="accountId">ID da conta (opcional):</label>
+                    <input type="text" id="accountId" placeholder="ID personalizado (deixe vazio para usar padrão)">
+                </div>
+
+                <button type="submit" class="generate-btn" id="generateBtn">
+                    <i class="fas fa-key"></i> Gerar Token
+                </button>
+            </form>
+        </div>
+
+        <div class="token-result" id="tokenResult">
+            <h3><i class="fas fa-check-circle"></i> Token Gerado com Sucesso!</h3>
+            
+            <p><strong>Seu token de acesso:</strong></p>
+            <div class="token-display" id="tokenDisplay"></div>
+            
+            <button class="copy-btn" onclick="copyToken()">
+                <i class="fas fa-copy"></i> Copiar Token
+            </button>
+            
+            <div class="info-box" style="margin-top: 20px;">
+                <h4><i class="fas fa-lightbulb"></i> Como usar seu token:</h4>
+                <p>• Inclua no cabeçalho: <code>Authorization: Bearer SEU_TOKEN</code></p>
+                <p>• Ou como parâmetro: <code>?token=SEU_TOKEN</code></p>
+                <p>• Mantenha o token seguro e privado</p>
+            </div>
+        </div>
+
+        <button class="back-btn" onclick="goToLogin()">
+            <i class="fas fa-arrow-left"></i> Voltar ao Sistema
+        </button>
+    </div>
+
+    <script>
+        let currentRequestId = '';
+        let generatedToken = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Extrair request_id da URL
+            const urlPath = window.location.pathname + window.location.search;
+            const parts = urlPath.split('?');
+            
+            if (parts.length >= 3 && parts[2] === 'sistem') {
+                currentRequestId = parts[1];
+                validateRequest();
+            } else {
+                showAlert('URL inválida', 'error');
+            }
+        });
+
+        async function validateRequest() {
+            try {
+                const response = await fetch(`/api/validate-token-request?request_id=${currentRequestId}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('requestStatus').textContent = 'Válida ✅';
+                    document.getElementById('requestEmail').textContent = result.from_email;
+                    document.getElementById('requestTime').textContent = formatDate(result.request_time);
+                    
+                    // Pré-preencher email se disponível
+                    document.getElementById('email').value = result.from_email;
+                    
+                    if (result.processed) {
+                        showAlert('Esta solicitação já foi processada', 'error');
+                        document.getElementById('tokenForm').style.display = 'none';
+                    }
+                } else {
+                    showAlert(result.error || 'Solicitação inválida', 'error');
+                    document.getElementById('tokenForm').style.display = 'none';
+                }
+            } catch (error) {
+                showAlert('Erro ao validar solicitação', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
+        document.getElementById('generateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = {
+                request_id: currentRequestId,
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value,
+                name: document.getElementById('name').value.trim(),
+                account_id: document.getElementById('accountId').value.trim()
+            };
+
+            if (!formData.email || !formData.password || !formData.name) {
+                showAlert('Por favor, preencha todos os campos obrigatórios', 'error');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando token...';
+
+            try {
+                const response = await fetch('/api/generate-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    generatedToken = result.token;
+                    
+                    // Mostrar resultado
+                    document.getElementById('tokenForm').style.display = 'none';
+                    document.getElementById('tokenDisplay').textContent = generatedToken;
+                    document.getElementById('tokenResult').style.display = 'block';
+                    
+                    showAlert('Token gerado com sucesso! Confira também seu email.', 'success');
+                } else {
+                    showAlert(result.error || 'Erro ao gerar token', 'error');
+                }
+            } catch (error) {
+                showAlert('Erro de conexão', 'error');
+                console.error('Erro:', error);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-key"></i> Gerar Token';
+            }
+        });
+
+        function copyToken() {
+            if (generatedToken) {
+                navigator.clipboard.writeText(generatedToken).then(function() {
+                    showAlert('Token copiado para a área de transferência!', 'success');
+                }, function() {
+                    // Fallback para navegadores mais antigos
+                    const textArea = document.createElement('textarea');
+                    textArea.value = generatedToken;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showAlert('Token copiado!', 'success');
+                });
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert ${type}">
+                    <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+                    ${message}
+                </div>
+            `;
+
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) {
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alertContainer.innerHTML = '';
+                    }, 300);
+                }
+            }, 5000);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('pt-BR');
+        }
+
+        function goToLogin() {
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>

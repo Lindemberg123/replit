@@ -1252,11 +1252,300 @@ def get_domain_info(domain):
     
     return jsonify({'error': 'Domínio não encontrado'}), 404
 
+# Sistema de Token de Conta
+token_requests = {}  # Armazenar solicitações de token
+generated_tokens = {}  # Armazenar tokens gerados
+
+def generate_token_request_id():
+    """Gera ID único para solicitação de token"""
+    import string
+    import random
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+
+def generate_user_token():
+    """Gera token para usuário"""
+    import string
+    import random
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=64))
+
+@app.route('/api/check-token-requests', methods=['POST'])
+def check_token_requests():
+    """Verificar emails de solicitação de token automaticamente"""
+    # Verificar se há emails para o admin com assunto "token"
+    admin_emails = get_user_emails(ADMIN_EMAIL, 'inbox')
+    
+    new_requests = 0
+    for email in admin_emails:
+        try:
+            if not email.get('read') and 'token' in email.get('subject', '').lower():
+                # Processar solicitação de token
+                request_id = generate_token_request_id()
+                
+                # Salvar solicitação
+                token_requests[request_id] = {
+                    'email_id': email['id'],
+                    'from_email': email['from'],
+                    'request_time': datetime.now().isoformat(),
+                    'processed': False
+                }
+                
+                # Gerar URL do token
+                token_url = f"{request.host_url}token?{request_id}?sistem"
+                
+                # Enviar resposta com link
+                response_email = {
+                    'id': str(uuid.uuid4()),
+                    'from': ADMIN_EMAIL,
+                    'to': email['from'],
+                    'subject': f"✅ Link para Gerar Token - Sistema Gmail",
+                    'body': f"""
+Olá!
+
+Recebemos sua solicitação para gerar um token de conta.
+
+🔗 Para gerar seu token, acesse o link abaixo:
+{token_url}
+
+📋 INSTRUÇÕES:
+• Clique no link acima
+• Preencha suas informações de conta
+• Seu token será gerado automaticamente
+• Use o token para integrar com nossa API
+
+⚠️ IMPORTANTE:
+• Este link é pessoal e intransferível
+• Válido por 24 horas
+• Mantenha seu token em segurança
+
+📧 Sistema Gmail Independente
+🆔 ID da Solicitação: {request_id[:8]}
+
+---
+Este é um email automático do sistema.
+                    """.strip(),
+                    'date': datetime.now().isoformat(),
+                    'read': False,
+                    'starred': False,
+                    'folder': 'inbox',
+                    'token_response': True,
+                    'request_id': request_id
+                }
+                
+                emails_db.append(response_email)
+                
+                # Marcar email original como lido
+                email['read'] = True
+                
+                new_requests += 1
+                
+        except Exception as e:
+            print(f"Erro ao processar solicitação de token: {e}")
+            continue
+    
+    if new_requests > 0:
+        save_data()
+    
+    return jsonify({
+        'success': True,
+        'new_requests': new_requests,
+        'message': f'{new_requests} novas solicitações processadas'
+    })
+
+@app.route('/token')
+def token_page():
+    """Página de geração de token"""
+    # Extrair request_id da URL
+    full_path = request.full_path
+    if '?' in full_path:
+        parts = full_path.split('?')
+        if len(parts) >= 3 and parts[2] == 'sistem':
+            request_id = parts[1]
+            
+            # Verificar se solicitação existe
+            if request_id in token_requests:
+                return send_from_directory('.', 'token-generator.html')
+            else:
+                return f"""
+                <h1>❌ Link Inválido</h1>
+                <p>Este link de geração de token não é válido ou já expirou.</p>
+                <p><a href="/login.html">Voltar ao Login</a></p>
+                """, 404
+        else:
+            return f"""
+            <h1>⚠️ URL Malformada</h1>
+            <p>O formato correto é: /token?ID?sistem</p>
+            <p><a href="/login.html">Voltar ao Login</a></p>
+            """, 400
+    else:
+        return f"""
+        <h1>⚠️ Parâmetros Faltando</h1>
+        <p>Esta página requer parâmetros específicos.</p>
+        <p><a href="/login.html">Voltar ao Login</a></p>
+        """, 400
+
+@app.route('/api/generate-token', methods=['POST'])
+def generate_account_token():
+    """Gerar token para usuário"""
+    data = request.get_json()
+    
+    # Extrair request_id da URL atual (passado pelo frontend)
+    request_id = data.get('request_id')
+    email = data.get('email')
+    password = data.get('password')
+    name = data.get('name')
+    account_id = data.get('account_id')
+    
+    if not all([request_id, email, password, name]):
+        return jsonify({'error': 'Todos os campos são obrigatórios'}), 400
+    
+    # Verificar se solicitação existe
+    if request_id not in token_requests:
+        return jsonify({'error': 'Solicitação de token inválida'}), 404
+    
+    # Verificar se usuário existe e senha está correta
+    if email not in users_db:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    
+    user = users_db[email]
+    if user['password'] != hashlib.md5(password.encode()).hexdigest():
+        return jsonify({'error': 'Senha incorreta'}), 401
+    
+    # Verificar se email da solicitação corresponde ao usuário
+    token_request = token_requests[request_id]
+    if token_request['from_email'] != email:
+        return jsonify({'error': 'Email não corresponde à solicitação'}), 403
+    
+    # Gerar token
+    user_token = generate_user_token()
+    
+    # Salvar token gerado
+    generated_tokens[user_token] = {
+        'user_email': email,
+        'user_name': name,
+        'user_id': user['user_id'],
+        'account_id': account_id or user['user_id'],
+        'generated_at': datetime.now().isoformat(),
+        'request_id': request_id,
+        'active': True
+    }
+    
+    # Marcar solicitação como processada
+    token_requests[request_id]['processed'] = True
+    token_requests[request_id]['token_generated'] = user_token
+    
+    # Enviar confirmação por email
+    confirmation_email = {
+        'id': str(uuid.uuid4()),
+        'from': ADMIN_EMAIL,
+        'to': email,
+        'subject': f"🎉 Token Gerado com Sucesso - Sistema Gmail",
+        'body': f"""
+Olá {name}!
+
+Seu token de conta foi gerado com sucesso!
+
+🔑 SEU TOKEN:
+{user_token}
+
+📋 INFORMAÇÕES DO TOKEN:
+• Nome: {name}
+• Email: {email}
+• ID da Conta: {account_id or user['user_id']}
+• Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M')}
+
+🚀 COMO USAR:
+1. Inclua o token no cabeçalho das requisições:
+   Authorization: Bearer {user_token}
+
+2. Ou use como parâmetro:
+   ?token={user_token}
+
+⚠️ SEGURANÇA:
+• Mantenha este token em segurança
+• Não compartilhe com terceiros
+• Use apenas em aplicações confiáveis
+
+📧 Sistema Gmail Independente
+🆔 ID do Token: {user_token[:8]}...
+
+---
+Este token é válido e pode ser usado para acessar nossa API.
+        """.strip(),
+        'date': datetime.now().isoformat(),
+        'read': False,
+        'starred': True,
+        'folder': 'inbox',
+        'token_confirmation': True,
+        'user_token': user_token
+    }
+    
+    emails_db.append(confirmation_email)
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Token gerado com sucesso',
+        'token': user_token,
+        'user_info': {
+            'name': name,
+            'email': email,
+            'user_id': user['user_id'],
+            'account_id': account_id or user['user_id']
+        }
+    })
+
+@app.route('/api/validate-token-request')
+def validate_token_request():
+    """Validar solicitação de token"""
+    request_id = request.args.get('request_id')
+    
+    if not request_id:
+        return jsonify({'error': 'ID da solicitação é obrigatório'}), 400
+    
+    if request_id not in token_requests:
+        return jsonify({'error': 'Solicitação não encontrada'}), 404
+    
+    token_request = token_requests[request_id]
+    
+    return jsonify({
+        'valid': True,
+        'from_email': token_request['from_email'],
+        'request_time': token_request['request_time'],
+        'processed': token_request.get('processed', False)
+    })
+
+@app.route('/api/list-user-tokens')
+def list_user_tokens():
+    """Listar tokens do usuário atual"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    user_email = session.get('user_email')
+    user_tokens = []
+    
+    for token, token_data in generated_tokens.items():
+        if token_data['user_email'] == user_email and token_data.get('active', True):
+            user_tokens.append({
+                'token_preview': f"{token[:8]}...{token[-8:]}",
+                'generated_at': token_data['generated_at'],
+                'account_id': token_data.get('account_id'),
+                'active': token_data.get('active', True)
+            })
+    
+    return jsonify({
+        'success': True,
+        'tokens': user_tokens,
+        'total': len(user_tokens)
+    })
+
 if __name__ == '__main__':
     print("📧 Sistema Gmail Independente iniciado!")
     print(f"👑 Admin: {ADMIN_EMAIL} (senha: admin123)")
     print(f"📬 Emails carregados: {len(emails_db)}")
     print(f"👥 Usuários registrados: {len(users_db)}")
+    print(f"🔑 Sistema de Token de Conta ativo!")
+    print(f"📝 Para solicitar token: envie email para {ADMIN_EMAIL} com assunto 'token'")
     print(f"🌐 Acesse: http://0.0.0.0:5000")
     
     app.run(host='0.0.0.0', port=5000, debug=True)

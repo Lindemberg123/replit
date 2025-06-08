@@ -556,6 +556,36 @@ function backToList() {
     }
 }
 
+// Sistema de Token de Conta - Verificação automática
+async function checkTokenRequests() {
+    if (!isAdmin) return;
+    
+    try {
+        const response = await fetch('/api/check-token-requests', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.new_requests > 0) {
+            showNotification(`${result.new_requests} nova(s) solicitação(ões) de token processadas`, 'success');
+            loadEmails(); // Recarregar emails para mostrar as respostas
+        }
+    } catch (error) {
+        console.error('Erro ao verificar solicitações de token:', error);
+    }
+}
+
+// Verificar solicitações de token a cada 30 segundos (apenas para admin)
+setInterval(() => {
+    if (isAdmin) {
+        checkTokenRequests();
+    }
+}, 30000);
+
 function showCompose() {
     document.getElementById('composeModal').classList.add('active');
     document.getElementById('composeTo').focus();
