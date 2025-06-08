@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gmail - Sistema Completo de Email</title>
+    <title>Gmail - Sistema Independente</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -22,14 +22,15 @@
             <div class="header-center">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Pesquisar no email">
+                    <input type="text" placeholder="Pesquisar no email" id="searchInput">
                 </div>
             </div>
             <div class="header-right">
-                <button class="refresh-btn" onclick="refreshEmails()">
+                <button class="refresh-btn" onclick="refreshEmails()" title="Atualizar">
                     <i class="fas fa-sync-alt"></i>
                 </button>
                 <div class="user-info">
+                    <img id="userProfilePic" class="profile-pic" alt="Perfil">
                     <span id="userEmail"></span>
                 </div>
             </div>
@@ -49,6 +50,10 @@
                         <span>Caixa de entrada</span>
                         <span class="count" id="inboxCount">0</span>
                     </div>
+                    <div class="nav-item" data-folder="starred">
+                        <i class="fas fa-star"></i>
+                        <span>Com estrela</span>
+                    </div>
                     <div class="nav-item" data-folder="sent">
                         <i class="fas fa-paper-plane"></i>
                         <span>Enviados</span>
@@ -64,77 +69,88 @@
 
             <!-- Main Content -->
             <main class="main-content">
-                <!-- Lista de emails -->
+                <!-- Email List -->
                 <div class="email-list" id="emailList">
                     <div class="email-list-header">
                         <h2 id="folderTitle">Caixa de entrada</h2>
                         <div class="email-actions">
-                            <button onclick="refreshEmails()">
+                            <button title="Atualizar" onclick="refreshEmails()">
                                 <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button title="Marcar como lido" onclick="markAllAsRead()">
+                                <i class="fas fa-envelope-open"></i>
                             </button>
                         </div>
                     </div>
                     <div class="emails-container" id="emailsContainer">
-                        <!-- Emails serão carregados aqui -->
+                        <!-- Emails will be loaded here -->
                     </div>
                 </div>
 
-                <!-- Visualização de email -->
+                <!-- Email View -->
                 <div class="email-view" id="emailView" style="display: none;">
                     <div class="email-view-header">
-                        <button onclick="backToList()">
+                        <button class="back-btn" onclick="backToList()">
                             <i class="fas fa-arrow-left"></i>
-                            Voltar
                         </button>
-                        <div class="email-actions">
+                        <div class="email-view-actions">
+                            <button onclick="starCurrentEmail()" id="starBtn">
+                                <i class="fas fa-star"></i>
+                            </button>
                             <button onclick="deleteEmail()">
                                 <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="replyToEmail()">
+                                <i class="fas fa-reply"></i>
                             </button>
                         </div>
                     </div>
                     <div class="email-content" id="emailContent">
-                        <!-- Conteúdo do email -->
+                        <!-- Email content will be loaded here -->
                     </div>
                 </div>
             </main>
         </div>
+    </div>
 
-        <!-- Modal de Composição -->
-        <div class="compose-modal" id="composeModal">
-            <div class="compose-content">
-                <div class="compose-header">
-                    <h3>Nova mensagem</h3>
-                    <button onclick="closeCompose()">
-                        <i class="fas fa-times"></i>
+    <!-- Compose Modal -->
+    <div class="compose-modal" id="composeModal">
+        <div class="compose-container">
+            <div class="compose-header">
+                <h3>Nova mensagem</h3>
+                <button class="close-btn" onclick="closeCompose()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="composeForm" class="compose-form">
+                <div class="compose-field">
+                    <label>Para:</label>
+                    <input type="email" id="composeTo" required>
+                </div>
+                <div class="compose-field">
+                    <label>Assunto:</label>
+                    <input type="text" id="composeSubject" required>
+                </div>
+                <div class="compose-field">
+                    <label>Mensagem:</label>
+                    <textarea id="composeBody" required></textarea>
+                </div>
+                <div class="compose-actions">
+                    <button type="submit" class="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        Enviar
+                    </button>
+                    <button type="button" class="draft-btn" onclick="saveDraft()">
+                        <i class="fas fa-save"></i>
+                        Salvar rascunho
                     </button>
                 </div>
-                <form id="composeForm">
-                    <div class="compose-field">
-                        <label>Para:</label>
-                        <input type="email" id="composeTo" required>
-                    </div>
-                    <div class="compose-field">
-                        <label>Assunto:</label>
-                        <input type="text" id="composeSubject" required>
-                    </div>
-                    <div class="compose-field">
-                        <label>Mensagem:</label>
-                        <textarea id="composeBody" required></textarea>
-                    </div>
-                    <div class="compose-actions">
-                        <button type="submit" class="send-btn">
-                            <i class="fas fa-paper-plane"></i>
-                            Enviar
-                        </button>
-                        <button type="button" onclick="saveDraft()" class="draft-btn">
-                            <i class="fas fa-save"></i>
-                            Salvar rascunho
-                        </button>
-                    </div>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
+
+    <!-- Notifications -->
+    <div class="notifications" id="notifications"></div>
 
     <script src="script.js"></script>
 </body>

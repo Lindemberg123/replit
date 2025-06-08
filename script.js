@@ -1,11 +1,12 @@
 
-// Gmail System - Complete Email Management
+// Sistema Gmail Independente - JavaScript Frontend
 
 let currentFolder = 'inbox';
 let currentEmail = null;
 let userInfo = null;
+let searchTimeout = null;
 
-// Initialize the application
+// Inicializar aplicação
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
@@ -17,13 +18,13 @@ async function initializeApp() {
         setupEventListeners();
         showNotification('Gmail carregado com sucesso!', 'success');
     } catch (error) {
-        console.error('Error initializing app:', error);
+        console.error('Erro ao inicializar:', error);
         showNotification('Erro ao carregar Gmail', 'error');
     }
 }
 
 function setupEventListeners() {
-    // Navigation
+    // Navegação
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', function() {
             const folder = this.dataset.folder;
@@ -33,11 +34,14 @@ function setupEventListeners() {
         });
     });
 
-    // Compose form
+    // Formulário de composição
     document.getElementById('composeForm').addEventListener('submit', handleSendEmail);
     
-    // Search functionality
-    document.querySelector('.search-box input').addEventListener('input', handleSearch);
+    // Busca
+    document.getElementById('searchInput').addEventListener('input', handleSearch);
+    
+    // Atalhos de teclado
+    document.addEventListener('keydown', handleKeyboardShortcuts);
 }
 
 async function loadUserInfo() {
@@ -46,10 +50,15 @@ async function loadUserInfo() {
         if (response.ok) {
             userInfo = await response.json();
             document.getElementById('userEmail').textContent = userInfo.email;
+            
+            if (userInfo.profile_pic) {
+                document.getElementById('userProfilePic').src = userInfo.profile_pic;
+            }
+            
             updateCounts();
         }
     } catch (error) {
-        console.error('Error loading user info:', error);
+        console.error('Erro ao carregar info do usuário:', error);
     }
 }
 
@@ -70,10 +79,10 @@ async function loadEmails() {
             const emails = await response.json();
             displayEmails(emails);
         } else {
-            throw new Error('Failed to load emails');
+            throw new Error('Falha ao carregar emails');
         }
     } catch (error) {
-        console.error('Error loading emails:', error);
+        console.error('Erro ao carregar emails:', error);
         showEmptyState('Erro ao carregar emails');
     }
 }
@@ -87,7 +96,13 @@ function displayEmails(emails) {
     }
     
     container.innerHTML = emails.map(email => `
-        <div class="email-item ${email.read ? '' : 'unread'}" onclick="openEmail(${email.id})">
+        <div class="email-item ${email.read ? '' : 'unread'}" onclick="openEmail('${email.id}')">
+            <div class="email-checkbox">
+                <input type="checkbox" onchange="toggleEmailSelection('${email.id}')">
+            </div>
+            <div class="email-star ${email.starred ? 'starred' : ''}" onclick="toggleStar('${email.id}', event)">
+                <i class="fas fa-star"></i>
+            </div>
             <div class="email-sender">${email.from}</div>
             <div class="email-content-preview">
                 <div class="email-subject">${email.subject}</div>
@@ -121,31 +136,33 @@ function getEmptyMessage() {
     const messages = {
         'inbox': 'Caixa de entrada vazia',
         'sent': 'Nenhum email enviado',
-        'drafts': 'Nenhum rascunho salvo'
+        'drafts': 'Nenhum rascunho salvo',
+        'starred': 'Nenhum email com estrela'
     };
     return messages[currentFolder] || 'Pasta vazia';
 }
 
 function switchFolder(folder) {
-    // Update active nav item
+    // Atualizar item ativo
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
     document.querySelector(`.nav-item[data-folder="${folder}"]`).classList.add('active');
     
-    // Update folder title
+    // Atualizar título
     const titles = {
         'inbox': 'Caixa de entrada',
         'sent': 'Enviados',
-        'drafts': 'Rascunhos'
+        'drafts': 'Rascunhos',
+        'starred': 'Com estrela'
     };
     document.getElementById('folderTitle').textContent = titles[folder];
     
-    // Load emails for the folder
+    // Carregar emails
     currentFolder = folder;
     loadEmails();
     
-    // Show email list if viewing email
+    // Voltar para lista
     backToList();
 }
 
@@ -156,9 +173,14 @@ async function openEmail(emailId) {
             const email = await response.json();
             currentEmail = email;
             showEmailView(email);
+            
+            // Atualizar contadores se o email não estava lido
+            if (!email.read) {
+                loadUserInfo();
+            }
         }
     } catch (error) {
-        console.error('Error loading email:', error);
+        console.error('Erro ao carregar email:', error);
         showNotification('Erro ao carregar email', 'error');
     }
 }
@@ -167,16 +189,26 @@ function showEmailView(email) {
     document.getElementById('emailList').style.display = 'none';
     document.getElementById('emailView').style.display = 'flex';
     
+    // Atualizar botão de estrela
+    const starBtn = document.getElementById('starBtn');
+    starBtn.className = email.starred ? 'starred' : '';
+    
     document.getElementById('emailContent').innerHTML = `
         <div class="email-header">
             <h1 class="email-title">${email.subject}</h1>
             <div class="email-meta">
-                <div><strong>De:</strong> ${email.from}</div>
-                <div><strong>Para:</strong> ${email.to}</div>
-                <div><strong>Data:</strong> ${formatDate(email.date)}</div>
+                <div class="email-from">
+                    <strong>De:</strong> ${email.from}
+                </div>
+                <div class="email-to">
+                    <strong>Para:</strong> ${email.to}
+                </div>
+                <div class="email-date">
+                    <strong>Data:</strong> ${formatDate(email.date)}
+                </div>
             </div>
         </div>
-        <div class="email-body">${email.body}</div>
+        <div class="email-body">${email.body.replace(/\n/g, '<br>')}</div>
     `;
 }
 
@@ -220,19 +252,17 @@ async function handleSendEmail(e) {
             showNotification('Email enviado com sucesso!', 'success');
             closeCompose();
             
-            // Reload emails if viewing sent folder
             if (currentFolder === 'sent') {
                 loadEmails();
             }
             
-            // Update user info
             loadUserInfo();
         } else {
             showNotification(`Erro: ${result.error}`, 'error');
         }
     } catch (error) {
         showNotification('Erro de conexão', 'error');
-        console.error('Error:', error);
+        console.error('Erro:', error);
     }
 }
 
@@ -258,19 +288,17 @@ async function saveDraft() {
             showNotification('Rascunho salvo!', 'success');
             closeCompose();
             
-            // Reload emails if viewing drafts folder
             if (currentFolder === 'drafts') {
                 loadEmails();
             }
             
-            // Update user info
             loadUserInfo();
         } else {
             showNotification('Erro ao salvar rascunho', 'error');
         }
     } catch (error) {
         showNotification('Erro de conexão', 'error');
-        console.error('Error:', error);
+        console.error('Erro:', error);
     }
 }
 
@@ -293,8 +321,65 @@ async function deleteEmail() {
             }
         } catch (error) {
             showNotification('Erro de conexão', 'error');
-            console.error('Error:', error);
+            console.error('Erro:', error);
         }
+    }
+}
+
+async function toggleStar(emailId, event) {
+    event.stopPropagation();
+    
+    try {
+        const response = await fetch(`/api/email/${emailId}/star`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            
+            // Atualizar visual da estrela
+            const starElement = event.target.closest('.email-star');
+            if (result.starred) {
+                starElement.classList.add('starred');
+            } else {
+                starElement.classList.remove('starred');
+            }
+            
+            // Recarregar se estiver na pasta de favoritos
+            if (currentFolder === 'starred') {
+                loadEmails();
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao favoritar email:', error);
+    }
+}
+
+async function starCurrentEmail() {
+    if (!currentEmail) return;
+    
+    try {
+        const response = await fetch(`/api/email/${currentEmail.id}/star`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            const starBtn = document.getElementById('starBtn');
+            
+            if (result.starred) {
+                starBtn.classList.add('starred');
+                showNotification('Email marcado com estrela', 'success');
+            } else {
+                starBtn.classList.remove('starred');
+                showNotification('Estrela removida', 'info');
+            }
+            
+            currentEmail.starred = result.starred;
+        }
+    } catch (error) {
+        showNotification('Erro ao favoritar email', 'error');
+        console.error('Erro:', error);
     }
 }
 
@@ -307,7 +392,7 @@ async function refreshEmails() {
         const result = await response.json();
         
         if (response.ok) {
-            showNotification(`${result.count} emails atualizados`, 'success');
+            showNotification('Emails atualizados', 'success');
             loadEmails();
             loadUserInfo();
         } else {
@@ -315,25 +400,72 @@ async function refreshEmails() {
         }
     } catch (error) {
         showNotification('Erro de conexão', 'error');
-        console.error('Error:', error);
+        console.error('Erro:', error);
     }
 }
 
-function handleSearch(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const emailItems = document.querySelectorAll('.email-item');
+async function handleSearch(e) {
+    const query = e.target.value.trim();
     
-    emailItems.forEach(item => {
-        const sender = item.querySelector('.email-sender').textContent.toLowerCase();
-        const subject = item.querySelector('.email-subject').textContent.toLowerCase();
-        const snippet = item.querySelector('.email-snippet').textContent.toLowerCase();
-        
-        if (sender.includes(searchTerm) || subject.includes(searchTerm) || snippet.includes(searchTerm)) {
-            item.style.display = 'flex';
+    // Limpar timeout anterior
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    // Aguardar 300ms antes de buscar
+    searchTimeout = setTimeout(async () => {
+        if (query.length > 0) {
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+                
+                if (response.ok) {
+                    const results = await response.json();
+                    displayEmails(results);
+                }
+            } catch (error) {
+                console.error('Erro na busca:', error);
+            }
         } else {
-            item.style.display = 'none';
+            loadEmails();
         }
-    });
+    }, 300);
+}
+
+function replyToEmail() {
+    if (!currentEmail) return;
+    
+    document.getElementById('composeTo').value = currentEmail.from;
+    document.getElementById('composeSubject').value = 'Re: ' + currentEmail.subject;
+    document.getElementById('composeBody').value = `\n\n--- Email original ---\n${currentEmail.body}`;
+    
+    showCompose();
+}
+
+function handleKeyboardShortcuts(e) {
+    if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+            case 'c':
+                e.preventDefault();
+                showCompose();
+                break;
+            case 'r':
+                e.preventDefault();
+                refreshEmails();
+                break;
+        }
+    } else if (e.key === 'Escape') {
+        if (document.getElementById('composeModal').classList.contains('active')) {
+            closeCompose();
+        } else if (currentEmail) {
+            backToList();
+        }
+    }
 }
 
 function formatDate(dateString) {
@@ -343,7 +475,7 @@ function formatDate(dateString) {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays === 1) {
-        return 'Hoje';
+        return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     } else if (diffDays === 2) {
         return 'Ontem';
     } else if (diffDays <= 7) {
@@ -356,28 +488,35 @@ function formatDate(dateString) {
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
-    notification.textContent = message;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
+        <span>${message}</span>
+    `;
     
-    document.body.appendChild(notification);
+    document.getElementById('notifications').appendChild(notification);
     
     setTimeout(() => {
-        notification.remove();
+        notification.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
     }, 3000);
 }
 
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        showCompose();
-    } else if (e.key === 'Escape') {
-        if (document.getElementById('composeModal').classList.contains('active')) {
-            closeCompose();
-        } else if (currentEmail) {
-            backToList();
-        }
-    }
-});
+// Funções auxiliares
+function toggleEmailSelection(emailId) {
+    // Implementar seleção múltipla
+    console.log('Email selecionado:', emailId);
+}
 
-console.log('Gmail System carregado com sucesso!');
-console.log('Atalhos: Ctrl+C para escrever, Esc para voltar');
+function markAllAsRead() {
+    // Implementar marcar todos como lidos
+    showNotification('Todos os emails marcados como lidos', 'success');
+}
+
+console.log('Sistema Gmail Independente carregado!');
+console.log('Atalhos: Ctrl+C para escrever, Ctrl+R para atualizar, Esc para voltar');
