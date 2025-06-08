@@ -263,7 +263,8 @@ def send_email():
         'date': datetime.now().isoformat(),
         'read': True,
         'starred': False,
-        'folder': 'sent'
+        'folder': 'sent',
+        'highlighted': data.get('highlighted', False)
     }
     
     emails_db.append(new_email)
@@ -311,14 +312,19 @@ def admin_users():
     
     users_list = []
     for email, user_data in users_db.items():
+        # Garantir que todos os usuários tenham user_id
+        if 'user_id' not in user_data:
+            user_data['user_id'] = f"user_{len(users_db) + 1:03d}"
+            
         users_list.append({
             'email': email,
             'name': user_data['name'],
-            'user_id': user_data['user_id'],
-            'created_at': user_data['created_at'],
+            'user_id': user_data.get('user_id', 'N/A'),
+            'created_at': user_data.get('created_at', datetime.now().isoformat()),
             'is_admin': user_data.get('is_admin', False)
         })
     
+    save_data()  # Salvar as correções
     return jsonify(users_list)
 
 @app.route('/api/admin/system-logs')
@@ -407,6 +413,31 @@ def star_email(email_id):
             return jsonify({'success': True, 'starred': email['starred']})
     
     return jsonify({'error': 'Email não encontrado'}), 404
+
+@app.route('/api/email/<email_id>/highlight', methods=['POST'])
+def highlight_email(email_id):
+    """Marcar/desmarcar email como destacado (apenas admin)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    for email in emails_db:
+        if email.get('id') == email_id:
+            email['highlighted'] = not email.get('highlighted', False)
+            save_data()
+            return jsonify({'success': True, 'highlighted': email['highlighted']})
+    
+    return jsonify({'error': 'Email não encontrado'}), 404
+
+@app.route('/api/admin/highlighted-emails')
+def get_highlighted_emails():
+    """Obter emails destacados (apenas admin)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    highlighted = [email for email in emails_db if email.get('highlighted', False)]
+    return jsonify(sorted(highlighted, key=lambda x: x.get('date', ''), reverse=True))
 
 @app.route('/api/search', methods=['POST'])
 def search_emails():

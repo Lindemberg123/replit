@@ -115,7 +115,13 @@ function updateCounts() {
 async function loadEmails() {
     try {
         showLoading();
-        const response = await fetch(`/api/emails/${currentFolder}`);
+        let response;
+        
+        if (currentFolder === 'highlighted') {
+            response = await fetch('/api/admin/highlighted-emails');
+        } else {
+            response = await fetch(`/api/emails/${currentFolder}`);
+        }
         
         if (response.ok) {
             const emails = await response.json();
@@ -138,17 +144,18 @@ function displayEmails(emails) {
     }
     
     container.innerHTML = emails.map(email => `
-        <div class="email-item ${email.read ? '' : 'unread'}" onclick="openEmail('${email.id}')">
+        <div class="email-item ${email.read ? '' : 'unread'} ${email.highlighted ? 'highlighted' : ''}" onclick="openEmail('${email.id}')">
             <div class="email-checkbox">
                 <input type="checkbox" onchange="toggleEmailSelection('${email.id}')">
             </div>
             <div class="email-star ${email.starred ? 'starred' : ''}" onclick="toggleStar('${email.id}', event)">
                 <i class="fas fa-star"></i>
             </div>
-            <div class="email-sender">${email.from}</div>
+            ${email.highlighted ? '<div class="email-highlight"><i class="fas fa-star-of-life"></i></div>' : ''}
+            <div class="email-sender">${email.from || 'Sem remetente'}</div>
             <div class="email-content-preview">
-                <div class="email-subject">${email.subject}</div>
-                <div class="email-snippet">${email.body.substring(0, 100)}${email.body.length > 100 ? '...' : ''}</div>
+                <div class="email-subject">${email.subject || 'Sem assunto'}</div>
+                <div class="email-snippet">${(email.body || '').substring(0, 100)}${(email.body || '').length > 100 ? '...' : ''}</div>
             </div>
             <div class="email-date">${formatDate(email.date)}</div>
         </div>
@@ -189,16 +196,20 @@ function switchFolder(folder) {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
-    document.querySelector(`.nav-item[data-folder="${folder}"]`).classList.add('active');
+    const folderElement = document.querySelector(`.nav-item[data-folder="${folder}"]`);
+    if (folderElement) {
+        folderElement.classList.add('active');
+    }
     
     // Atualizar título
     const titles = {
         'inbox': 'Caixa de entrada',
         'sent': 'Enviados',
         'drafts': 'Rascunhos',
-        'starred': 'Com estrela'
+        'starred': 'Com estrela',
+        'highlighted': 'Emails Destacados'
     };
-    document.getElementById('folderTitle').textContent = titles[folder];
+    document.getElementById('folderTitle').textContent = titles[folder] || 'Emails';
     
     // Carregar emails
     currentFolder = folder;
@@ -233,24 +244,34 @@ function showEmailView(email) {
     
     // Atualizar botão de estrela
     const starBtn = document.getElementById('starBtn');
-    starBtn.className = email.starred ? 'starred' : '';
+    if (starBtn) {
+        starBtn.className = email.starred ? 'starred' : '';
+    }
+    
+    // Atualizar botão de destaque (apenas para admin)
+    const highlightBtn = document.getElementById('highlightBtn');
+    if (highlightBtn && userInfo && userInfo.is_admin) {
+        highlightBtn.style.display = 'block';
+        highlightBtn.className = email.highlighted ? 'highlighted' : '';
+    }
     
     document.getElementById('emailContent').innerHTML = `
         <div class="email-header">
-            <h1 class="email-title">${email.subject}</h1>
+            <h1 class="email-title">${email.subject || 'Sem assunto'}</h1>
             <div class="email-meta">
                 <div class="email-from">
-                    <strong>De:</strong> ${email.from}
+                    <strong>De:</strong> ${email.from || 'Desconhecido'}
                 </div>
                 <div class="email-to">
-                    <strong>Para:</strong> ${email.to}
+                    <strong>Para:</strong> ${email.to || 'Desconhecido'}
                 </div>
                 <div class="email-date">
                     <strong>Data:</strong> ${formatDate(email.date)}
                 </div>
+                ${email.highlighted ? '<div class="email-highlighted-badge"><i class="fas fa-star-of-life"></i> Email em Destaque</div>' : ''}
             </div>
         </div>
-        <div class="email-body">${email.body.replace(/\n/g, '<br>')}</div>
+        <div class="email-body">${(email.body || '').replace(/\n/g, '<br>')}</div>
     `;
 }
 
@@ -940,6 +961,76 @@ document.addEventListener('DOMContentLoaded', function() {
         broadcastForm.addEventListener('submit', handleBroadcast);
     }
 });
+
+// Função para destacar email (apenas admin)
+async function highlightCurrentEmail() {
+    if (!currentEmail || !userInfo || !userInfo.is_admin) return;
+    
+    try {
+        const response = await fetch(`/api/email/${currentEmail.id}/highlight`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            const highlightBtn = document.getElementById('highlightBtn');
+            
+            if (result.highlighted) {
+                highlightBtn.classList.add('highlighted');
+                showNotification('Email marcado como destaque', 'success');
+            } else {
+                highlightBtn.classList.remove('highlighted');
+                showNotification('Destaque removido', 'info');
+            }
+            
+            currentEmail.highlighted = result.highlighted;
+        }
+    } catch (error) {
+        showNotification('Erro ao destacar email', 'error');
+        console.error('Erro:', error);
+    }
+}
+
+// Atualizar loadUserInfo para mostrar elementos admin
+async function loadUserInfo() {
+    try {
+        const response = await fetch('/api/user-info');
+        if (response.ok) {
+            userInfo = await response.json();
+            
+            const userEmailEl = document.getElementById('userEmail');
+            const userIdEl = document.getElementById('userId');
+            const userProfilePicEl = document.getElementById('userProfilePic');
+            
+            if (userEmailEl) userEmailEl.textContent = userInfo.name;
+            if (userIdEl) userIdEl.textContent = `ID: ${userInfo.user_id}`;
+            
+            if (userInfo.profile_pic && userProfilePicEl) {
+                userProfilePicEl.src = userInfo.profile_pic;
+            }
+            
+            // Mostrar elementos admin
+            if (userInfo.is_admin) {
+                document.querySelectorAll('.admin-item, .admin-only').forEach(el => {
+                    el.style.display = el.tagName === 'BUTTON' ? 'inline-block' : 'flex';
+                });
+            }
+            
+            updateCounts();
+        } else if (response.status === 401) {
+            if (!window.location.pathname.includes('login.html')) {
+                window.location.href = '/login.html';
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar info do usuário:', error);
+        if (!window.location.pathname.includes('login.html')) {
+            setTimeout(() => {
+                window.location.href = '/login.html';
+            }, 2000);
+        }
+    }
+}
 
 console.log('Sistema Gmail Independente carregado!');
 console.log('Atalhos: Ctrl+C para escrever, Ctrl+R para atualizar, Esc para voltar');

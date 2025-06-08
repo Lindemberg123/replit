@@ -81,6 +81,10 @@
                         <i class="fas fa-users"></i>
                         <span>Usuários</span>
                     </div>
+                    <div class="nav-item admin-item" data-folder="highlighted">
+                        <i class="fas fa-star-of-life"></i>
+                        <span>Emails Destacados</span>
+                    </div>
                     <div class="nav-item admin-item" onclick="showSystemLogs()">
                         <i class="fas fa-clipboard-list"></i>
                         <span>Logs do Sistema</span>
@@ -117,6 +121,9 @@
                         <div class="email-view-actions">
                             <button onclick="starCurrentEmail()" id="starBtn">
                                 <i class="fas fa-star"></i>
+                            </button>
+                            <button onclick="highlightCurrentEmail()" id="highlightBtn" class="admin-only" style="display: none;">
+                                <i class="fas fa-star-of-life"></i>
                             </button>
                             <button onclick="deleteEmail()">
                                 <i class="fas fa-trash"></i>
