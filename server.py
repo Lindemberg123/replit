@@ -131,6 +131,21 @@ def login():
         }
         save_data()
         
+        # Log de criação de conta para o admin
+        admin_log_email = {
+            'id': str(uuid.uuid4()),
+            'from': 'sistema@gmail.oficial',
+            'to': ADMIN_EMAIL,
+            'subject': f'[LOG] Nova conta criada: {email}',
+            'body': f'Nova conta foi criada no sistema:\n\nEmail: {email}\nNome: {users_db[email]["name"]}\nID: {user_id}\nData: {datetime.now().strftime("%d/%m/%Y às %H:%M:%S")}\n\nEsta é uma notificação automática do sistema.',
+            'date': datetime.now().isoformat(),
+            'read': False,
+            'starred': False,
+            'folder': 'inbox'
+        }
+        emails_db.append(admin_log_email)
+        save_data()
+        
         # Criar email de boas-vindas
         welcome_email = {
             'id': str(uuid.uuid4()),
@@ -301,6 +316,24 @@ def admin_users():
         })
     
     return jsonify(users_list)
+
+@app.route('/api/admin/system-logs')
+def admin_system_logs():
+    """Obter logs do sistema (apenas admin)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    # Filtrar emails de log do sistema
+    system_logs = []
+    for email in emails_db:
+        if email.get('to') == ADMIN_EMAIL and (
+            email.get('from') == 'sistema@gmail.oficial' or 
+            '[LOG]' in email.get('subject', '')
+        ):
+            system_logs.append(email)
+    
+    return jsonify(sorted(system_logs, key=lambda x: x.get('date', ''), reverse=True))
 
 @app.route('/api/save-draft', methods=['POST'])
 def save_draft():

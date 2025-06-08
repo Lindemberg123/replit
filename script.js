@@ -36,7 +36,16 @@ function setupEventListeners() {
     });
 
     // Formulário de composição
-    document.getElementById('composeForm').addEventListener('submit', handleSendEmail);
+    const composeForm = document.getElementById('composeForm');
+    if (composeForm) {
+        composeForm.addEventListener('submit', handleSendEmail);
+    }
+    
+    // Botão escrever
+    const composeBtn = document.querySelector('.compose-btn');
+    if (composeBtn) {
+        composeBtn.addEventListener('click', showCompose);
+    }
     
     // Busca
     document.getElementById('searchInput').addEventListener('input', handleSearch);
@@ -861,6 +870,49 @@ function displayUsers(users) {
     `).join('');
 }
 
+function showSystemLogs() {
+    document.getElementById('systemLogsModal').classList.add('active');
+    loadSystemLogs();
+}
+
+function closeSystemLogs() {
+    document.getElementById('systemLogsModal').classList.remove('active');
+}
+
+async function loadSystemLogs() {
+    try {
+        const response = await fetch('/api/admin/system-logs');
+        if (response.ok) {
+            const logs = await response.json();
+            displaySystemLogs(logs);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar logs:', error);
+    }
+}
+
+function displaySystemLogs(logs) {
+    const container = document.getElementById('systemLogsList');
+    
+    if (logs.length === 0) {
+        container.innerHTML = '<p>Nenhum log encontrado</p>';
+        return;
+    }
+    
+    container.innerHTML = logs.map(log => `
+        <div class="user-item">
+            <div class="user-info-item">
+                <i class="fas fa-file-alt" style="color: #ff6b35; font-size: 20px; margin-right: 12px;"></i>
+                <div class="user-details-item">
+                    <div class="user-name-item">${log.subject}</div>
+                    <div class="user-email-item">${log.body.substring(0, 100)}${log.body.length > 100 ? '...' : ''}</div>
+                    <div class="user-date-item">${formatDate(log.date)}</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
 // Event listeners para modais admin
 document.addEventListener('DOMContentLoaded', function() {
     const broadcastForm = document.getElementById('broadcastForm');
@@ -872,4 +924,4 @@ document.addEventListener('DOMContentLoaded', function() {
 console.log('Sistema Gmail Independente carregado!');
 console.log('Atalhos: Ctrl+C para escrever, Ctrl+R para atualizar, Esc para voltar');
 console.log('Mobile: Swipe direita para voltar, toque no menu para navegação');
-console.log('Admin: suport.com@gmail.oficial (senha: admin123)');
+console.log('Admin: suport.com@gmail.oficial');
