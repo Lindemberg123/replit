@@ -104,7 +104,7 @@
 
     <div class="endpoint">
         <h3><span class="method">POST</span> /api/external/send-verification</h3>
-        <p>Envia email de verificação de conta para um usuário.</p>
+        <p>Envia email de verificação de conta com sistema avançado.</p>
         
         <div class="params">
             <h4>Parâmetros obrigatórios:</h4>
@@ -114,6 +114,15 @@
                 <tr><td>site_name</td><td>string</td><td>Nome do seu site</td></tr>
                 <tr><td>verification_code</td><td>string</td><td>Código de verificação</td></tr>
                 <tr><td>verification_url</td><td>string</td><td>URL para verificação automática</td></tr>
+            </table>
+            
+            <h4>Parâmetros opcionais (Sistema Avançado):</h4>
+            <table>
+                <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td>priority</td><td>string</td><td>Prioridade: 'normal', 'high', 'critical', 'urgent'</td></tr>
+                <tr><td>type</td><td>string</td><td>Tipo: 'account', 'email', 'phone', 'security', 'two_factor'</td></tr>
+                <tr><td>expires_in</td><td>number</td><td>Tempo de expiração em segundos (padrão: 3600)</td></tr>
+                <tr><td>security_level</td><td>string</td><td>Nível: 'standard', 'enhanced', 'maximum'</td></tr>
             </table>
         </div>
 
@@ -194,6 +203,60 @@ curl -X POST http://sua-url.replit.dev/api/external/send-notification \
     "subject": "Nova mensagem",
     "message": "Você tem uma nova mensagem em nosso sistema!"
   }'
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> /api/external/send-advanced-verification</h3>
+        <p>Envia verificação premium/empresarial com recursos exclusivos.</p>
+        
+        <div class="params">
+            <h4>Parâmetros obrigatórios:</h4>
+            <table>
+                <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td>to_email</td><td>string</td><td>Email do destinatário</td></tr>
+                <tr><td>site_name</td><td>string</td><td>Nome do seu site</td></tr>
+                <tr><td>verification_code</td><td>string</td><td>Código de verificação</td></tr>
+            </table>
+            
+            <h4>Parâmetros opcionais:</h4>
+            <table>
+                <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td>type</td><td>string</td><td>'premium', 'enterprise', 'vip'</td></tr>
+                <tr><td>theme</td><td>string</td><td>'modern', 'classic', 'minimal'</td></tr>
+                <tr><td>language</td><td>string</td><td>Idioma (padrão: 'pt-BR')</td></tr>
+                <tr><td>verification_url</td><td>string</td><td>URL personalizada</td></tr>
+                <tr><td>custom_branding</td><td>boolean</td><td>Ativar marca personalizada</td></tr>
+            </table>
+        </div>
+
+        <div class="code">
+curl -X POST http://sua-url.replit.dev/api/external/send-advanced-verification \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: gmail-verification-api-2024" \
+  -d '{
+    "to_email": "usuario@exemplo.com",
+    "site_name": "Meu Site Premium",
+    "verification_code": "PREMIUM123",
+    "type": "premium",
+    "theme": "modern",
+    "verification_url": "https://meusite.com/premium-verify"
+  }'
+        </div>
+
+        <div class="response">
+            <h4>Resposta de sucesso:</h4>
+            <div class="code">
+{
+  "success": true,
+  "message": "Verificação premium enviada com sucesso",
+  "email_id": "uuid-do-email",
+  "tracking_id": "track123",
+  "type": "premium",
+  "priority": "high",
+  "theme": "modern"
+}
+            </div>
         </div>
     </div>
 

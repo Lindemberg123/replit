@@ -451,7 +451,7 @@ def refresh_emails():
 
 @app.route('/api/external/send-verification', methods=['POST'])
 def send_verification_email():
-    """API para sites externos enviarem emails de verificação"""
+    """API para sites externos enviarem emails de verificação com sistema avançado"""
     data = request.get_json()
     
     # Verificar API key de segurança
@@ -469,41 +469,98 @@ def send_verification_email():
     if to_email not in users_db:
         return jsonify({'error': 'Usuário não encontrado no sistema'}), 404
     
-    # Criar email de verificação
+    # Determinar prioridade e tipo especial
+    priority = data.get('priority', 'normal')  # high, normal, low
+    verification_type = data.get('type', 'account')  # account, email, phone, security
+    expires_in = data.get('expires_in', 3600)  # segundos até expirar
+    
+    # Configurar ícones e cores baseado no tipo
+    type_config = {
+        'account': {'icon': 'fa-user-check', 'color': '#34a853', 'label': 'Verificação de Conta'},
+        'email': {'icon': 'fa-envelope-check', 'color': '#4285f4', 'label': 'Verificação de Email'},
+        'phone': {'icon': 'fa-phone-check', 'color': '#fbbc04', 'label': 'Verificação de Telefone'},
+        'security': {'icon': 'fa-shield-check', 'color': '#ea4335', 'label': 'Verificação de Segurança'},
+        'two_factor': {'icon': 'fa-key', 'color': '#9c27b0', 'label': 'Autenticação 2FA'}
+    }
+    
+    config = type_config.get(verification_type, type_config['account'])
+    
+    # Criar corpo do email mais avançado
+    expiry_time = datetime.now() + timedelta(seconds=expires_in)
+    
+    body = f"""
+🔐 {config['label']} - {data['site_name']}
+
+Olá!
+
+Você solicitou {config['label'].lower()} no site {data['site_name']}.
+
+📋 DETALHES DA VERIFICAÇÃO:
+─────────────────────────────
+🎯 Código: {data['verification_code']}
+⏰ Válido até: {expiry_time.strftime('%d/%m/%Y às %H:%M')}
+🌐 Site: {data['site_name']}
+🔒 Tipo: {config['label']}
+
+🚀 VERIFICAÇÃO RÁPIDA:
+Clique no botão abaixo para verificar automaticamente:
+{data['verification_url']}
+
+💡 INSTRUÇÕES:
+1. Cole o código acima no site
+2. Ou clique no link de verificação
+3. Complete o processo em até {expires_in//60} minutos
+
+⚠️ SEGURANÇA:
+• Se você não solicitou esta verificação, ignore este email
+• Nunca compartilhe este código com terceiros
+• O código expira automaticamente por segurança
+
+📧 Este email foi enviado através do Sistema Gmail Independente
+🆔 ID da Verificação: {str(uuid.uuid4())[:8]}
+    """.strip()
+    
+    # Criar email de verificação avançado
     verification_email = {
         'id': str(uuid.uuid4()),
         'from': f"verificacao@{data['site_name'].lower().replace(' ', '')}.com",
         'to': to_email,
-        'subject': f"Verificação de conta - {data['site_name']}",
-        'body': f"""
-Olá!
-
-Você solicitou verificação de conta no site {data['site_name']}.
-
-Seu código de verificação é: {data['verification_code']}
-
-Ou clique no link abaixo para verificar automaticamente:
-{data['verification_url']}
-
-Se você não solicitou esta verificação, ignore este email.
-
-Este email foi enviado através do Sistema Gmail Independente.
-        """.strip(),
+        'subject': f"🔐 {config['label']} - {data['site_name']}",
+        'body': body,
         'date': datetime.now().isoformat(),
         'read': False,
         'starred': False,
         'folder': 'inbox',
         'verification': True,
-        'site_origin': data['site_name']
+        'verification_advanced': True,
+        'verification_type': verification_type,
+        'verification_priority': priority,
+        'verification_expires': expiry_time.isoformat(),
+        'verification_icon': config['icon'],
+        'verification_color': config['color'],
+        'verification_label': config['label'],
+        'site_origin': data['site_name'],
+        'security_level': data.get('security_level', 'standard'),
+        'auto_expire': True,
+        'tracking_id': str(uuid.uuid4())[:8]
     }
+    
+    # Auto-destacar emails de alta prioridade ou segurança
+    if priority == 'high' or verification_type in ['security', 'two_factor']:
+        verification_email['highlighted'] = True
+        verification_email['priority_highlight'] = True
     
     emails_db.append(verification_email)
     save_data()
     
     return jsonify({
         'success': True,
-        'message': 'Email de verificação enviado',
-        'email_id': verification_email['id']
+        'message': 'Email de verificação avançado enviado',
+        'email_id': verification_email['id'],
+        'tracking_id': verification_email['tracking_id'],
+        'expires_at': verification_email['verification_expires'],
+        'type': verification_type,
+        'priority': priority
     })
 
 @app.route('/api/external/send-reset-password', methods=['POST'])
@@ -611,6 +668,127 @@ Site: {data['site_name']}
         'success': True,
         'message': 'Email de notificação enviado',
         'email_id': notification_email['id']
+    })
+
+@app.route('/api/external/send-advanced-verification', methods=['POST'])
+def send_advanced_verification():
+    """API para enviar verificações avançadas com recursos especiais"""
+    data = request.get_json()
+    
+    # Verificar API key
+    api_key = request.headers.get('X-API-Key')
+    if not api_key or api_key != 'gmail-verification-api-2024':
+        return jsonify({'error': 'API key inválida'}), 401
+    
+    # Validar dados
+    required_fields = ['to_email', 'site_name', 'verification_code']
+    if not data or not all(field in data for field in required_fields):
+        return jsonify({'error': 'Campos obrigatórios: to_email, site_name, verification_code'}), 400
+    
+    to_email = data['to_email']
+    if to_email not in users_db:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    
+    # Configurações avançadas
+    verification_type = data.get('type', 'premium')  # premium, enterprise, vip
+    theme = data.get('theme', 'modern')  # modern, classic, minimal
+    language = data.get('language', 'pt-BR')
+    custom_branding = data.get('custom_branding', False)
+    
+    # Templates por tipo
+    if verification_type == 'premium':
+        subject_emoji = '⭐'
+        priority_level = 'high'
+        highlight_color = '#ff6b35'
+    elif verification_type == 'enterprise':
+        subject_emoji = '🏢'
+        priority_level = 'critical'
+        highlight_color = '#673ab7'
+    elif verification_type == 'vip':
+        subject_emoji = '👑'
+        priority_level = 'urgent'
+        highlight_color = '#ff9800'
+    else:
+        subject_emoji = '🔐'
+        priority_level = 'normal'
+        highlight_color = '#4285f4'
+    
+    # Corpo do email premium
+    advanced_body = f"""
+{subject_emoji} VERIFICAÇÃO {verification_type.upper()} - {data['site_name']}
+
+═══════════════════════════════════════
+    ✨ ACESSO EXCLUSIVO SOLICITADO ✨
+═══════════════════════════════════════
+
+Olá!
+
+Você está acessando recursos {verification_type} no {data['site_name']}.
+
+🎯 CÓDIGO DE VERIFICAÇÃO PREMIUM:
+╔══════════════════════════════════════╗
+║             {data['verification_code']}             ║
+╚══════════════════════════════════════╝
+
+📊 DETALHES DA SESSÃO:
+• Tipo: {verification_type.title()}
+• Nível: {priority_level.title()}
+• Tema: {theme.title()}
+• Site: {data['site_name']}
+• Timestamp: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+
+🚀 ACESSO RÁPIDO:
+{data.get('verification_url', f'https://{data["site_name"].lower()}.com/verify')}
+
+🔒 RECURSOS INCLUSOS:
+• ✅ Verificação instantânea
+• ✅ Suporte prioritário
+• ✅ Acesso a recursos premium
+• ✅ Segurança avançada
+
+⚡ ESTE É UM EMAIL PREMIUM COM ALTA PRIORIDADE
+
+📧 Sistema Gmail Independente - Verificação Avançada
+🆔 Tracking: {str(uuid.uuid4())[:8]}
+    """.strip()
+    
+    # Criar email avançado
+    advanced_email = {
+        'id': str(uuid.uuid4()),
+        'from': f"{verification_type}@{data['site_name'].lower().replace(' ', '')}.com",
+        'to': to_email,
+        'subject': f"{subject_emoji} Verificação {verification_type.title()} - {data['site_name']}",
+        'body': advanced_body,
+        'date': datetime.now().isoformat(),
+        'read': False,
+        'starred': True,  # Auto-favoritar verificações avançadas
+        'folder': 'inbox',
+        'verification': True,
+        'verification_advanced': True,
+        'verification_premium': True,
+        'verification_type': verification_type,
+        'verification_priority': priority_level,
+        'verification_theme': theme,
+        'verification_color': highlight_color,
+        'highlighted': True,  # Auto-destacar
+        'priority_highlight': True,
+        'premium_badge': True,
+        'site_origin': data['site_name'],
+        'tracking_id': str(uuid.uuid4())[:8],
+        'custom_branding': custom_branding
+    }
+    
+    emails_db.append(advanced_email)
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': f'Verificação {verification_type} enviada com sucesso',
+        'email_id': advanced_email['id'],
+        'tracking_id': advanced_email['tracking_id'],
+        'type': verification_type,
+        'priority': priority_level,
+        'theme': theme
     })
 
 @app.route('/api/external/check-user', methods=['POST'])

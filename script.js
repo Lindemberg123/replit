@@ -146,9 +146,65 @@ function displayEmails(emails) {
     container.innerHTML = emails.map(email => {
         let emailClass = email.read ? '' : 'unread';
         if (email.highlighted) emailClass += ' highlighted';
-        if (email.verification) emailClass += ' verification';
+        if (email.verification) {
+            emailClass += ' verification';
+            
+            // Classes específicas para verificações avançadas
+            if (email.verification_advanced) emailClass += ' advanced';
+            if (email.verification_premium) emailClass += ' premium';
+            if (email.verification_type === 'enterprise') emailClass += ' enterprise';
+            if (email.verification_type === 'vip') emailClass += ' vip';
+            
+            // Classes de prioridade
+            emailClass += ` ${getVerificationPriorityClass(email)}`;
+        }
         if (email.password_reset) emailClass += ' password-reset';
         if (email.notification) emailClass += ' notification';
+        
+        // Determinar ícone e cor do highlight baseado no tipo
+        let highlightIcon = 'fa-star-of-life';
+        let highlightColor = '#ff6b35';
+        let highlightContent = '';
+        
+        if (email.verification) {
+            if (email.verification_premium) {
+                highlightIcon = 'fa-crown';
+                highlightColor = '#ff6b35';
+            } else if (email.verification_type === 'enterprise') {
+                highlightIcon = 'fa-building';
+                highlightColor = '#673ab7';
+            } else if (email.verification_type === 'vip') {
+                highlightIcon = 'fa-star';
+                highlightColor = '#ff9800';
+            } else {
+                highlightIcon = 'fa-shield-alt';
+                highlightColor = '#34a853';
+            }
+            
+            // Adicionar indicador de expiração
+            if (email.verification_expires && isEmailExpired(email)) {
+                highlightContent = `<div class="email-highlight" style="background: #ea4335;"><i class="fas fa-clock"></i></div>`;
+            } else {
+                highlightContent = `<div class="email-highlight" style="background: ${highlightColor};"><i class="fas ${highlightIcon}"></i></div>`;
+            }
+        }
+        
+        // Snippet personalizado para verificações
+        let snippet = (email.body || '').substring(0, 100);
+        if (email.verification && email.verification_type) {
+            snippet = `🔐 ${formatVerificationType(email.verification_type)} - ${snippet}`;
+        }
+        
+        // Data com indicador de prioridade
+        let dateDisplay = formatDate(email.date);
+        if (email.verification_priority && email.verification_priority !== 'normal') {
+            const priorityEmojis = {
+                'high': '⚡',
+                'critical': '🚨',
+                'urgent': '🔥'
+            };
+            dateDisplay = `${priorityEmojis[email.verification_priority] || ''} ${dateDisplay}`;
+        }
         
         return `
         <div class="email-item ${emailClass}" onclick="openEmail('${email.id}')">
@@ -158,16 +214,16 @@ function displayEmails(emails) {
             <div class="email-star ${email.starred ? 'starred' : ''}" onclick="toggleStar('${email.id}', event)">
                 <i class="fas fa-star"></i>
             </div>
-            ${email.highlighted ? '<div class="email-highlight"><i class="fas fa-star-of-life"></i></div>' : ''}
-            ${email.verification ? '<div class="email-highlight" style="background: #34a853;"><i class="fas fa-shield-alt"></i></div>' : ''}
+            ${email.highlighted && !email.verification ? `<div class="email-highlight"><i class="fas ${highlightIcon}"></i></div>` : ''}
+            ${highlightContent}
             ${email.password_reset ? '<div class="email-highlight" style="background: #fbbc04; color: #333;"><i class="fas fa-key"></i></div>' : ''}
-            ${email.notification ? '<div class="email-highlight" style="background: #4285f4;"><i class="fas fa-bell"></i></div>' : ''}
+            ${email.notification && !email.verification ? '<div class="email-highlight" style="background: #4285f4;"><i class="fas fa-bell"></i></div>' : ''}
             <div class="email-sender">${email.from || 'Sem remetente'}</div>
             <div class="email-content-preview">
                 <div class="email-subject">${email.subject || 'Sem assunto'}</div>
-                <div class="email-snippet">${(email.body || '').substring(0, 100)}${(email.body || '').length > 100 ? '...' : ''}</div>
+                <div class="email-snippet">${snippet}${snippet.length > 100 ? '...' : ''}</div>
             </div>
-            <div class="email-date">${formatDate(email.date)}</div>
+            <div class="email-date">${dateDisplay}</div>
         </div>
         `;
     }).join('');
@@ -273,12 +329,111 @@ function showEmailView(email) {
     }
     
     let badges = '';
+    let specialHeader = '';
+    
+    // Headers especiais para verificações avançadas
+    if (email.verification_premium) {
+        specialHeader = `
+            <div class="premium-verification-header">
+                <i class="fas fa-crown"></i>
+                <div>
+                    <strong>Verificação Premium</strong>
+                    <div style="font-size: 12px; opacity: 0.9;">
+                        Tipo: ${email.verification_type || 'Premium'} | 
+                        Prioridade: ${email.verification_priority || 'Alta'} |
+                        ID: ${email.tracking_id || 'N/A'}
+                    </div>
+                </div>
+                <div class="verification-status-indicator ${isEmailExpired(email) ? 'expired' : ''}"></div>
+            </div>
+        `;
+    } else if (email.verification_type === 'enterprise') {
+        specialHeader = `
+            <div class="enterprise-verification-header">
+                <i class="fas fa-building"></i>
+                <div>
+                    <strong>Verificação Empresarial</strong>
+                    <div style="font-size: 12px; opacity: 0.9;">
+                        Nível Corporativo | Segurança Avançada | ID: ${email.tracking_id || 'N/A'}
+                    </div>
+                </div>
+                <div class="verification-status-indicator ${isEmailExpired(email) ? 'expired' : ''}"></div>
+            </div>
+        `;
+    } else if (email.verification_type === 'vip') {
+        specialHeader = `
+            <div class="vip-verification-header">
+                <i class="fas fa-star"></i>
+                <div>
+                    <strong>Verificação VIP</strong>
+                    <div style="font-size: 12px; opacity: 0.8;">
+                        Acesso Exclusivo | Prioridade Máxima | ID: ${email.tracking_id || 'N/A'}
+                    </div>
+                </div>
+                <div class="verification-status-indicator ${isEmailExpired(email) ? 'expired' : ''}"></div>
+            </div>
+        `;
+    }
+    
+    // Badges tradicionais
     if (email.highlighted) {
         badges += '<div class="email-highlighted-badge"><i class="fas fa-star-of-life"></i> Email em Destaque</div>';
     }
+    
     if (email.verification) {
-        badges += '<div class="email-verification-badge"><i class="fas fa-shield-alt"></i> Email de Verificação</div>';
+        let verificationClass = 'email-verification-badge';
+        let verificationIcon = 'fa-shield-alt';
+        let verificationText = 'Email de Verificação';
+        
+        if (email.verification_advanced) {
+            verificationClass += ' advanced';
+        }
+        
+        if (email.verification_premium) {
+            verificationClass = 'email-verification-badge premium';
+            verificationIcon = 'fa-crown';
+            verificationText = `Verificação ${email.verification_type?.toUpperCase() || 'Premium'}`;
+        }
+        
+        badges += `<div class="${verificationClass}"><i class="fas ${verificationIcon}"></i> ${verificationText}</div>`;
+        
+        // Badge de expiração se aplicável
+        if (email.verification_expires) {
+            const expiryDate = new Date(email.verification_expires);
+            const now = new Date();
+            const isExpired = now > expiryDate;
+            const timeLeft = isExpired ? 'Expirado' : getTimeUntilExpiry(expiryDate);
+            
+            badges += `
+                <div class="email-verification-badge ${isExpired ? 'expired' : 'active'}" style="background: ${isExpired ? '#ea4335' : '#34a853'};">
+                    <i class="fas ${isExpired ? 'fa-clock' : 'fa-hourglass-half'}"></i> 
+                    ${timeLeft}
+                </div>
+            `;
+        }
+        
+        // Badge de prioridade
+        if (email.verification_priority && email.verification_priority !== 'normal') {
+            const priorityColors = {
+                'high': '#ff9800',
+                'critical': '#ea4335',
+                'urgent': '#9c27b0'
+            };
+            const priorityIcons = {
+                'high': 'fa-exclamation',
+                'critical': 'fa-exclamation-triangle',
+                'urgent': 'fa-bolt'
+            };
+            
+            badges += `
+                <div class="email-verification-badge" style="background: ${priorityColors[email.verification_priority]};">
+                    <i class="fas ${priorityIcons[email.verification_priority]}"></i> 
+                    Prioridade ${email.verification_priority.toUpperCase()}
+                </div>
+            `;
+        }
     }
+    
     if (email.password_reset) {
         badges += '<div class="email-reset-badge"><i class="fas fa-key"></i> Recuperação de Senha</div>';
     }
@@ -288,8 +443,18 @@ function showEmailView(email) {
     if (email.site_origin) {
         badges += `<div class="email-notification-badge"><i class="fas fa-external-link-alt"></i> Via: ${email.site_origin}</div>`;
     }
+    
+    // Badge de segurança
+    if (email.security_level && email.security_level !== 'standard') {
+        badges += `
+            <div class="email-verification-badge" style="background: #673ab7;">
+                <i class="fas fa-shield-check"></i> Segurança ${email.security_level.toUpperCase()}
+            </div>
+        `;
+    }
 
     document.getElementById('emailContent').innerHTML = `
+        ${specialHeader}
         <div class="email-header">
             <h1 class="email-title">${email.subject || 'Sem assunto'}</h1>
             <div class="email-meta">
@@ -1093,7 +1258,79 @@ async function loadUserInfo() {
     }
 }
 
+// Funções auxiliares para verificações avançadas
+function isEmailExpired(email) {
+    if (!email.verification_expires) return false;
+    const expiryDate = new Date(email.verification_expires);
+    const now = new Date();
+    return now > expiryDate;
+}
+
+function getTimeUntilExpiry(expiryDate) {
+    const now = new Date();
+    const diffMs = expiryDate - now;
+    
+    if (diffMs <= 0) return 'Expirado';
+    
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 0) return `${diffDays}d`;
+    if (diffHours > 0) return `${diffHours}h`;
+    if (diffMins > 0) return `${diffMins}m`;
+    return 'Expirando';
+}
+
+function getVerificationPriorityClass(email) {
+    if (!email.verification_priority) return '';
+    
+    const priorityClasses = {
+        'high': 'verification-priority-high',
+        'critical': 'verification-priority-critical',
+        'urgent': 'verification-priority-urgent'
+    };
+    
+    return priorityClasses[email.verification_priority] || '';
+}
+
+function formatVerificationType(type) {
+    const types = {
+        'account': 'Conta',
+        'email': 'Email',
+        'phone': 'Telefone',
+        'security': 'Segurança',
+        'two_factor': '2FA',
+        'premium': 'Premium',
+        'enterprise': 'Empresarial',
+        'vip': 'VIP'
+    };
+    
+    return types[type] || type;
+}
+
+// Auto-refresh para verificações com expiração
+function startVerificationAutoRefresh() {
+    setInterval(() => {
+        // Atualizar apenas se houver emails de verificação visíveis
+        const currentEmailsContainer = document.getElementById('emailsContainer');
+        const hasVerificationEmails = currentEmailsContainer && 
+            currentEmailsContainer.innerHTML.includes('verification-status-indicator');
+        
+        if (hasVerificationEmails) {
+            // Recarregar emails silenciosamente para atualizar status de expiração
+            loadEmails();
+        }
+    }, 30000); // A cada 30 segundos
+}
+
+// Inicializar auto-refresh quando o app carregar
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(startVerificationAutoRefresh, 5000); // Iniciar após 5s
+});
+
 console.log('Sistema Gmail Independente carregado!');
 console.log('Atalhos: Ctrl+C para escrever, Ctrl+R para atualizar, Esc para voltar');
 console.log('Mobile: Swipe direita para voltar, toque no menu para navegação');
 console.log('Admin: suport.com@gmail.oficial');
+console.log('🔐 Sistema de Verificação Avançada ativo!');

@@ -430,6 +430,53 @@ body {
     align-items: center;
     gap: 4px;
     margin-top: 8px;
+    box-shadow: 0 2px 4px rgba(52, 168, 83, 0.3);
+}
+
+.email-verification-badge.advanced {
+    background: linear-gradient(135deg, #34a853, #4caf50);
+    animation: pulse 2s infinite;
+}
+
+.email-verification-badge.premium {
+    background: linear-gradient(135deg, #ff6b35, #ff8a65);
+    color: white;
+    box-shadow: 0 4px 8px rgba(255, 107, 53, 0.4);
+}
+
+.email-verification-badge.enterprise {
+    background: linear-gradient(135deg, #673ab7, #9c27b0);
+    color: white;
+    box-shadow: 0 4px 8px rgba(103, 58, 183, 0.4);
+}
+
+.email-verification-badge.vip {
+    background: linear-gradient(135deg, #ff9800, #ffc107);
+    color: #333;
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.email-verification-badge.vip::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
 .email-reset-badge {
@@ -443,6 +490,7 @@ body {
     align-items: center;
     gap: 4px;
     margin-top: 8px;
+    box-shadow: 0 2px 4px rgba(251, 188, 4, 0.3);
 }
 
 .email-notification-badge {
@@ -456,11 +504,47 @@ body {
     align-items: center;
     gap: 4px;
     margin-top: 8px;
+    box-shadow: 0 2px 4px rgba(66, 133, 244, 0.3);
 }
 
 /* Indicadores na lista de emails */
 .email-item.verification {
     border-left: 4px solid #34a853;
+    position: relative;
+}
+
+.email-item.verification.advanced {
+    border-left: 6px solid #34a853;
+    background: linear-gradient(90deg, rgba(52, 168, 83, 0.1) 0%, rgba(255, 255, 255, 1) 5%);
+}
+
+.email-item.verification.premium {
+    border-left: 6px solid #ff6b35;
+    background: linear-gradient(90deg, rgba(255, 107, 53, 0.15) 0%, rgba(255, 255, 255, 1) 5%);
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.1);
+}
+
+.email-item.verification.enterprise {
+    border-left: 6px solid #673ab7;
+    background: linear-gradient(90deg, rgba(103, 58, 183, 0.15) 0%, rgba(255, 255, 255, 1) 5%);
+    box-shadow: 0 2px 8px rgba(103, 58, 183, 0.1);
+}
+
+.email-item.verification.vip {
+    border-left: 6px solid #ff9800;
+    background: linear-gradient(90deg, rgba(255, 152, 0, 0.15) 0%, rgba(255, 255, 255, 1) 5%);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.1);
+    position: relative;
+}
+
+.email-item.verification.vip::before {
+    content: '👑';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0.7;
 }
 
 .email-item.password-reset {
@@ -469,6 +553,104 @@ body {
 
 .email-item.notification {
     border-left: 4px solid #4285f4;
+}
+
+/* Indicadores especiais para verificações avançadas */
+.verification-priority-high {
+    animation: priorityBlink 2s infinite;
+}
+
+.verification-priority-critical::after {
+    content: '🚨';
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    animation: bounce 1s infinite;
+}
+
+.verification-priority-urgent::after {
+    content: '⚡';
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    animation: flash 1.5s infinite;
+}
+
+@keyframes priorityBlink {
+    0%, 50% { border-left-color: #ff6b35; }
+    51%, 100% { border-left-color: #34a853; }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+@keyframes flash {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0.5; }
+}
+
+/* Badges premium no cabeçalho do email */
+.premium-verification-header {
+    background: linear-gradient(135deg, #ff6b35, #ff8a65);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.enterprise-verification-header {
+    background: linear-gradient(135deg, #673ab7, #9c27b0);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3);
+}
+
+.vip-verification-header {
+    background: linear-gradient(135deg, #ff9800, #ffc107);
+    color: #333;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.verification-status-indicator {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #34a853;
+    animation: statusPulse 2s infinite;
+}
+
+.verification-status-indicator.expired {
+    background: #ea4335;
+    animation: none;
+}
+
+@keyframes statusPulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+    100% { opacity: 1; transform: scale(1); }
 }
 
 #highlightBtn.highlighted {
