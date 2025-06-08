@@ -154,6 +154,11 @@ def docs():
     """Rota principal de documentação da API"""
     return send_from_directory('.', 'api_docs.html')
 
+@app.route('/reset-password')
+def reset_password_page():
+    """Página de redefinição de senha"""
+    return send_from_directory('.', 'reset-password.html')
+
 @app.route('/<path:filename>')
 def serve_static(filename):
     """Servir arquivos estáticos"""

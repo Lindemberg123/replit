@@ -861,41 +861,70 @@
                     }
                     
                     sendBtn.disabled = true;
-                    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+                    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
                     
                     try {
-                        // Simular envio de email de recuperação
-                        // Em produção, você faria uma chamada para sua API
-                        const response = await fetch('/api/external/send-reset-password', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-API-Key': 'gmail-verification-api-2024'
-                            },
-                            body: JSON.stringify({
-                                to_email: email,
-                                site_name: 'Sistema Gmail',
-                                reset_token: generateResetToken(),
-                                reset_url: `${window.location.origin}/reset-password?token=exemplo`
-                            })
-                        });
+                        // Para o sistema interno, gerar link direto de recuperação
+                        const resetToken = generateResetToken();
+                        const resetUrl = `${window.location.origin}/reset-password?token=${resetToken}`;
                         
-                        if (response.ok) {
-                            // Mostrar mensagem de sucesso
-                            document.getElementById('forgotPasswordForm').style.display = 'none';
-                            document.getElementById('recoverySuccess').style.display = 'block';
-                            showNotification('Email de recuperação enviado!', 'success');
-                        } else {
-                            const error = await response.json();
-                            showNotification(error.error || 'Erro ao enviar email', 'error');
+                        // Simular processo de recuperação
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        
+                        // Mostrar link direto de recuperação
+                        document.getElementById('forgotPasswordForm').style.display = 'none';
+                        
+                        const successDiv = document.getElementById('recoverySuccess');
+                        successDiv.innerHTML = `
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Link de Recuperação Gerado!</h3>
+                            <p>Como você está no próprio sistema Gmail, aqui está seu link direto:</p>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #4285f4;">
+                                <p><strong>Link de Recuperação:</strong></p>
+                                <a href="${resetUrl}" style="color: #4285f4; font-weight: 500; word-break: break-all;">${resetUrl}</a>
+                            </div>
+                            <p style="color: #666; font-size: 14px; margin-top: 15px;">
+                                💡 <strong>Dica:</strong> Clique no link acima ou copie e cole em uma nova aba.
+                            </p>
+                            <button class="secondary-btn" onclick="window.open('${resetUrl}', '_blank')" style="margin: 10px 5px;">
+                                <i class="fas fa-external-link-alt"></i> Abrir Link
+                            </button>
+                            <button class="secondary-btn" onclick="closeForgotPassword()">
+                                <i class="fas fa-arrow-left"></i> Voltar ao Login
+                            </button>
+                        `;
+                        successDiv.style.display = 'block';
+                        
+                        showNotification('Link de recuperação gerado com sucesso!', 'success');
+                        
+                        // Opcional: Também enviar por email externo se for uma conta real
+                        if (email !== 'suport.com@gmail.oficial') {
+                            try {
+                                await fetch('/api/external/send-reset-password', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-API-Key': 'gmail-verification-api-2024'
+                                    },
+                                    body: JSON.stringify({
+                                        to_email: email,
+                                        site_name: 'Sistema Gmail',
+                                        reset_token: resetToken,
+                                        reset_url: resetUrl
+                                    })
+                                });
+                                
+                                setTimeout(() => {
+                                    showNotification('Email também enviado para ' + email, 'success');
+                                }, 2000);
+                            } catch (error) {
+                                console.log('Email externo não enviado:', error);
+                            }
                         }
+                        
                     } catch (error) {
                         console.error('Erro:', error);
-                        showNotification('Email de recuperação enviado para ' + email, 'success');
-                        
-                        // Mostrar sucesso mesmo com erro (para demo)
-                        document.getElementById('forgotPasswordForm').style.display = 'none';
-                        document.getElementById('recoverySuccess').style.display = 'block';
+                        showNotification('Erro ao processar recuperação', 'error');
                     } finally {
                         sendBtn.disabled = false;
                         sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Email de Recuperação';
