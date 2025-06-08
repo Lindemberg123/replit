@@ -144,5 +144,18 @@
     "starred": false,
     "folder": "sent",
     "highlighted": false
+  },
+  {
+    "id": "fdd52d9b-d955-451f-95ac-34fa04d45866",
+    "from": "suporte@sistemagmail.nay.com",
+    "to": "suport.com@gmail.oficial",
+    "subject": "Recuperação de senha - Sistema Gmail",
+    "body": "Olá!\n\nVocê solicitou recuperação de senha no site Sistema Gmail.\n\nClique no link abaixo para redefinir sua senha:\nhttps://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev/reset-password?token=exemplo\n\nToken de recuperação: 4y1ammnh7lgmbnzk5dq\n\nEste link expira em 24 horas.\n\nSe você não solicitou esta recuperação, ignore este email e sua conta permanecerá segura.\n\nEste email foi enviado através do Sistema Gmail Independente.",
+    "date": "2025-06-08T18:17:47.003917",
+    "read": true,
+    "starred": false,
+    "folder": "inbox",
+    "password_reset": true,
+    "site_origin": "Sistema Gmail"
   }
 ]
