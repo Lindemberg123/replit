@@ -14,10 +14,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function initializeApp() {
     try {
+        // Verificar se não estamos na página de login
+        if (window.location.pathname.includes('login.html')) {
+            return;
+        }
+        
         await loadUserInfo();
-        await loadEmails();
-        setupEventListeners();
-        showNotification('Gmail carregado com sucesso!', 'success');
+        
+        // Só carregar emails se o usuário estiver logado
+        if (userInfo) {
+            await loadEmails();
+            setupEventListeners();
+            showNotification('Gmail carregado com sucesso!', 'success');
+        }
     } catch (error) {
         console.error('Erro ao inicializar:', error);
         showNotification('Erro ao carregar Gmail', 'error');
@@ -59,26 +68,39 @@ async function loadUserInfo() {
         const response = await fetch('/api/user-info');
         if (response.ok) {
             userInfo = await response.json();
-            document.getElementById('userEmail').textContent = userInfo.name;
-            document.getElementById('userId').textContent = `ID: ${userInfo.user_id}`;
             
-            if (userInfo.profile_pic) {
-                document.getElementById('userProfilePic').src = userInfo.profile_pic;
+            const userEmailEl = document.getElementById('userEmail');
+            const userIdEl = document.getElementById('userId');
+            const userProfilePicEl = document.getElementById('userProfilePic');
+            const adminPanelEl = document.getElementById('adminPanel');
+            
+            if (userEmailEl) userEmailEl.textContent = userInfo.name;
+            if (userIdEl) userIdEl.textContent = `ID: ${userInfo.user_id}`;
+            
+            if (userInfo.profile_pic && userProfilePicEl) {
+                userProfilePicEl.src = userInfo.profile_pic;
             }
             
             // Mostrar painel admin se for administrador
-            if (userInfo.is_admin) {
-                document.getElementById('adminPanel').style.display = 'block';
+            if (userInfo.is_admin && adminPanelEl) {
+                adminPanelEl.style.display = 'block';
             }
             
             updateCounts();
         } else if (response.status === 401) {
-            // Usuário não logado, redirecionar para login
-            window.location.href = '/login.html';
+            // Usuário não logado, redirecionar para login apenas se não estiver já na página de login
+            if (!window.location.pathname.includes('login.html')) {
+                window.location.href = '/login.html';
+            }
         }
     } catch (error) {
         console.error('Erro ao carregar info do usuário:', error);
-        window.location.href = '/login.html';
+        // Não redirecionar automaticamente em caso de erro de rede
+        if (!window.location.pathname.includes('login.html')) {
+            setTimeout(() => {
+                window.location.href = '/login.html';
+            }, 2000);
+        }
     }
 }
 
@@ -672,40 +694,39 @@ function adjustForOrientation() {
     }
 }
 
-// Sobrescrever função showEmailView para mobile
-const originalShowEmailView = showEmailView;
-function showEmailView(email) {
-    originalShowEmailView(email);
+// Função mobile para email view
+function showEmailViewMobile(email) {
+    showEmailView(email);
     
     // Adicionar comportamento mobile
     if (window.innerWidth <= 768) {
         const emailView = document.getElementById('emailView');
-        emailView.classList.add('active');
-        
-        // Scroll para o topo
-        emailView.scrollTop = 0;
+        if (emailView) {
+            emailView.classList.add('active');
+            emailView.scrollTop = 0;
+        }
     }
 }
 
-// Sobrescrever função backToList para mobile
-const originalBackToList = backToList;
-function backToList() {
+// Função mobile para voltar à lista
+function backToListMobile() {
     if (window.innerWidth <= 768) {
         const emailView = document.getElementById('emailView');
-        emailView.classList.remove('active');
+        if (emailView) {
+            emailView.classList.remove('active');
+        }
         
         setTimeout(() => {
-            originalBackToList();
+            backToList();
         }, 300);
     } else {
-        originalBackToList();
+        backToList();
     }
 }
 
-// Sobrescrever função showCompose para mobile
-const originalShowCompose = showCompose;
-function showCompose() {
-    originalShowCompose();
+// Função mobile para compose
+function showComposeMobile() {
+    showCompose();
     
     // Comportamento mobile
     if (window.innerWidth <= 768) {
@@ -717,7 +738,6 @@ function showCompose() {
             const toField = document.getElementById('composeTo');
             if (toField) {
                 toField.focus();
-                // Scroll para o campo visível
                 toField.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }, 100);

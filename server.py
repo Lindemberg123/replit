@@ -45,23 +45,27 @@ def save_data():
 
 def create_admin_user():
     """Cria usuário administrador"""
-    if ADMIN_EMAIL not in users_db:
-        users_db[ADMIN_EMAIL] = {
-            'email': ADMIN_EMAIL,
-            'name': 'Administrador Sistema',
-            'password': hashlib.md5('admin123'.encode()).hexdigest(),
-            'created_at': datetime.now().isoformat(),
-            'profile_pic': 'https://ui-avatars.com/api/?name=Admin&background=ff0000&color=fff',
-            'is_admin': True,
-            'user_id': 'admin_001'
-        }
-        save_data()
+    # Sempre atualizar o usuário admin para garantir que existe
+    users_db[ADMIN_EMAIL] = {
+        'email': ADMIN_EMAIL,
+        'name': 'Administrador Sistema',
+        'password': hashlib.md5('admin123'.encode()).hexdigest(),
+        'created_at': datetime.now().isoformat() if ADMIN_EMAIL not in users_db else users_db[ADMIN_EMAIL].get('created_at', datetime.now().isoformat()),
+        'profile_pic': 'https://ui-avatars.com/api/?name=Admin&background=ff0000&color=fff',
+        'is_admin': True,
+        'user_id': 'admin_001'
+    }
+    save_data()
 
 def get_current_user():
     """Obtém usuário atual da sessão"""
     user_id = session.get('user_id')
-    if user_id:
-        for email, user in users_db.items():
+    user_email = session.get('user_email')
+    
+    if user_id and user_email:
+        # Verificar se o usuário ainda existe no banco
+        if user_email in users_db:
+            user = users_db[user_email]
             if user.get('user_id') == user_id:
                 return user
     return None
