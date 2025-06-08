@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Externa - Sistema Gmail</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #ea4335, #4285f4);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #4285f4;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .method {
+            background: #ea4335;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .params {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .response {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        h2 {
+            color: #4285f4;
+            border-bottom: 2px solid #e8f0fe;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        table th {
+            background: #f1f3f4;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📧 API Externa - Sistema Gmail</h1>
+        <p>API para integração com sites externos para envio de emails de verificação, recuperação e notificações</p>
+    </div>
+
+    <div class="warning">
+        <h3>⚠️ Importante - Autenticação</h3>
+        <p>Todas as requisições devem incluir o header:</p>
+        <code>X-API-Key: gmail-verification-api-2024</code>
+        <p>Sem este header, as requisições serão rejeitadas.</p>
+    </div>
+
+    <h2>📋 Endpoints Disponíveis</h2>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> /api/external/send-verification</h3>
+        <p>Envia email de verificação de conta para um usuário.</p>
+        
+        <div class="params">
+            <h4>Parâmetros obrigatórios:</h4>
+            <table>
+                <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td>to_email</td><td>string</td><td>Email do destinatário</td></tr>
+                <tr><td>site_name</td><td>string</td><td>Nome do seu site</td></tr>
+                <tr><td>verification_code</td><td>string</td><td>Código de verificação</td></tr>
+                <tr><td>verification_url</td><td>string</td><td>URL para verificação automática</td></tr>
+            </table>
+        </div>
+
+        <div class="code">
+curl -X POST http://sua-url.replit.dev/api/external/send-verification \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: gmail-verification-api-2024" \
+  -d '{
+    "to_email": "usuario@exemplo.com",
+    "site_name": "Meu Site",
+    "verification_code": "123456",
+    "verification_url": "https://meusite.com/verify?token=abc123"
+  }'
+        </div>
+
+        <div class="response">
+            <h4>Resposta de sucesso:</h4>
+            <div class="code">
+{
+  "success": true,
+  "message": "Email de verificação enviado",
+  "email_id": "uuid-do-email"
+}
+            </div>
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> /api/external/send-reset-password</h3>
+        <p>Envia email de recuperação de senha.</p>
+        
+        <div class="params">
+            <h4>Parâmetros obrigatórios:</h4>
+            <table>
+                <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td>to_email</td><td>string</td><td>Email do destinatário</td></tr>
+                <tr><td>site_name</td><td>string</td><td>Nome do seu site</td></tr>
+                <tr><td>reset_token</td><td>string</td><td>Token de recuperação</td></tr>
+                <tr><td>reset_url</td><td>string</td><td>URL para redefinir senha</td></tr>
+            </table>
+        </div>
+
+        <div class="code">
+curl -X POST http://sua-url.replit.dev/api/external/send-reset-password \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: gmail-verification-api-2024" \
+  -d '{
+    "to_email": "usuario@exemplo.com",
+    "site_name": "Meu Site",
+    "reset_token": "token123",
+    "reset_url": "https://meusite.com/reset?token=token123"
+  }'
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> /api/external/send-notification</h3>
+        <p>Envia email de notificação personalizada.</p>
+        
+        <div class="params">
+            <h4>Parâmetros obrigatórios:</h4>
+            <table>
+                <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td>to_email</td><td>string</td><td>Email do destinatário</td></tr>
+                <tr><td>site_name</td><td>string</td><td>Nome do seu site</td></tr>
+                <tr><td>subject</td><td>string</td><td>Assunto do email</td></tr>
+                <tr><td>message</td><td>string</td><td>Conteúdo da mensagem</td></tr>
+            </table>
+        </div>
+
+        <div class="code">
+curl -X POST http://sua-url.replit.dev/api/external/send-notification \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: gmail-verification-api-2024" \
+  -d '{
+    "to_email": "usuario@exemplo.com",
+    "site_name": "Meu Site",
+    "subject": "Nova mensagem",
+    "message": "Você tem uma nova mensagem em nosso sistema!"
+  }'
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">POST</span> /api/external/check-user</h3>
+        <p>Verifica se um usuário existe no sistema antes de enviar emails.</p>
+        
+        <div class="params">
+            <h4>Parâmetros obrigatórios:</h4>
+            <table>
+                <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td>email</td><td>string</td><td>Email para verificar</td></tr>
+            </table>
+        </div>
+
+        <div class="code">
+curl -X POST http://sua-url.replit.dev/api/external/check-user \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: gmail-verification-api-2024" \
+  -d '{
+    "email": "usuario@exemplo.com"
+  }'
+        </div>
+
+        <div class="response">
+            <h4>Resposta:</h4>
+            <div class="code">
+{
+  "exists": true,
+  "user_info": {
+    "name": "Nome do Usuário",
+    "user_id": "user_001",
+    "created_at": "2025-01-01T00:00:00"
+  }
+}
+            </div>
+        </div>
+    </div>
+
+    <h2>🔧 Exemplos de Integração</h2>
+
+    <h3>PHP</h3>
+    <div class="code">
+&lt;?php
+function sendVerificationEmail($email, $code, $url) {
+    $data = [
+        'to_email' => $email,
+        'site_name' => 'Meu Site PHP',
+        'verification_code' => $code,
+        'verification_url' => $url
+    ];
+    
+    $options = [
+        'http' => [
+            'header' => [
+                'Content-Type: application/json',
+                'X-API-Key: gmail-verification-api-2024'
+            ],
+            'method' => 'POST',
+            'content' => json_encode($data)
+        ]
+    ];
+    
+    $response = file_get_contents(
+        'http://sua-url.replit.dev/api/external/send-verification',
+        false,
+        stream_context_create($options)
+    );
+    
+    return json_decode($response, true);
+}
+?&gt;
+    </div>
+
+    <h3>JavaScript (Node.js)</h3>
+    <div class="code">
+const axios = require('axios');
+
+async function sendVerificationEmail(email, code, url) {
+    try {
+        const response = await axios.post(
+            'http://sua-url.replit.dev/api/external/send-verification',
+            {
+                to_email: email,
+                site_name: 'Meu Site JS',
+                verification_code: code,
+                verification_url: url
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'gmail-verification-api-2024'
+                }
+            }
+        );
+        
+        return response.data;
+    } catch (error) {
+        console.error('Erro:', error.response.data);
+        return null;
+    }
+}
+    </div>
+
+    <h3>Python</h3>
+    <div class="code">
+import requests
+
+def send_verification_email(email, code, url):
+    data = {
+        'to_email': email,
+        'site_name': 'Meu Site Python',
+        'verification_code': code,
+        'verification_url': url
+    }
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': 'gmail-verification-api-2024'
+    }
+    
+    response = requests.post(
+        'http://sua-url.replit.dev/api/external/send-verification',
+        json=data,
+        headers=headers
+    )
+    
+    return response.json()
+    </div>
+
+    <h2>📊 Códigos de Resposta</h2>
+    <table>
+        <tr><th>Código</th><th>Descrição</th></tr>
+        <tr><td>200</td><td>Sucesso</td></tr>
+        <tr><td>400</td><td>Dados inválidos ou faltando</td></tr>
+        <tr><td>401</td><td>API key inválida</td></tr>
+        <tr><td>404</td><td>Usuário não encontrado</td></tr>
+        <tr><td>500</td><td>Erro interno do servidor</td></tr>
+    </table>
+
+    <div class="warning">
+        <h3>🔒 Segurança</h3>
+        <ul>
+            <li>Mantenha sua API key em segredo</li>
+            <li>Use HTTPS em produção</li>
+            <li>Valide sempre os dados antes de enviar</li>
+            <li>Implemente rate limiting no seu lado</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <p><strong>Sistema Gmail Independente - API Externa</strong></p>
+        <p>Para suporte técnico, entre em contato através do sistema</p>
+    </div>
+</body>
+</html>

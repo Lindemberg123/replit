@@ -143,8 +143,15 @@ function displayEmails(emails) {
         return;
     }
     
-    container.innerHTML = emails.map(email => `
-        <div class="email-item ${email.read ? '' : 'unread'} ${email.highlighted ? 'highlighted' : ''}" onclick="openEmail('${email.id}')">
+    container.innerHTML = emails.map(email => {
+        let emailClass = email.read ? '' : 'unread';
+        if (email.highlighted) emailClass += ' highlighted';
+        if (email.verification) emailClass += ' verification';
+        if (email.password_reset) emailClass += ' password-reset';
+        if (email.notification) emailClass += ' notification';
+        
+        return `
+        <div class="email-item ${emailClass}" onclick="openEmail('${email.id}')">
             <div class="email-checkbox">
                 <input type="checkbox" onchange="toggleEmailSelection('${email.id}')">
             </div>
@@ -152,6 +159,9 @@ function displayEmails(emails) {
                 <i class="fas fa-star"></i>
             </div>
             ${email.highlighted ? '<div class="email-highlight"><i class="fas fa-star-of-life"></i></div>' : ''}
+            ${email.verification ? '<div class="email-highlight" style="background: #34a853;"><i class="fas fa-shield-alt"></i></div>' : ''}
+            ${email.password_reset ? '<div class="email-highlight" style="background: #fbbc04; color: #333;"><i class="fas fa-key"></i></div>' : ''}
+            ${email.notification ? '<div class="email-highlight" style="background: #4285f4;"><i class="fas fa-bell"></i></div>' : ''}
             <div class="email-sender">${email.from || 'Sem remetente'}</div>
             <div class="email-content-preview">
                 <div class="email-subject">${email.subject || 'Sem assunto'}</div>
@@ -159,7 +169,8 @@ function displayEmails(emails) {
             </div>
             <div class="email-date">${formatDate(email.date)}</div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function showLoading() {
@@ -261,6 +272,23 @@ function showEmailView(email) {
         highlightBtn.className = email.highlighted ? 'highlighted' : '';
     }
     
+    let badges = '';
+    if (email.highlighted) {
+        badges += '<div class="email-highlighted-badge"><i class="fas fa-star-of-life"></i> Email em Destaque</div>';
+    }
+    if (email.verification) {
+        badges += '<div class="email-verification-badge"><i class="fas fa-shield-alt"></i> Email de Verificação</div>';
+    }
+    if (email.password_reset) {
+        badges += '<div class="email-reset-badge"><i class="fas fa-key"></i> Recuperação de Senha</div>';
+    }
+    if (email.notification) {
+        badges += '<div class="email-notification-badge"><i class="fas fa-bell"></i> Notificação</div>';
+    }
+    if (email.site_origin) {
+        badges += `<div class="email-notification-badge"><i class="fas fa-external-link-alt"></i> Via: ${email.site_origin}</div>`;
+    }
+
     document.getElementById('emailContent').innerHTML = `
         <div class="email-header">
             <h1 class="email-title">${email.subject || 'Sem assunto'}</h1>
@@ -274,7 +302,7 @@ function showEmailView(email) {
                 <div class="email-date">
                     <strong>Data:</strong> ${formatDate(email.date)}
                 </div>
-                ${email.highlighted ? '<div class="email-highlighted-badge"><i class="fas fa-star-of-life"></i> Email em Destaque</div>' : ''}
+                ${badges}
             </div>
         </div>
         <div class="email-body">${(email.body || '').replace(/\n/g, '<br>')}</div>

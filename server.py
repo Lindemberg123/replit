@@ -109,6 +109,10 @@ def index():
 def login_page():
     return send_from_directory('.', 'login.html')
 
+@app.route('/api-docs')
+def api_docs():
+    return send_from_directory('.', 'api_docs.html')
+
 @app.route('/<path:filename>')
 def serve_static(filename):
     """Servir arquivos estáticos"""
@@ -444,6 +448,200 @@ def refresh_emails():
     inbox_emails = get_user_emails(user_email, 'inbox')
     
     return jsonify({'success': True, 'count': len(inbox_emails)})
+
+@app.route('/api/external/send-verification', methods=['POST'])
+def send_verification_email():
+    """API para sites externos enviarem emails de verificação"""
+    data = request.get_json()
+    
+    # Verificar API key de segurança
+    api_key = request.headers.get('X-API-Key')
+    if not api_key or api_key != 'gmail-verification-api-2024':
+        return jsonify({'error': 'API key inválida'}), 401
+    
+    # Validar dados obrigatórios
+    required_fields = ['to_email', 'site_name', 'verification_code', 'verification_url']
+    if not data or not all(field in data for field in required_fields):
+        return jsonify({'error': 'Campos obrigatórios: to_email, site_name, verification_code, verification_url'}), 400
+    
+    # Verificar se o usuário existe no sistema
+    to_email = data['to_email']
+    if to_email not in users_db:
+        return jsonify({'error': 'Usuário não encontrado no sistema'}), 404
+    
+    # Criar email de verificação
+    verification_email = {
+        'id': str(uuid.uuid4()),
+        'from': f"verificacao@{data['site_name'].lower().replace(' ', '')}.com",
+        'to': to_email,
+        'subject': f"Verificação de conta - {data['site_name']}",
+        'body': f"""
+Olá!
+
+Você solicitou verificação de conta no site {data['site_name']}.
+
+Seu código de verificação é: {data['verification_code']}
+
+Ou clique no link abaixo para verificar automaticamente:
+{data['verification_url']}
+
+Se você não solicitou esta verificação, ignore este email.
+
+Este email foi enviado através do Sistema Gmail Independente.
+        """.strip(),
+        'date': datetime.now().isoformat(),
+        'read': False,
+        'starred': False,
+        'folder': 'inbox',
+        'verification': True,
+        'site_origin': data['site_name']
+    }
+    
+    emails_db.append(verification_email)
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Email de verificação enviado',
+        'email_id': verification_email['id']
+    })
+
+@app.route('/api/external/send-reset-password', methods=['POST'])
+def send_reset_password_email():
+    """API para sites externos enviarem emails de recuperação de senha"""
+    data = request.get_json()
+    
+    # Verificar API key
+    api_key = request.headers.get('X-API-Key')
+    if not api_key or api_key != 'gmail-verification-api-2024':
+        return jsonify({'error': 'API key inválida'}), 401
+    
+    # Validar dados
+    required_fields = ['to_email', 'site_name', 'reset_token', 'reset_url']
+    if not data or not all(field in data for field in required_fields):
+        return jsonify({'error': 'Campos obrigatórios: to_email, site_name, reset_token, reset_url'}), 400
+    
+    to_email = data['to_email']
+    if to_email not in users_db:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    
+    # Criar email de recuperação
+    reset_email = {
+        'id': str(uuid.uuid4()),
+        'from': f"suporte@{data['site_name'].lower().replace(' ', '')}.com",
+        'to': to_email,
+        'subject': f"Recuperação de senha - {data['site_name']}",
+        'body': f"""
+Olá!
+
+Você solicitou recuperação de senha no site {data['site_name']}.
+
+Clique no link abaixo para redefinir sua senha:
+{data['reset_url']}
+
+Token de recuperação: {data['reset_token']}
+
+Este link expira em 24 horas.
+
+Se você não solicitou esta recuperação, ignore este email e sua conta permanecerá segura.
+
+Este email foi enviado através do Sistema Gmail Independente.
+        """.strip(),
+        'date': datetime.now().isoformat(),
+        'read': False,
+        'starred': False,
+        'folder': 'inbox',
+        'password_reset': True,
+        'site_origin': data['site_name']
+    }
+    
+    emails_db.append(reset_email)
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Email de recuperação enviado',
+        'email_id': reset_email['id']
+    })
+
+@app.route('/api/external/send-notification', methods=['POST'])
+def send_notification_email():
+    """API para sites externos enviarem emails de notificação"""
+    data = request.get_json()
+    
+    # Verificar API key
+    api_key = request.headers.get('X-API-Key')
+    if not api_key or api_key != 'gmail-verification-api-2024':
+        return jsonify({'error': 'API key inválida'}), 401
+    
+    # Validar dados
+    required_fields = ['to_email', 'site_name', 'subject', 'message']
+    if not data or not all(field in data for field in required_fields):
+        return jsonify({'error': 'Campos obrigatórios: to_email, site_name, subject, message'}), 400
+    
+    to_email = data['to_email']
+    if to_email not in users_db:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    
+    # Criar email de notificação
+    notification_email = {
+        'id': str(uuid.uuid4()),
+        'from': f"notificacoes@{data['site_name'].lower().replace(' ', '')}.com",
+        'to': to_email,
+        'subject': f"[{data['site_name']}] {data['subject']}",
+        'body': f"""
+{data['message']}
+
+---
+Este email foi enviado através do Sistema Gmail Independente.
+Site: {data['site_name']}
+        """.strip(),
+        'date': datetime.now().isoformat(),
+        'read': False,
+        'starred': False,
+        'folder': 'inbox',
+        'notification': True,
+        'site_origin': data['site_name']
+    }
+    
+    emails_db.append(notification_email)
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Email de notificação enviado',
+        'email_id': notification_email['id']
+    })
+
+@app.route('/api/external/check-user', methods=['POST'])
+def check_user_exists():
+    """API para verificar se um usuário existe no sistema"""
+    data = request.get_json()
+    
+    # Verificar API key
+    api_key = request.headers.get('X-API-Key')
+    if not api_key or api_key != 'gmail-verification-api-2024':
+        return jsonify({'error': 'API key inválida'}), 401
+    
+    email = data.get('email')
+    if not email:
+        return jsonify({'error': 'Email é obrigatório'}), 400
+    
+    exists = email in users_db
+    user_info = None
+    
+    if exists:
+        user = users_db[email]
+        user_info = {
+            'name': user['name'],
+            'user_id': user['user_id'],
+            'created_at': user.get('created_at')
+        }
+    
+    return jsonify({
+        'exists': exists,
+        'user_info': user_info
+    })
 
 if __name__ == '__main__':
     print("📧 Sistema Gmail Independente iniciado!")
