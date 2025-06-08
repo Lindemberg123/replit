@@ -45,10 +45,10 @@ const SPONSORS = {
 };
 
 let sponsorSettings = {
-    showTopBanner: true,
-    showSidebarAds: true,
-    showEmailInserts: true,
-    showFooter: true,
+    showTopBanner: false,
+    showSidebarAds: false,
+    showEmailInserts: false,
+    showFooter: false,
     closedBanners: JSON.parse(localStorage.getItem('gmail_closed_banners') || '[]')
 };
 
@@ -82,7 +82,6 @@ async function initializeApp() {
             await loadEmails();
             setupEventListeners();
             showNotification('Gmail carregado com sucesso!', 'success');
-            showSponsorBanner(); // Mostra o banner de patrocinador
         }
     } catch (error) {
         console.error('Erro ao inicializar:', error);
@@ -285,28 +284,7 @@ function displayEmails(emails) {
         `;
     }).join('');
 
-        // Inserir propaganda no meio da lista de emails
-        if (sponsorSettings.showEmailInserts && emails.length > 3) {
-            const sponsorKeys = Object.keys(SPONSORS);
-            const randomSponsorKey = sponsorKeys[Math.floor(Math.random() * sponsorKeys.length)];
-            const sponsor = SPONSORS[randomSponsorKey];
-
-            const adHtml = `
-                <div class="email-item sponsor-ad">
-                    <div class="sponsor-content">
-                        <img src="${sponsor.logo}" alt="${sponsor.name} Logo" class="sponsor-logo">
-                        <div class="sponsor-text">
-                            <h3>${sponsor.name}</h3>
-                            <p>${sponsor.tagline}</p>
-                            <a href="${sponsor.url}" class="sponsor-cta" style="background-color: ${sponsor.color};">${sponsor.cta}</a>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Inserir após o terceiro email
-            container.innerHTML = container.innerHTML.replace(/(<\/div>)/, `$1${adHtml}`);
-        }
+        // Sistema de anúncios desabilitado
 }
 
 function showLoading() {
@@ -551,7 +529,6 @@ function showEmailView(email) {
             </div>
         </div>
         <div class="email-body">${(email.body || '').replace(/\n/g, '<br>')}</div>
-        ${sponsorSettings.showFooter ? getSponsorFooter() : ''}
     `;
 }
 
