@@ -18,6 +18,11 @@ USERS_FILE = 'users.json'
 EMAILS_FILE = 'emails.json'
 ADMIN_EMAIL = 'suport.com@gmail.oficial'
 
+# Sistema de domínios personalizados
+MAIN_DOMAIN = 'naymail.com'
+BUSINESS_DOMAIN = 'nay.com'
+registered_companies = {}  # Empresas registradas com subdomínios
+
 # Armazenamento em memória
 users_db = {}
 emails_db = []
@@ -74,6 +79,36 @@ def get_current_user():
                 return user
     return None
 
+def generate_business_email(company_name, email_type='noreply'):
+    """Gera email empresarial baseado no nome da empresa"""
+    clean_name = company_name.lower().replace(' ', '').replace('-', '').replace('_', '')
+    return f"{email_type}@{clean_name}.{BUSINESS_DOMAIN}"
+
+def register_company_domain(company_name, company_info):
+    """Registra uma empresa para usar subdomínio personalizado"""
+    domain_key = company_name.lower().replace(' ', '')
+    registered_companies[domain_key] = {
+        'name': company_name,
+        'subdomain': f"{domain_key}.{BUSINESS_DOMAIN}",
+        'registered_at': datetime.now().isoformat(),
+        'email_types': ['noreply', 'suporte', 'verificacao', 'notificacoes'],
+        'info': company_info
+    }
+    save_companies_data()
+    return registered_companies[domain_key]
+
+def save_companies_data():
+    """Salva dados das empresas registradas"""
+    with open('companies.json', 'w', encoding='utf-8') as f:
+        json.dump(registered_companies, f, ensure_ascii=False, indent=2)
+
+def load_companies_data():
+    """Carrega dados das empresas registradas"""
+    global registered_companies
+    if os.path.exists('companies.json'):
+        with open('companies.json', 'r', encoding='utf-8') as f:
+            registered_companies = json.load(f)
+
 def get_user_emails(user_email, folder='inbox'):
     """Obtém emails do usuário por pasta"""
     user_emails = []
@@ -95,6 +130,7 @@ def get_user_emails(user_email, folder='inbox'):
 
 # Inicializar dados
 load_data()
+load_companies_data()
 create_admin_user()
 
 @app.route('/')
@@ -529,10 +565,21 @@ Clique no botão abaixo para verificar automaticamente:
 🆔 ID da Verificação: {str(uuid.uuid4())[:8]}
     """.strip()
     
+    # Gerar email de origem baseado no sistema de domínios
+    company_name = data['site_name']
+    from_email = generate_business_email(company_name, 'verificacao')
+    
+    # Registrar empresa se não existir
+    if company_name.lower().replace(' ', '') not in registered_companies:
+        register_company_domain(company_name, {
+            'type': 'verification_service',
+            'auto_registered': True
+        })
+    
     # Criar email de verificação avançado
     verification_email = {
         'id': str(uuid.uuid4()),
-        'from': f"verificacao@{data['site_name'].lower().replace(' ', '')}.com",
+        'from': from_email,
         'to': to_email,
         'subject': f"🔐 {config['label']} - {data['site_name']}",
         'body': body,
@@ -591,10 +638,21 @@ def send_reset_password_email():
     if to_email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
     
+    # Gerar email de origem usando sistema de domínios
+    company_name = data['site_name']
+    from_email = generate_business_email(company_name, 'suporte')
+    
+    # Registrar empresa se não existir
+    if company_name.lower().replace(' ', '') not in registered_companies:
+        register_company_domain(company_name, {
+            'type': 'password_recovery',
+            'auto_registered': True
+        })
+    
     # Criar email de recuperação
     reset_email = {
         'id': str(uuid.uuid4()),
-        'from': f"suporte@{data['site_name'].lower().replace(' ', '')}.com",
+        'from': from_email,
         'to': to_email,
         'subject': f"Recuperação de senha - {data['site_name']}",
         'body': f"""
@@ -649,10 +707,21 @@ def send_notification_email():
     if to_email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
     
+    # Gerar email de origem usando sistema de domínios
+    company_name = data['site_name']
+    from_email = generate_business_email(company_name, 'notificacoes')
+    
+    # Registrar empresa se não existir
+    if company_name.lower().replace(' ', '') not in registered_companies:
+        register_company_domain(company_name, {
+            'type': 'notifications',
+            'auto_registered': True
+        })
+    
     # Criar email de notificação
     notification_email = {
         'id': str(uuid.uuid4()),
-        'from': f"notificacoes@{data['site_name'].lower().replace(' ', '')}.com",
+        'from': from_email,
         'to': to_email,
         'subject': f"[{data['site_name']}] {data['subject']}",
         'body': f"""
@@ -761,10 +830,22 @@ Você está acessando recursos {verification_type} no {data['site_name']}.
 🆔 Tracking: {str(uuid.uuid4())[:8]}
     """.strip()
     
+    # Gerar email de origem usando sistema de domínios
+    company_name = data['site_name']
+    from_email = generate_business_email(company_name, verification_type)
+    
+    # Registrar empresa se não existir
+    if company_name.lower().replace(' ', '') not in registered_companies:
+        register_company_domain(company_name, {
+            'type': 'advanced_verification',
+            'verification_type': verification_type,
+            'auto_registered': True
+        })
+    
     # Criar email avançado
     advanced_email = {
         'id': str(uuid.uuid4()),
-        'from': f"{verification_type}@{data['site_name'].lower().replace(' ', '')}.com",
+        'from': from_email,
         'to': to_email,
         'subject': f"{subject_emoji} Verificação {verification_type.title()} - {data['site_name']}",
         'body': advanced_body,
@@ -925,6 +1006,85 @@ def get_recent_accounts():
         'recent_accounts': recent_accounts,
         'total': len(recent_accounts)
     })
+
+@app.route('/api/admin/companies')
+def get_registered_companies():
+    """API para obter empresas registradas (apenas admin)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    companies_list = []
+    for key, company in registered_companies.items():
+        companies_list.append({
+            'key': key,
+            'name': company['name'],
+            'subdomain': company['subdomain'],
+            'registered_at': company['registered_at'],
+            'email_types': company['email_types'],
+            'auto_registered': company.get('info', {}).get('auto_registered', False)
+        })
+    
+    return jsonify({
+        'success': True,
+        'companies': companies_list,
+        'total': len(companies_list),
+        'main_domain': MAIN_DOMAIN,
+        'business_domain': BUSINESS_DOMAIN
+    })
+
+@app.route('/api/admin/register-company', methods=['POST'])
+def manual_register_company():
+    """API para registrar empresa manualmente (apenas admin)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    data = request.get_json()
+    company_name = data.get('company_name')
+    
+    if not company_name:
+        return jsonify({'error': 'Nome da empresa é obrigatório'}), 400
+    
+    company_info = {
+        'type': 'manual_registration',
+        'registered_by': user['email'],
+        'auto_registered': False,
+        'description': data.get('description', ''),
+        'contact_email': data.get('contact_email', '')
+    }
+    
+    registered_company = register_company_domain(company_name, company_info)
+    
+    return jsonify({
+        'success': True,
+        'message': f'Empresa {company_name} registrada com sucesso',
+        'company': registered_company
+    })
+
+@app.route('/api/domain-info/<domain>')
+def get_domain_info(domain):
+    """API para obter informações sobre um domínio específico"""
+    # Verificar se é domínio principal
+    if domain.endswith(f'.{MAIN_DOMAIN}'):
+        return jsonify({
+            'type': 'main_domain',
+            'domain': MAIN_DOMAIN,
+            'description': 'Domínio principal para usuários'
+        })
+    
+    # Verificar se é subdomínio empresarial
+    if domain.endswith(f'.{BUSINESS_DOMAIN}'):
+        company_key = domain.replace(f'.{BUSINESS_DOMAIN}', '')
+        if company_key in registered_companies:
+            company = registered_companies[company_key]
+            return jsonify({
+                'type': 'business_domain',
+                'company': company,
+                'available_emails': [f"{email_type}@{domain}" for email_type in company['email_types']]
+            })
+    
+    return jsonify({'error': 'Domínio não encontrado'}), 404
 
 if __name__ == '__main__':
     print("📧 Sistema Gmail Independente iniciado!")

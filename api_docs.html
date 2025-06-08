@@ -395,6 +395,100 @@ curl -X POST http://sua-url.replit.dev/api/quick-login/validate \
         </div>
     </div>
 
+    <h2>🌐 Sistema de Domínios Personalizados</h2>
+
+    <div class="endpoint">
+        <h3>📧 Estrutura de Domínios</h3>
+        <p>O sistema utiliza uma estrutura hierárquica de domínios:</p>
+        
+        <div class="params">
+            <h4>Domínio Principal:</h4>
+            <table>
+                <tr><th>Tipo</th><th>Formato</th><th>Uso</th></tr>
+                <tr><td>Usuários</td><td>nome@naymail.com</td><td>Contas de usuários normais</td></tr>
+            </table>
+            
+            <h4>Subdomínios Empresariais:</h4>
+            <table>
+                <tr><th>Tipo</th><th>Formato</th><th>Uso</th></tr>
+                <tr><td>Verificação</td><td>verificacao@empresa.nay.com</td><td>Emails de verificação</td></tr>
+                <tr><td>Suporte</td><td>suporte@empresa.nay.com</td><td>Recuperação de senha</td></tr>
+                <tr><td>Notificações</td><td>notificacoes@empresa.nay.com</td><td>Emails informativos</td></tr>
+                <tr><td>No-Reply</td><td>noreply@empresa.nay.com</td><td>Emails automáticos</td></tr>
+            </table>
+        </div>
+
+        <div class="response">
+            <h4>Exemplos de domínios gerados automaticamente:</h4>
+            <div class="code">
+- "Minha Empresa" → verificacao@minhaempresa.nay.com
+- "Tech Solutions" → suporte@techsolutions.nay.com
+- "E-commerce Store" → notificacoes@ecommercestore.nay.com
+            </div>
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> /api/admin/companies</h3>
+        <p>Listar todas as empresas registradas (apenas admin).</p>
+        
+        <div class="code">
+curl -X GET http://sua-url.replit.dev/api/admin/companies \
+  -H "X-API-Key: gmail-verification-api-2024"
+        </div>
+
+        <div class="response">
+            <h4>Resposta:</h4>
+            <div class="code">
+{
+  "success": true,
+  "companies": [
+    {
+      "key": "minhaempresa",
+      "name": "Minha Empresa",
+      "subdomain": "minhaempresa.nay.com",
+      "registered_at": "2025-01-01T00:00:00",
+      "email_types": ["noreply", "suporte", "verificacao", "notificacoes"],
+      "auto_registered": true
+    }
+  ],
+  "total": 1,
+  "main_domain": "naymail.com",
+  "business_domain": "nay.com"
+}
+            </div>
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method">GET</span> /api/domain-info/empresa.nay.com</h3>
+        <p>Obter informações sobre um domínio específico.</p>
+        
+        <div class="code">
+curl -X GET http://sua-url.replit.dev/api/domain-info/minhaempresa.nay.com
+        </div>
+
+        <div class="response">
+            <h4>Resposta:</h4>
+            <div class="code">
+{
+  "type": "business_domain",
+  "company": {
+    "name": "Minha Empresa",
+    "subdomain": "minhaempresa.nay.com",
+    "registered_at": "2025-01-01T00:00:00"
+  },
+  "available_emails": [
+    "noreply@minhaempresa.nay.com",
+    "suporte@minhaempresa.nay.com",
+    "verificacao@minhaempresa.nay.com",
+    "notificacoes@minhaempresa.nay.com"
+  ]
+}
+            </div>
+        </div>
+    </div>
+
     <h2>🔧 Exemplos de Integração</h2>
 
     <h3>PHP</h3>

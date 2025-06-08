@@ -1,0 +1,14 @@
+
+{
+  "exemplo": {
+    "name": "Empresa Exemplo",
+    "subdomain": "exemplo.nay.com",
+    "registered_at": "2025-01-08T00:00:00",
+    "email_types": ["noreply", "suporte", "verificacao", "notificacoes"],
+    "info": {
+      "type": "demonstration",
+      "auto_registered": false,
+      "description": "Empresa de demonstração do sistema"
+    }
+  }
+}
