@@ -376,6 +376,102 @@
             line-height: 1.6;
         }
 
+        /* Estilos para Re-Captcha Visual */
+        .visual-captcha {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+
+        .captcha-question {
+            margin-bottom: 15px;
+        }
+
+        .captcha-question p {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .captcha-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .captcha-option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 24px;
+        }
+
+        .captcha-option:hover {
+            border-color: #4285f4;
+            background: #e8f0fe;
+        }
+
+        .captcha-option.selected {
+            border-color: #4285f4;
+            background: #4285f4;
+            color: white;
+        }
+
+        .captcha-option.correct {
+            border-color: #34a853;
+            background: #34a853;
+            color: white;
+        }
+
+        .captcha-option.wrong {
+            border-color: #ea4335;
+            background: #ea4335;
+            color: white;
+        }
+
+        .captcha-refresh {
+            background: transparent;
+            border: 1px solid #4285f4;
+            color: #4285f4;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .captcha-refresh:hover {
+            background: #4285f4;
+            color: white;
+        }
+
+        .token-login-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .token-login-info h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .token-login-info p {
+            color: #856404;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
         @media (max-width: 480px) {
             .login-container {
                 padding: 30px 20px;
@@ -397,6 +493,15 @@
             .modal-header,
             .modal-body {
                 padding: 20px;
+            }
+
+            .captcha-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .captcha-option {
+                font-size: 20px;
+                padding: 12px;
             }
         }
     </style>
@@ -469,6 +574,53 @@
 
                 <button type="button" class="secondary-btn" onclick="showRegisterForm()" style="margin-top: 10px;">
                     <i class="fas fa-user-plus"></i> Criar Nova Conta Segura
+                </button>
+
+                <button type="button" class="secondary-btn" onclick="showTokenLogin()" style="margin-top: 10px;">
+                    <i class="fas fa-key"></i> Login com Token
+                </button>
+            </form>
+        </div>
+
+        <!-- Formulário de Login por Token -->
+        <div id="tokenLoginForm" class="new-account-form">
+            <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4285f4;">
+                <h4 style="color: #1976d2; margin-bottom: 10px;">
+                    <i class="fas fa-key"></i> Login com Token de Acesso
+                </h4>
+                <p style="color: #1976d2; font-size: 14px;">
+                    Use o token gerado pelo sistema para acessar sua conta rapidamente.
+                </p>
+            </div>
+
+            <form id="tokenAuthForm">
+                <div class="form-group">
+                    <label for="userToken">Token de Acesso:</label>
+                    <input type="text" id="userToken" required placeholder="Cole seu token aqui" minlength="32">
+                </div>
+
+                <!-- Re-Captcha Visual -->
+                <div class="form-group">
+                    <label>Verificação de Segurança:</label>
+                    <div id="visualCaptcha" class="visual-captcha">
+                        <div class="captcha-question">
+                            <p id="captchaQuestion">Carregando pergunta...</p>
+                            <div class="captcha-options" id="captchaOptions">
+                                <!-- Opções serão inseridas aqui -->
+                            </div>
+                        </div>
+                        <button type="button" class="captcha-refresh" onclick="generateNewCaptcha()">
+                            <i class="fas fa-sync-alt"></i> Nova pergunta
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="login-btn" id="tokenLoginBtn">
+                    <i class="fas fa-shield-check"></i> Verificar e Entrar
+                </button>
+
+                <button type="button" class="secondary-btn" onclick="backToNormalLogin()" style="margin-top: 10px;">
+                    <i class="fas fa-arrow-left"></i> Voltar ao Login Normal
                 </button>
             </form>
         </div>
@@ -1185,6 +1337,209 @@
             if (e.key === 'Escape') {
                 closeForgotPassword();
                 closeRegister();
+            }
+        });
+
+        // Sistema de Login por Token com Re-Captcha
+        let currentCaptchaAnswer = '';
+        let captchaVerified = false;
+
+        const captchaQuestions = [
+            {
+                question: "Selecione todos os NÚMEROS:",
+                options: ['🔢', 'A', '3', 'B', '7', '🅰️', '1', 'C'],
+                correct: ['🔢', '3', '7', '1']
+            },
+            {
+                question: "Selecione todas as FRUTAS:",
+                options: ['🍎', '🚗', '🍌', '🏠', '🍊', '⚽', '🍇', '💻'],
+                correct: ['🍎', '🍌', '🍊', '🍇']
+            },
+            {
+                question: "Selecione todos os ANIMAIS:",
+                options: ['🐶', '🏢', '🐱', '🍕', '🐼', '📱', '🦁', '🌳'],
+                correct: ['🐶', '🐱', '🐼', '🦁']
+            },
+            {
+                question: "Selecione todos os VEÍCULOS:",
+                options: ['🚗', '🏠', '✈️', '🍎', '🚲', '📚', '🚂', '🌟'],
+                correct: ['🚗', '✈️', '🚲', '🚂']
+            },
+            {
+                question: "Selecione todas as CORES (palavras):",
+                options: ['AZUL', '123', 'VERDE', 'ABC', 'VERMELHO', 'XYZ', 'AMARELO', '456'],
+                correct: ['AZUL', 'VERDE', 'VERMELHO', 'AMARELO']
+            },
+            {
+                question: "Selecione todos os OBJETOS DA CASA:",
+                options: ['🏠', '🚗', '🛏️', '🌳', '🪑', '⚽', '🚪', '🌊'],
+                correct: ['🏠', '🛏️', '🪑', '🚪']
+            }
+        ];
+
+        function showTokenLogin() {
+            document.getElementById('savedAccountsSection').style.display = 'none';
+            document.getElementById('newAccountForm').classList.remove('active');
+            document.getElementById('tokenLoginForm').classList.add('active');
+            document.getElementById('backBtn').classList.add('active');
+            document.getElementById('quickLoginBtn').style.display = 'none';
+            
+            generateNewCaptcha();
+            document.getElementById('userToken').focus();
+        }
+
+        function backToNormalLogin() {
+            document.getElementById('tokenLoginForm').classList.remove('active');
+            document.getElementById('backBtn').classList.remove('active');
+            
+            if (savedAccounts.length > 0) {
+                document.getElementById('savedAccountsSection').style.display = 'block';
+            } else {
+                showNewAccountForm();
+            }
+        }
+
+        function generateNewCaptcha() {
+            captchaVerified = false;
+            const randomQuestion = captchaQuestions[Math.floor(Math.random() * captchaQuestions.length)];
+            
+            document.getElementById('captchaQuestion').textContent = randomQuestion.question;
+            
+            const optionsContainer = document.getElementById('captchaOptions');
+            optionsContainer.innerHTML = '';
+            
+            // Embaralhar opções
+            const shuffledOptions = [...randomQuestion.options].sort(() => Math.random() - 0.5);
+            
+            shuffledOptions.forEach(option => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'captcha-option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectCaptchaOption(optionDiv, option, randomQuestion.correct);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            currentCaptchaAnswer = randomQuestion.correct;
+        }
+
+        let selectedOptions = [];
+
+        function selectCaptchaOption(element, option, correctAnswers) {
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                selectedOptions = selectedOptions.filter(opt => opt !== option);
+            } else {
+                element.classList.add('selected');
+                selectedOptions.push(option);
+            }
+
+            // Verificar se todas as opções corretas foram selecionadas
+            if (selectedOptions.length === correctAnswers.length) {
+                const isCorrect = correctAnswers.every(correct => selectedOptions.includes(correct)) &&
+                                selectedOptions.every(selected => correctAnswers.includes(selected));
+
+                // Mostrar resultado visual
+                document.querySelectorAll('.captcha-option').forEach(opt => {
+                    const optionText = opt.textContent;
+                    if (correctAnswers.includes(optionText)) {
+                        opt.classList.add('correct');
+                    } else if (selectedOptions.includes(optionText)) {
+                        opt.classList.add('wrong');
+                    }
+                    opt.style.pointerEvents = 'none';
+                });
+
+                if (isCorrect) {
+                    captchaVerified = true;
+                    showNotification('Re-captcha verificado com sucesso! ✅', 'success');
+                } else {
+                    captchaVerified = false;
+                    showNotification('Re-captcha incorreto. Tente novamente! ❌', 'error');
+                    setTimeout(() => {
+                        generateNewCaptcha();
+                        selectedOptions = [];
+                    }, 2000);
+                }
+            }
+        }
+
+        // Formulário de login por token
+        document.addEventListener('DOMContentLoaded', function() {
+            const tokenAuthForm = document.getElementById('tokenAuthForm');
+            if (tokenAuthForm) {
+                tokenAuthForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const token = document.getElementById('userToken').value.trim();
+                    
+                    if (!token) {
+                        showNotification('Por favor, digite seu token', 'error');
+                        return;
+                    }
+
+                    if (token.length < 32) {
+                        showNotification('Token deve ter pelo menos 32 caracteres', 'error');
+                        return;
+                    }
+
+                    if (!captchaVerified) {
+                        showNotification('Complete a verificação de segurança primeiro', 'error');
+                        return;
+                    }
+                    
+                    const tokenLoginBtn = document.getElementById('tokenLoginBtn');
+                    tokenLoginBtn.disabled = true;
+                    tokenLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando token...';
+                    
+                    try {
+                        const response = await fetch('/api/login-with-token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                token: token,
+                                captcha_verified: captchaVerified
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            showNotification(`Bem-vindo, ${result.user.name}! Login por token realizado.`, 'success');
+                            
+                            // Salvar conta se não existir
+                            const existingAccountIndex = savedAccounts.findIndex(acc => acc.email === result.user.email);
+                            if (existingAccountIndex === -1) {
+                                const accountData = {
+                                    email: result.user.email,
+                                    name: result.user.name,
+                                    user_id: result.user.user_id,
+                                    last_login: new Date().toISOString(),
+                                    token_login: true
+                                };
+                                
+                                savedAccounts.unshift(accountData);
+                                if (savedAccounts.length > 5) {
+                                    savedAccounts = savedAccounts.slice(0, 5);
+                                }
+                                saveAccountsToStorage();
+                            }
+                            
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1500);
+                        } else {
+                            showNotification(result.error || 'Token inválido ou expirado', 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Erro de conexão', 'error');
+                        console.error('Erro:', error);
+                    } finally {
+                        tokenLoginBtn.disabled = false;
+                        tokenLoginBtn.innerHTML = '<i class="fas fa-shield-check"></i> Verificar e Entrar';
+                    }
+                });
             }
         });
     </script>

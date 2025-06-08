@@ -1549,6 +1549,145 @@ def list_user_tokens():
         'total': len(user_tokens)
     })
 
+@app.route('/api/revoke-token', methods=['POST'])
+def revoke_token():
+    """Revogar/desativar um token de acesso"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    token_preview = data.get('token_preview')  # Formato: "abc12345...xyz67890"
+    
+    if not token_preview:
+        return jsonify({'error': 'Preview do token é obrigatório'}), 400
+    
+    user_email = session.get('user_email')
+    revoked_count = 0
+    
+    # Encontrar e desativar token baseado no preview
+    for token, token_data in generated_tokens.items():
+        if (token_data['user_email'] == user_email and 
+            token_preview == f"{token[:8]}...{token[-8:]}"):
+            
+            token_data['active'] = False
+            token_data['revoked_at'] = datetime.now().isoformat()
+            revoked_count += 1
+            break
+    
+    if revoked_count > 0:
+        save_data()
+        return jsonify({
+            'success': True,
+            'message': 'Token revogado com sucesso'
+        })
+    else:
+        return jsonify({'error': 'Token não encontrado'}), 404
+
+@app.route('/api/login-with-token', methods=['POST'])
+def login_with_token():
+    """Login usando token de acesso com verificação de captcha"""
+    data = request.get_json()
+    token = data.get('token')
+    captcha_verified = data.get('captcha_verified', False)
+    
+    if not token:
+        return jsonify({'error': 'Token é obrigatório'}), 400
+    
+    if not captcha_verified:
+        return jsonify({'error': 'Verificação de segurança não completada'}), 400
+    
+    # Verificar se token existe e está ativo
+    if token not in generated_tokens:
+        return jsonify({'error': 'Token inválido ou não encontrado'}), 401
+    
+    token_data = generated_tokens[token]
+    
+    if not token_data.get('active', True):
+        return jsonify({'error': 'Token foi desativado'}), 401
+    
+    # Verificar se usuário ainda existe
+    user_email = token_data['user_email']
+    if user_email not in users_db:
+        return jsonify({'error': 'Usuário associado ao token não existe mais'}), 404
+    
+    user = users_db[user_email]
+    
+    # Criar sessão
+    session['user_id'] = user['user_id']
+    session['user_email'] = user_email
+    session['is_admin'] = user.get('is_admin', False)
+    session['login_method'] = 'token'
+    session['token_used'] = token[:16] + '...'  # Registrar parte do token usado
+    
+    # Atualizar último login
+    user['last_login'] = datetime.now().isoformat()
+    
+    # Registrar uso do token
+    token_data['last_used'] = datetime.now().isoformat()
+    token_data['usage_count'] = token_data.get('usage_count', 0) + 1
+    
+    save_data()
+    
+    print(f"Login por token realizado: {user_email}, Admin: {user.get('is_admin', False)}, Token: {token[:8]}...")
+    
+    # Enviar email de notificação de login por token
+    login_notification = {
+        'id': str(uuid.uuid4()),
+        'from': 'sistema@gmail.oficial',
+        'to': user_email,
+        'subject': f"🔐 Login por Token Realizado - {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        'body': f"""
+Olá {user['name']}!
+
+Um login foi realizado em sua conta usando um token de acesso.
+
+📋 DETALHES DO LOGIN:
+• Data: {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}
+• Método: Token de Acesso
+• Token usado: {token[:8]}...{token[-8:]}
+• Verificação: Re-captcha aprovado
+• ID da Conta: {user['user_id']}
+
+🔒 SEGURANÇA:
+• Se não foi você, altere sua senha imediatamente
+• Considere revogar tokens desnecessários
+• Monitore atividades suspeitas em sua conta
+
+📧 Este é um email automático do Sistema Gmail Independente
+🆔 ID da Sessão: {session.get('user_id')}
+
+---
+Para sua segurança, sempre verifique logins não autorizados.
+        """.strip(),
+        'date': datetime.now().isoformat(),
+        'read': False,
+        'starred': False,
+        'folder': 'inbox',
+        'token_login_notification': True,
+        'security_alert': True
+    }
+    
+    emails_db.append(login_notification)
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Login por token realizado com sucesso',
+        'user': {
+            'email': user_email,
+            'name': user['name'],
+            'user_id': user['user_id'],
+            'is_admin': user.get('is_admin', False)
+        },
+        'login_method': 'token',
+        'token_info': {
+            'preview': f"{token[:8]}...{token[-8:]}",
+            'last_used': token_data['last_used'],
+            'usage_count': token_data['usage_count']
+        }
+    })
+
 if __name__ == '__main__':
     print("📧 Sistema Gmail Independente iniciado!")
     print(f"👑 Admin: {ADMIN_EMAIL} (senha: admin123)")
