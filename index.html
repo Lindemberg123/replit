@@ -1,16 +1,106 @@
+
 <!DOCTYPE html>
-<html>
-
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>replit</title>
-  <link href="style.css" rel="stylesheet" type="text/css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail API Pro - Sistema Profissional de Email</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
 </head>
-
 <body>
-  Hello world
-  <script src="script.js"></script>
-</body>
+    <div class="container">
+        <header class="header">
+            <h1>Gmail API Pro</h1>
+            <p>Sistema Profissional de Gerenciamento de Email</p>
+        </header>
 
+        <div class="dashboard">
+            <div class="api-section">
+                <h2>API Documentation</h2>
+                <div class="endpoint">
+                    <h3>Endpoints Disponíveis:</h3>
+                    <div class="endpoint-item">
+                        <span class="method post">POST</span>
+                        <span class="url">/api/send-email</span>
+                        <p>Enviar email através da API</p>
+                    </div>
+                    <div class="endpoint-item">
+                        <span class="method get">GET</span>
+                        <span class="url">/api/emails</span>
+                        <p>Listar emails recebidos</p>
+                    </div>
+                    <div class="endpoint-item">
+                        <span class="method get">GET</span>
+                        <span class="url">/api/email/:id</span>
+                        <p>Obter email específico</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-section">
+                <h2>Testar API</h2>
+                <form id="emailForm">
+                    <div class="form-group">
+                        <label>Para:</label>
+                        <input type="email" id="to" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Assunto:</label>
+                        <input type="text" id="subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mensagem:</label>
+                        <textarea id="message" required></textarea>
+                    </div>
+                    <button type="submit">Enviar Email</button>
+                </form>
+            </div>
+
+            <div class="emails-section">
+                <h2>Emails Recebidos</h2>
+                <div id="emailsList">
+                    <!-- Emails serão carregados aqui -->
+                </div>
+            </div>
+
+            <div class="api-key-section">
+                <h2>Sua API Key</h2>
+                <div class="api-key-display">
+                    <input type="text" id="apiKey" readonly value="gmail-api-pro-key-2024">
+                    <button onclick="copyApiKey()">Copiar</button>
+                </div>
+                <p class="api-usage">Use esta chave em suas requisições: <code>Authorization: Bearer gmail-api-pro-key-2024</code></p>
+            </div>
+
+            <div class="integration-examples">
+                <h2>Exemplos de Integração</h2>
+                <div class="code-example">
+                    <h3>JavaScript (Fetch)</h3>
+                    <pre><code>fetch('http://your-repl-url/api/send-email', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer gmail-api-pro-key-2024'
+  },
+  body: JSON.stringify({
+    to: 'destinatario@email.com',
+    subject: 'Assunto do Email',
+    message: 'Conteúdo da mensagem'
+  })
+})</code></pre>
+                </div>
+
+                <div class="code-example">
+                    <h3>cURL</h3>
+                    <pre><code>curl -X POST http://your-repl-url/api/send-email \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer gmail-api-pro-key-2024" \
+  -d '{"to":"destinatario@email.com","subject":"Teste","message":"Mensagem"}'</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
 </html>
