@@ -764,6 +764,33 @@ body {
     display: block;
 }
 
+/* Mobile Email View */
+@media (max-width: 768px) {
+    .email-view {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        z-index: 100;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .email-view.active {
+        transform: translateX(0);
+    }
+    
+    .email-view-header {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 101;
+        border-bottom: 1px solid #dadce0;
+    }
+}
+
 /* Touch optimizations */
 .email-item,
 .nav-item,

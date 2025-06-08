@@ -225,7 +225,13 @@ async function openEmail(emailId) {
         if (response.ok) {
             const email = await response.json();
             currentEmail = email;
-            showEmailView(email);
+            
+            // Verificar se é mobile e usar função apropriada
+            if (window.innerWidth <= 768) {
+                showEmailViewMobile(email);
+            } else {
+                showEmailView(email);
+            }
             
             // Atualizar contadores se o email não estava lido
             if (!email.read) {
@@ -276,9 +282,13 @@ function showEmailView(email) {
 }
 
 function backToList() {
-    document.getElementById('emailList').style.display = 'flex';
-    document.getElementById('emailView').style.display = 'none';
-    currentEmail = null;
+    if (window.innerWidth <= 768) {
+        backToListMobile();
+    } else {
+        document.getElementById('emailList').style.display = 'flex';
+        document.getElementById('emailView').style.display = 'none';
+        currentEmail = null;
+    }
 }
 
 function showCompose() {
@@ -717,12 +727,18 @@ function adjustForOrientation() {
 
 // Função mobile para email view
 function showEmailViewMobile(email) {
+    // Primeiro mostrar o email
     showEmailView(email);
     
     // Adicionar comportamento mobile
     if (window.innerWidth <= 768) {
         const emailView = document.getElementById('emailView');
-        if (emailView) {
+        const emailList = document.getElementById('emailList');
+        
+        if (emailView && emailList) {
+            // Esconder lista e mostrar visualização
+            emailList.style.display = 'none';
+            emailView.style.display = 'flex';
             emailView.classList.add('active');
             emailView.scrollTop = 0;
         }
