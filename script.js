@@ -9,6 +9,7 @@ let searchTimeout = null;
 // Inicializar aplicação
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
+    setupMobileFeatures();
 });
 
 async function initializeApp() {
@@ -518,5 +519,238 @@ function markAllAsRead() {
     showNotification('Todos os emails marcados como lidos', 'success');
 }
 
+// Funcionalidades Mobile
+function setupMobileFeatures() {
+    // Detectar dispositivo móvel
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        document.body.classList.add('mobile');
+        setupMobileNavigation();
+        setupTouchGestures();
+        setupMobileEmailView();
+    }
+    
+    // Listener para mudanças de orientação
+    window.addEventListener('orientationchange', function() {
+        setTimeout(() => {
+            adjustForOrientation();
+        }, 100);
+    });
+    
+    // Listener para redimensionamento
+    window.addEventListener('resize', function() {
+        const isMobileNow = window.innerWidth <= 768;
+        if (isMobileNow !== isMobile) {
+            location.reload(); // Recarregar para aplicar mudanças
+        }
+    });
+}
+
+function setupMobileNavigation() {
+    // Criar overlay para fechar sidebar
+    const overlay = document.createElement('div');
+    overlay.className = 'mobile-overlay';
+    overlay.id = 'mobileOverlay';
+    document.body.appendChild(overlay);
+    
+    // Toggle sidebar no mobile
+    const menuIcon = document.querySelector('.menu-icon');
+    if (menuIcon) {
+        menuIcon.addEventListener('click', toggleMobileSidebar);
+    }
+    
+    // Fechar sidebar ao clicar no overlay
+    overlay.addEventListener('click', closeMobileSidebar);
+    
+    // Fechar sidebar ao selecionar item
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                closeMobileSidebar();
+            }
+        });
+    });
+}
+
+function toggleMobileSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+}
+
+function setupMobileEmailView() {
+    const emailView = document.getElementById('emailView');
+    
+    // Adicionar classe para controle mobile
+    if (emailView) {
+        emailView.classList.add('mobile-email-view');
+    }
+}
+
+function setupTouchGestures() {
+    // Swipe para voltar no email view
+    let startX = 0;
+    let startY = 0;
+    
+    document.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    });
+    
+    document.addEventListener('touchend', function(e) {
+        if (!startX || !startY) return;
+        
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        
+        const diffX = startX - endX;
+        const diffY = startY - endY;
+        
+        // Swipe horizontal
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+            // Swipe right para voltar (apenas se email estiver aberto)
+            if (diffX < -50 && currentEmail && window.innerWidth <= 768) {
+                backToList();
+            }
+        }
+        
+        startX = 0;
+        startY = 0;
+    });
+}
+
+function adjustForOrientation() {
+    // Ajustar layout para mudanças de orientação
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        // Fechar sidebar se estiver aberta
+        closeMobileSidebar();
+        
+        // Ajustar altura do compose modal
+        const composeModal = document.getElementById('composeModal');
+        if (composeModal && composeModal.classList.contains('active')) {
+            // Reajustar altura
+            setTimeout(() => {
+                const textarea = document.getElementById('composeBody');
+                if (textarea) {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = (textarea.scrollHeight) + 'px';
+                }
+            }, 100);
+        }
+    }
+}
+
+// Sobrescrever função showEmailView para mobile
+const originalShowEmailView = showEmailView;
+function showEmailView(email) {
+    originalShowEmailView(email);
+    
+    // Adicionar comportamento mobile
+    if (window.innerWidth <= 768) {
+        const emailView = document.getElementById('emailView');
+        emailView.classList.add('active');
+        
+        // Scroll para o topo
+        emailView.scrollTop = 0;
+    }
+}
+
+// Sobrescrever função backToList para mobile
+const originalBackToList = backToList;
+function backToList() {
+    if (window.innerWidth <= 768) {
+        const emailView = document.getElementById('emailView');
+        emailView.classList.remove('active');
+        
+        setTimeout(() => {
+            originalBackToList();
+        }, 300);
+    } else {
+        originalBackToList();
+    }
+}
+
+// Sobrescrever função showCompose para mobile
+const originalShowCompose = showCompose;
+function showCompose() {
+    originalShowCompose();
+    
+    // Comportamento mobile
+    if (window.innerWidth <= 768) {
+        // Fechar sidebar se estiver aberta
+        closeMobileSidebar();
+        
+        // Ajustar foco
+        setTimeout(() => {
+            const toField = document.getElementById('composeTo');
+            if (toField) {
+                toField.focus();
+                // Scroll para o campo visível
+                toField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    }
+}
+
+// Função para detectar se é dispositivo touch
+function isTouchDevice() {
+    return (('ontouchstart' in window) ||
+           (navigator.maxTouchPoints > 0) ||
+           (navigator.msMaxTouchPoints > 0));
+}
+
+// Otimizações para performance mobile
+function optimizeForMobile() {
+    // Lazy loading para emails
+    const emailsContainer = document.getElementById('emailsContainer');
+    if (emailsContainer && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Carregar conteúdo quando visível
+                    entry.target.classList.add('loaded');
+                }
+            });
+        });
+        
+        // Observar emails
+        emailsContainer.querySelectorAll('.email-item').forEach(item => {
+            observer.observe(item);
+        });
+    }
+}
+
+// Configurações específicas para PWA (Progressive Web App)
+function setupPWA() {
+    // Service Worker para cache offline
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {
+            // Service worker não disponível
+        });
+    }
+    
+    // Prevenir zoom em inputs no iOS
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+            viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        }
+    }
+}
+
 console.log('Sistema Gmail Independente carregado!');
 console.log('Atalhos: Ctrl+C para escrever, Ctrl+R para atualizar, Esc para voltar');
+console.log('Mobile: Swipe direita para voltar, toque no menu para navegação');
