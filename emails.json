@@ -64,5 +64,38 @@
     "read": true,
     "starred": false,
     "folder": "inbox"
+  },
+  {
+    "id": "3b6bb058-bdfc-44c4-bc82-b331218d5bd5",
+    "from": "suport.com@gmail.oficial",
+    "to": "lindembergs038@gmail.com",
+    "subject": "sou o dono ",
+    "body": "Kk",
+    "date": "2025-06-08T01:34:59.074559",
+    "read": true,
+    "starred": false,
+    "folder": "sent"
+  },
+  {
+    "id": "08c63c65-1e75-4cc1-ae05-f2e7fa5e702c",
+    "from": "sistema@gmail.oficial",
+    "to": "suport.com@gmail.oficial",
+    "subject": "[LOG] Nova conta criada: lindembergs038@gmail.com",
+    "body": "Nova conta foi criada no sistema:\n\nEmail: lindembergs038@gmail.com\nNome: Lindembergs038\nID: user_004\nData: 08/06/2025 às 01:35:26\n\nEsta é uma notificação automática do sistema.",
+    "date": "2025-06-08T01:35:26.194930",
+    "read": false,
+    "starred": false,
+    "folder": "inbox"
+  },
+  {
+    "id": "a71a5bb2-8829-4ec7-b632-bb497bc9fe03",
+    "from": "suport.com@gmail.oficial",
+    "to": "lindembergs038@gmail.com",
+    "subject": "Bem-vindo ao Sistema Gmail!",
+    "body": "Olá Lindembergs038!\n\nBem-vindo ao nosso sistema de email independente. Sua conta foi criada com sucesso.\n\nSeu ID único: user_004\n\nAproveite todos os recursos disponíveis!\n\nAtenciosamente,\nEquipe Sistema Gmail",
+    "date": "2025-06-08T01:35:26.201524",
+    "read": false,
+    "starred": false,
+    "folder": "inbox"
   }
 ]
