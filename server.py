@@ -1194,8 +1194,13 @@ def register():
     question2 = data.get('question2')
     answer2 = data.get('answer2')
     
-    if not all([email, password, name, question1, answer1, question2, answer2]):
-        return jsonify({'error': 'Todos os campos são obrigatórios para segurança'}), 400
+    if not all([email, password, name]):
+        return jsonify({'error': 'Email, senha e nome são obrigatórios'}), 400
+    
+    # Verificar perguntas de segurança apenas se pelo menos uma foi fornecida
+    has_security_questions = any([question1, answer1, question2, answer2])
+    if has_security_questions and not all([question1, answer1, question2, answer2]):
+        return jsonify({'error': 'Se escolher usar perguntas de segurança, complete ambas'}), 400
     
     # Verificar se usuário já existe
     if email in users_db:
@@ -1203,22 +1208,27 @@ def register():
     
     # Criar novo usuário
     user_id = f"user_{len(users_db) + 1:03d}"
-    users_db[email] = {
+    user_data = {
         'email': email,
         'name': name,
         'password': hashlib.md5(password.encode()).hexdigest(),
         'user_id': user_id,
         'created_at': datetime.now().isoformat(),
         'profile_pic': f'https://ui-avatars.com/api/?name={name}&background=4285f4&color=fff',
-        'is_admin': False,
-        'security_questions': {
+        'is_admin': False
+    }
+    
+    # Adicionar perguntas de segurança apenas se foram fornecidas
+    if has_security_questions:
+        user_data['security_questions'] = {
             'question1': question1,
             'answer1_hash': hashlib.md5(answer1.lower().encode()).hexdigest(),
             'question2': question2,
             'answer2_hash': hashlib.md5(answer2.lower().encode()).hexdigest(),
             'created_at': datetime.now().isoformat()
         }
-    }
+    
+    users_db[email] = user_data
     
     save_data()
     

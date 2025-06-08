@@ -514,41 +514,52 @@
                             <i class="fas fa-shield-check"></i> Configuração de Segurança
                         </h4>
                         <p style="color: #1976d2; font-size: 14px; margin-bottom: 15px;">
-                            Configure perguntas de segurança para proteger sua conta:
+                            <strong>Opcionalmente</strong> configure perguntas de segurança simples para proteger sua conta:
                         </p>
+                        <div style="background: #fff3cd; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 3px solid #ffc107;">
+                            <p style="color: #856404; font-size: 13px; margin: 0;">
+                                💡 <strong>Dica:</strong> As perguntas são opcionais e focam em preferências pessoais simples (cores, comidas, hobbies). Você pode pular se preferir.
+                            </p>
+                        </div>
                         
                         <div class="form-group">
                             <label for="regQuestion1">Pergunta de Segurança 1:</label>
-                            <select id="regQuestion1" required>
-                                <option value="">Selecione uma pergunta</option>
-                                <option value="Qual o nome da sua primeira escola?">Qual o nome da sua primeira escola?</option>
-                                <option value="Qual o nome do seu primeiro animal de estimação?">Qual o nome do seu primeiro animal de estimação?</option>
-                                <option value="Em que cidade você nasceu?">Em que cidade você nasceu?</option>
-                                <option value="Qual o nome de solteira da sua mãe?">Qual o nome de solteira da sua mãe?</option>
-                                <option value="Qual foi o seu primeiro emprego?">Qual foi o seu primeiro emprego?</option>
+                            <select id="regQuestion1">
+                                <option value="">Selecione uma pergunta (opcional)</option>
+                                <option value="Qual sua cor favorita?">Qual sua cor favorita?</option>
+                                <option value="Qual seu número favorito?">Qual seu número favorito?</option>
+                                <option value="Qual sua palavra favorita?">Qual sua palavra favorita?</option>
+                                <option value="Qual seu hobby favorito?">Qual seu hobby favorito?</option>
+                                <option value="Qual sua comida favorita?">Qual sua comida favorita?</option>
+                                <option value="Qual seu jogo favorito?">Qual seu jogo favorito?</option>
+                                <option value="Qual sua música favorita?">Qual sua música favorita?</option>
+                                <option value="Qual seu filme favorito?">Qual seu filme favorito?</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="regAnswer1">Resposta 1:</label>
-                            <input type="text" id="regAnswer1" required placeholder="Sua resposta (será salva em minúsculas)">
+                            <input type="text" id="regAnswer1" placeholder="Sua resposta (opcional)">
                         </div>
                         
                         <div class="form-group">
                             <label for="regQuestion2">Pergunta de Segurança 2:</label>
-                            <select id="regQuestion2" required>
-                                <option value="">Selecione uma pergunta</option>
-                                <option value="Qual o seu livro favorito?">Qual o seu livro favorito?</option>
-                                <option value="Qual o nome do seu melhor amigo de infância?">Qual o nome do seu melhor amigo de infância?</option>
-                                <option value="Qual a sua comida favorita?">Qual a sua comida favorita?</option>
-                                <option value="Qual o modelo do seu primeiro carro?">Qual o modelo do seu primeiro carro?</option>
-                                <option value="Qual o seu filme favorito?">Qual o seu filme favorito?</option>
+                            <select id="regQuestion2">
+                                <option value="">Selecione uma pergunta (opcional)</option>
+                                <option value="Qual seu animal favorito?">Qual seu animal favorito?</option>
+                                <option value="Qual sua estação do ano favorita?">Qual sua estação do ano favorita?</option>
+                                <option value="Qual seu esporte favorito?">Qual seu esporte favorito?</option>
+                                <option value="Qual sua bebida favorita?">Qual sua bebida favorita?</option>
+                                <option value="Qual seu lugar favorito?">Qual seu lugar favorito?</option>
+                                <option value="Qual sua marca favorita?">Qual sua marca favorita?</option>
+                                <option value="Qual seu time favorito?">Qual seu time favorito?</option>
+                                <option value="Qual sua rede social favorita?">Qual sua rede social favorita?</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="regAnswer2">Resposta 2:</label>
-                            <input type="text" id="regAnswer2" required placeholder="Sua resposta (será salva em minúsculas)">
+                            <input type="text" id="regAnswer2" placeholder="Sua resposta (opcional)">
                         </div>
                     </div>
                     
@@ -962,14 +973,20 @@
                         return;
                     }
                     
-                    if (!formData.question1 || !formData.answer1 || !formData.question2 || !formData.answer2) {
-                        showNotification('Configure todas as perguntas de segurança', 'error');
-                        return;
-                    }
+                    // Validar perguntas de segurança apenas se pelo menos uma foi preenchida
+                    const hasSecurityQuestions = formData.question1 || formData.answer1 || formData.question2 || formData.answer2;
                     
-                    if (formData.question1 === formData.question2) {
-                        showNotification('Escolha perguntas de segurança diferentes', 'error');
-                        return;
+                    if (hasSecurityQuestions) {
+                        // Se começou a preencher, deve completar ambas
+                        if (!formData.question1 || !formData.answer1 || !formData.question2 || !formData.answer2) {
+                            showNotification('Se escolher usar perguntas de segurança, complete ambas', 'error');
+                            return;
+                        }
+                        
+                        if (formData.question1 === formData.question2) {
+                            showNotification('Escolha perguntas de segurança diferentes', 'error');
+                            return;
+                        }
                     }
                     
                     const registerBtn = document.getElementById('registerBtn');
