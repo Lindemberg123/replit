@@ -29,7 +29,7 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             padding: 40px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
         }
 
@@ -44,6 +44,110 @@
             color: #333;
             margin-bottom: 30px;
             font-weight: 400;
+        }
+
+        /* Seção de contas salvas */
+        .saved-accounts {
+            margin-bottom: 25px;
+        }
+
+        .saved-accounts h3 {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .account-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .account-item:hover {
+            border-color: #4285f4;
+            background: #e8f0fe;
+        }
+
+        .account-item.selected {
+            border-color: #4285f4;
+            background: #e8f0fe;
+        }
+
+        .account-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            background: #4285f4;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .account-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .account-name {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .account-email {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .account-remove {
+            color: #ea4335;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .account-remove:hover {
+            background: rgba(234, 67, 53, 0.1);
+        }
+
+        .divider {
+            margin: 25px 0;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        /* Formulário de nova conta */
+        .new-account-form {
+            display: none;
+        }
+
+        .new-account-form.active {
+            display: block;
         }
 
         .form-group {
@@ -95,30 +199,32 @@
             cursor: not-allowed;
         }
 
-        .info-text {
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .admin-info {
-            background: #f8f9fa;
-            padding: 15px;
+        .secondary-btn {
+            width: 100%;
+            background: transparent;
+            color: #4285f4;
+            border: 2px solid #4285f4;
+            padding: 12px;
             border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #ff6b35;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
         }
 
-        .admin-info h4 {
-            color: #ff6b35;
-            margin-bottom: 8px;
+        .secondary-btn:hover {
+            background: #4285f4;
+            color: white;
         }
 
-        .admin-info p {
-            color: #666;
-            font-size: 13px;
-            margin: 4px 0;
+        .quick-login-btn {
+            background: #34a853;
+            margin-top: 15px;
+        }
+
+        .quick-login-btn:hover {
+            background: #137333;
         }
 
         .notification {
@@ -146,29 +252,38 @@
             transform: translateX(0);
         }
 
-        .features {
-            margin-top: 30px;
-            text-align: left;
-        }
-
-        .features h4 {
-            color: #333;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .feature-item i {
+        .back-btn {
+            display: none;
+            background: none;
+            border: none;
             color: #4285f4;
-            margin-right: 10px;
-            width: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            padding: 8px;
+        }
+
+        .back-btn.active {
+            display: block;
+        }
+
+        .admin-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #ff6b35;
+            font-size: 13px;
+        }
+
+        .admin-info h4 {
+            color: #ff6b35;
+            margin-bottom: 8px;
+        }
+
+        .admin-info p {
+            color: #666;
+            margin: 4px 0;
         }
 
         @media (max-width: 480px) {
@@ -193,55 +308,206 @@
         </div>
         <h1 class="login-title">Sistema Gmail Independente</h1>
         
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required placeholder="seu-email@dominio.com">
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Senha:</label>
-                <input type="password" id="password" name="password" required placeholder="Digite sua senha">
-            </div>
-            
-            <button type="submit" class="login-btn" id="loginBtn">
-                <i class="fas fa-sign-in-alt"></i> Entrar
-            </button>
-        </form>
+        <button class="back-btn" id="backBtn" onclick="showSavedAccounts()">
+            <i class="fas fa-arrow-left"></i> Voltar às contas
+        </button>
 
-        <div class="info-text">
-            <strong>Novo usuário?</strong><br>
-            Digite seu email e senha para criar uma conta automaticamente!
+        <!-- Seção de contas salvas -->
+        <div id="savedAccountsSection" class="saved-accounts">
+            <h3>Escolha uma conta</h3>
+            <div id="accountsList"></div>
+            
+            <div class="divider">ou</div>
+            
+            <button class="secondary-btn" onclick="showNewAccountForm()">
+                <i class="fas fa-plus"></i> Usar outra conta
+            </button>
         </div>
+
+        <!-- Formulário para nova conta -->
+        <div id="newAccountForm" class="new-account-form">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required placeholder="seu-email@dominio.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" name="password" required placeholder="Digite sua senha">
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+
+                <div style="margin-top: 15px; color: #666; font-size: 14px;">
+                    <strong>Novo usuário?</strong><br>
+                    Digite seu email e senha para criar uma conta automaticamente!
+                </div>
+            </form>
+        </div>
+
+        <!-- Botão de login rápido quando há conta selecionada -->
+        <button id="quickLoginBtn" class="login-btn quick-login-btn" style="display: none;" onclick="quickLogin()">
+            <i class="fas fa-bolt"></i> Entrar Rapidamente
+        </button>
 
         <div class="admin-info">
             <h4><i class="fas fa-crown"></i> Acesso Administrativo</h4>
             <p><strong>Email:</strong> suport.com@gmail.oficial</p>
-            <p>Entre em contato com o administrador para obter acesso</p>
-        </div>
-
-        <div class="features">
-            <h4><i class="fas fa-star"></i> Recursos do Sistema</h4>
-            <div class="feature-item">
-                <i class="fas fa-inbox"></i>
-                <span>Sistema de email completamente independente</span>
-            </div>
-            <div class="feature-item">
-                <i class="fas fa-id-badge"></i>
-                <span>ID único para cada usuário</span>
-            </div>
-            <div class="feature-item">
-                <i class="fas fa-mobile-alt"></i>
-                <span>Compatível com dispositivos móveis</span>
-            </div>
-            <div class="feature-item">
-                <i class="fas fa-shield-alt"></i>
-                <span>Sistema seguro e privado</span>
-            </div>
+            <p><strong>Senha:</strong> admin123</p>
         </div>
     </div>
 
     <script>
+        let savedAccounts = [];
+        let selectedAccount = null;
+
+        // Carregar contas salvas ao inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedAccounts();
+            displayAccounts();
+        });
+
+        function loadSavedAccounts() {
+            const accounts = localStorage.getItem('gmail_saved_accounts');
+            if (accounts) {
+                savedAccounts = JSON.parse(accounts);
+            }
+        }
+
+        function saveAccountsToStorage() {
+            localStorage.setItem('gmail_saved_accounts', JSON.stringify(savedAccounts));
+        }
+
+        function displayAccounts() {
+            const accountsList = document.getElementById('accountsList');
+            const savedAccountsSection = document.getElementById('savedAccountsSection');
+            
+            if (savedAccounts.length === 0) {
+                showNewAccountForm();
+                return;
+            }
+
+            accountsList.innerHTML = savedAccounts.map((account, index) => `
+                <div class="account-item" onclick="selectAccount(${index})" data-index="${index}">
+                    <div class="account-avatar">
+                        ${getAccountInitials(account.name)}
+                    </div>
+                    <div class="account-info">
+                        <div class="account-name">${account.name}</div>
+                        <div class="account-email">${account.email}</div>
+                    </div>
+                    <div class="account-remove" onclick="removeAccount(${index}, event)">
+                        <i class="fas fa-times"></i>
+                    </div>
+                </div>
+            `).join('');
+
+            savedAccountsSection.style.display = 'block';
+        }
+
+        function getAccountInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        function selectAccount(index) {
+            // Remover seleção anterior
+            document.querySelectorAll('.account-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Selecionar nova conta
+            const accountItem = document.querySelector(`[data-index="${index}"]`);
+            accountItem.classList.add('selected');
+            
+            selectedAccount = savedAccounts[index];
+            
+            // Mostrar botão de login rápido
+            document.getElementById('quickLoginBtn').style.display = 'block';
+        }
+
+        function removeAccount(index, event) {
+            event.stopPropagation();
+            
+            if (confirm('Remover esta conta da lista?')) {
+                savedAccounts.splice(index, 1);
+                saveAccountsToStorage();
+                displayAccounts();
+                
+                // Esconder botão de login rápido se não há contas
+                if (savedAccounts.length === 0) {
+                    document.getElementById('quickLoginBtn').style.display = 'none';
+                }
+                
+                showNotification('Conta removida da lista', 'success');
+            }
+        }
+
+        function showNewAccountForm() {
+            document.getElementById('savedAccountsSection').style.display = 'none';
+            document.getElementById('newAccountForm').classList.add('active');
+            document.getElementById('backBtn').classList.add('active');
+            document.getElementById('quickLoginBtn').style.display = 'none';
+            document.getElementById('email').focus();
+        }
+
+        function showSavedAccounts() {
+            document.getElementById('newAccountForm').classList.remove('active');
+            document.getElementById('backBtn').classList.remove('active');
+            
+            if (savedAccounts.length > 0) {
+                document.getElementById('savedAccountsSection').style.display = 'block';
+            } else {
+                showNewAccountForm();
+            }
+        }
+
+        async function quickLogin() {
+            if (!selectedAccount) {
+                showNotification('Nenhuma conta selecionada', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: selectedAccount.email,
+                        password: selectedAccount.password
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showNotification(`Bem-vindo de volta, ${result.user.name}!`, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    showNotification(result.error || 'Erro ao fazer login', 'error');
+                    // Se falhar, remover a conta da lista
+                    if (response.status === 401) {
+                        const accountIndex = savedAccounts.findIndex(acc => acc.email === selectedAccount.email);
+                        if (accountIndex !== -1) {
+                            savedAccounts.splice(accountIndex, 1);
+                            saveAccountsToStorage();
+                            displayAccounts();
+                            showNotification('Conta removida - credenciais inválidas', 'error');
+                        }
+                    }
+                }
+            } catch (error) {
+                showNotification('Erro de conexão', 'error');
+                console.error('Erro:', error);
+            }
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -269,6 +535,32 @@
                 const result = await response.json();
                 
                 if (response.ok) {
+                    // Salvar conta na lista se login bem-sucedido
+                    const existingAccountIndex = savedAccounts.findIndex(acc => acc.email === email);
+                    
+                    const accountData = {
+                        email: email,
+                        password: password, // Em produção, usar token de sessão
+                        name: result.user.name,
+                        user_id: result.user.user_id,
+                        last_login: new Date().toISOString()
+                    };
+
+                    if (existingAccountIndex !== -1) {
+                        // Atualizar conta existente
+                        savedAccounts[existingAccountIndex] = accountData;
+                    } else {
+                        // Adicionar nova conta
+                        savedAccounts.unshift(accountData); // Adicionar no início
+                        
+                        // Limitar a 5 contas salvas
+                        if (savedAccounts.length > 5) {
+                            savedAccounts = savedAccounts.slice(0, 5);
+                        }
+                    }
+                    
+                    saveAccountsToStorage();
+                    
                     showNotification(`Bem-vindo, ${result.user.name}! ID: ${result.user.user_id}`, 'success');
                     setTimeout(() => {
                         window.location.href = '/';

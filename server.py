@@ -162,6 +162,15 @@ def logout():
     session.clear()
     return jsonify({'success': True})
 
+@app.route('/api/clear-saved-accounts', methods=['POST'])
+def clear_saved_accounts():
+    """Limpar todas as contas salvas (usado quando necessário)"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    return jsonify({'success': True, 'message': 'Use localStorage.clear() no frontend para limpar contas salvas'})
+
 @app.route('/api/user-info')
 def get_user_info():
     """Obter informações do usuário logado"""
