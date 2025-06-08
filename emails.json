@@ -111,16 +111,38 @@
     "highlighted": true
   },
   {
-    "id": "b0dcd0cc-906f-48c1-a28d-640a37677624",
+    "id": "2a8d8949-ef93-4ed6-b48c-9938f269aebd",
     "from": "verificacao@meusite.com",
     "to": "lindembergs038@gmail.com",
-    "subject": "Verificação de conta - Meu Site",
-    "body": "Olá!\n\nVocê solicitou verificação de conta no site Meu Site.\n\nSeu código de verificação é: 123456\n\nOu clique no link abaixo para verificar automaticamente:\nhttps://meusite.com/verify?token=abc123\n\nSe você não solicitou esta verificação, ignore este email.\n\nEste email foi enviado através do Sistema Gmail Independente.",
-    "date": "2025-06-08T11:18:22.048395",
+    "subject": "🔐 Verificação de Conta - Meu Site",
+    "body": "🔐 Verificação de Conta - Meu Site\n\nOlá!\n\nVocê solicitou verificação de conta no site Meu Site.\n\n📋 DETALHES DA VERIFICAÇÃO:\n─────────────────────────────\n🎯 Código: 123456\n⏰ Válido até: 08/06/2025 às 12:24\n🌐 Site: Meu Site\n🔒 Tipo: Verificação de Conta\n\n🚀 VERIFICAÇÃO RÁPIDA:\nClique no botão abaixo para verificar automaticamente:\nhttps://meusite.com/verify?token=abc123\n\n💡 INSTRUÇÕES:\n1. Cole o código acima no site\n2. Ou clique no link de verificação\n3. Complete o processo em até 60 minutos\n\n⚠️ SEGURANÇA:\n• Se você não solicitou esta verificação, ignore este email\n• Nunca compartilhe este código com terceiros\n• O código expira automaticamente por segurança\n\n📧 Este email foi enviado através do Sistema Gmail Independente\n🆔 ID da Verificação: 08318563",
+    "date": "2025-06-08T11:24:06.528585",
     "read": true,
-    "starred": false,
+    "starred": true,
     "folder": "inbox",
     "verification": true,
-    "site_origin": "Meu Site"
+    "verification_advanced": true,
+    "verification_type": "account",
+    "verification_priority": "normal",
+    "verification_expires": "2025-06-08T12:24:06.528508",
+    "verification_icon": "fa-user-check",
+    "verification_color": "#34a853",
+    "verification_label": "Verificação de Conta",
+    "site_origin": "Meu Site",
+    "security_level": "standard",
+    "auto_expire": true,
+    "tracking_id": "f9c19660"
+  },
+  {
+    "id": "c268e06e-7311-4c0e-8409-6f488c58a76f",
+    "from": "lindembergs038@gmail.com",
+    "to": "lindembergs297@gmail.com",
+    "subject": "lindembergs297@gmail.com",
+    "body": "Oi",
+    "date": "2025-06-08T11:25:36.392519",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
   }
 ]
