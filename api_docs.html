@@ -489,6 +489,596 @@ curl -X GET http://sua-url.replit.dev/api/domain-info/minhaempresa.nay.com
         </div>
     </div>
 
+    <h2>💻 Códigos Prontos para Integração</h2>
+
+    <div class="endpoint">
+        <h3>🔐 Verificação de Email - Código Completo</h3>
+        <p><strong>Python:</strong> Copie e cole este código no seu projeto:</p>
+        
+        <div class="code">
+import requests
+import secrets
+import string
+
+def generate_verification_code(length=6):
+    """Gera código de verificação aleatório"""
+    return ''.join(secrets.choice(string.digits) for _ in range(length))
+
+def send_email_verification(user_email, site_name, verification_url_base):
+    """
+    Envia email de verificação usando a API do Gmail System
+    
+    Args:
+        user_email: Email do usuário
+        site_name: Nome do seu site
+        verification_url_base: URL base para verificação (ex: https://meusite.com/verify)
+    
+    Returns:
+        dict: Resultado da operação
+    """
+    # Configuração
+    API_URL = "https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev"
+    API_KEY = "gmail-verification-api-2024"
+    
+    # Gerar código único
+    verification_code = generate_verification_code()
+    
+    # Criar URL completa
+    verification_url = f"{verification_url_base}?code={verification_code}&email={user_email}"
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    }
+    
+    data = {
+        'to_email': user_email,
+        'site_name': site_name,
+        'verification_code': verification_code,
+        'verification_url': verification_url,
+        'priority': 'high',
+        'type': 'email',
+        'expires_in': 1800  # 30 minutos
+    }
+    
+    try:
+        response = requests.post(
+            f"{API_URL}/api/external/send-verification",
+            json=data,
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Email enviado! ID: {result['email_id']}")
+            return {
+                'success': True,
+                'verification_code': verification_code,
+                'email_id': result['email_id'],
+                'tracking_id': result.get('tracking_id')
+            }
+        else:
+            error = response.json()
+            print(f"❌ Erro: {error['error']}")
+            return {'success': False, 'error': error['error']}
+            
+    except Exception as e:
+        print(f"❌ Erro de conexão: {e}")
+        return {'success': False, 'error': str(e)}
+
+# EXEMPLO DE USO:
+if __name__ == "__main__":
+    result = send_email_verification(
+        user_email="usuario@exemplo.com",
+        site_name="Meu Site Incrível",
+        verification_url_base="https://meusite.com/verify"
+    )
+    
+    if result['success']:
+        print(f"Código gerado: {result['verification_code']}")
+        # Salvar o código no banco de dados para verificar depois
+    else:
+        print(f"Falha: {result['error']}")
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3>🔑 Recuperação de Senha - Código Completo</h3>
+        <p><strong>Python:</strong> Sistema completo de reset de senha:</p>
+        
+        <div class="code">
+import requests
+import secrets
+import string
+import hashlib
+from datetime import datetime, timedelta
+
+def generate_reset_token():
+    """Gera token seguro para reset de senha"""
+    return secrets.token_urlsafe(32)
+
+def send_password_reset(user_email, site_name, reset_url_base):
+    """
+    Envia email de recuperação de senha
+    
+    Args:
+        user_email: Email do usuário
+        site_name: Nome do seu site
+        reset_url_base: URL base para reset (ex: https://meusite.com/reset)
+    
+    Returns:
+        dict: Resultado da operação
+    """
+    # Configuração
+    API_URL = "https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev"
+    API_KEY = "gmail-verification-api-2024"
+    
+    # Gerar token único
+    reset_token = generate_reset_token()
+    
+    # Criar URL completa
+    reset_url = f"{reset_url_base}?token={reset_token}&email={user_email}"
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    }
+    
+    data = {
+        'to_email': user_email,
+        'site_name': site_name,
+        'reset_token': reset_token,
+        'reset_url': reset_url
+    }
+    
+    try:
+        response = requests.post(
+            f"{API_URL}/api/external/send-reset-password",
+            json=data,
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Email de reset enviado! ID: {result['email_id']}")
+            return {
+                'success': True,
+                'reset_token': reset_token,
+                'email_id': result['email_id'],
+                'expires_at': (datetime.now() + timedelta(hours=24)).isoformat()
+            }
+        else:
+            error = response.json()
+            print(f"❌ Erro: {error['error']}")
+            return {'success': False, 'error': error['error']}
+            
+    except Exception as e:
+        print(f"❌ Erro de conexão: {e}")
+        return {'success': False, 'error': str(e)}
+
+def validate_reset_token(token, user_email, new_password):
+    """
+    Valida token de reset e atualiza senha
+    
+    Args:
+        token: Token de reset recebido
+        user_email: Email do usuário
+        new_password: Nova senha
+    
+    Returns:
+        bool: True se senha foi alterada com sucesso
+    """
+    # Aqui você validaria o token no seu banco de dados
+    # Exemplo de validação:
+    
+    # 1. Verificar se token existe e não expirou
+    # 2. Verificar se pertence ao usuário correto
+    # 3. Atualizar senha no banco
+    # 4. Invalidar o token
+    
+    try:
+        # Criptografar nova senha
+        password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+        
+        # Atualizar no banco de dados (substitua pela sua lógica)
+        print(f"✅ Senha atualizada para {user_email}")
+        print(f"   Nova senha hash: {password_hash}")
+        
+        return True
+    except Exception as e:
+        print(f"❌ Erro ao atualizar senha: {e}")
+        return False
+
+# EXEMPLO DE USO COMPLETO:
+class PasswordResetSystem:
+    def __init__(self):
+        self.pending_resets = {}  # Em produção, use banco de dados
+    
+    def request_reset(self, user_email, site_name):
+        """Solicita reset de senha"""
+        result = send_password_reset(
+            user_email=user_email,
+            site_name=site_name,
+            reset_url_base="https://meusite.com/reset-password"
+        )
+        
+        if result['success']:
+            # Salvar token no banco para validação posterior
+            self.pending_resets[result['reset_token']] = {
+                'email': user_email,
+                'expires_at': result['expires_at'],
+                'used': False
+            }
+            print(f"Reset solicitado para {user_email}")
+        
+        return result
+    
+    def complete_reset(self, token, new_password):
+        """Completa o reset de senha"""
+        if token not in self.pending_resets:
+            return {'success': False, 'error': 'Token inválido'}
+        
+        reset_data = self.pending_resets[token]
+        
+        if reset_data['used']:
+            return {'success': False, 'error': 'Token já utilizado'}
+        
+        # Verificar expiração
+        expires_at = datetime.fromisoformat(reset_data['expires_at'])
+        if datetime.now() > expires_at:
+            return {'success': False, 'error': 'Token expirado'}
+        
+        # Atualizar senha
+        if validate_reset_token(token, reset_data['email'], new_password):
+            reset_data['used'] = True
+            return {'success': True, 'message': 'Senha atualizada com sucesso'}
+        else:
+            return {'success': False, 'error': 'Erro ao atualizar senha'}
+
+# TESTE DO SISTEMA:
+if __name__ == "__main__":
+    reset_system = PasswordResetSystem()
+    
+    # Solicitar reset
+    result = reset_system.request_reset(
+        user_email="suport.com@gmail.oficial",
+        site_name="Meu Site"
+    )
+    
+    if result['success']:
+        print(f"Token gerado: {result['reset_token']}")
+        
+        # Simular usuário clicando no link e alterando senha
+        reset_result = reset_system.complete_reset(
+            token=result['reset_token'],
+            new_password="nova_senha_123"
+        )
+        print(f"Reset resultado: {reset_result}")
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3>📧 Notificações - Código Completo</h3>
+        <p><strong>Python:</strong> Sistema de notificações por email:</p>
+        
+        <div class="code">
+import requests
+from datetime import datetime
+
+def send_notification(user_email, site_name, subject, message, notification_type="info"):
+    """
+    Envia notificação por email
+    
+    Args:
+        user_email: Email do destinatário
+        site_name: Nome do seu site
+        subject: Assunto da notificação
+        message: Conteúdo da mensagem
+        notification_type: Tipo (info, warning, success, error)
+    
+    Returns:
+        dict: Resultado da operação
+    """
+    # Configuração
+    API_URL = "https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev"
+    API_KEY = "gmail-verification-api-2024"
+    
+    # Emojis por tipo
+    type_emojis = {
+        'info': 'ℹ️',
+        'warning': '⚠️',
+        'success': '✅',
+        'error': '❌',
+        'promotion': '🎉',
+        'security': '🔒'
+    }
+    
+    emoji = type_emojis.get(notification_type, 'ℹ️')
+    formatted_subject = f"{emoji} {subject}"
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    }
+    
+    data = {
+        'to_email': user_email,
+        'site_name': site_name,
+        'subject': formatted_subject,
+        'message': message
+    }
+    
+    try:
+        response = requests.post(
+            f"{API_URL}/api/external/send-notification",
+            json=data,
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Notificação enviada! ID: {result['email_id']}")
+            return {
+                'success': True,
+                'email_id': result['email_id'],
+                'type': notification_type
+            }
+        else:
+            error = response.json()
+            print(f"❌ Erro: {error['error']}")
+            return {'success': False, 'error': error['error']}
+            
+    except Exception as e:
+        print(f"❌ Erro de conexão: {e}")
+        return {'success': False, 'error': str(e)}
+
+# TEMPLATES DE NOTIFICAÇÕES PRONTOS:
+class NotificationTemplates:
+    @staticmethod
+    def welcome_user(user_email, site_name, user_name):
+        """Notificação de boas-vindas"""
+        subject = f"Bem-vindo ao {site_name}!"
+        message = f"""
+Olá {user_name}!
+
+Seja bem-vindo ao {site_name}! 🎉
+
+Sua conta foi criada com sucesso e você já pode começar a aproveitar todos os nossos recursos.
+
+Se precisar de ajuda, nossa equipe de suporte está sempre disponível.
+
+Obrigado por se juntar a nós!
+
+Equipe {site_name}
+        """.strip()
+        
+        return send_notification(user_email, site_name, subject, message, "success")
+    
+    @staticmethod
+    def security_alert(user_email, site_name, alert_details):
+        """Alerta de segurança"""
+        subject = "Alerta de Segurança"
+        message = f"""
+Detectamos uma atividade suspeita em sua conta:
+
+{alert_details}
+
+Se foi você, pode ignorar esta mensagem.
+Caso contrário, altere sua senha imediatamente.
+
+Data/Hora: {datetime.now().strftime('%d/%m/%Y %H:%M')}
+
+Equipe de Segurança {site_name}
+        """.strip()
+        
+        return send_notification(user_email, site_name, subject, message, "security")
+    
+    @staticmethod
+    def order_confirmation(user_email, site_name, order_id, order_total):
+        """Confirmação de pedido"""
+        subject = f"Pedido #{order_id} Confirmado"
+        message = f"""
+Seu pedido foi confirmado com sucesso! 🛒
+
+Número do Pedido: #{order_id}
+Valor Total: R$ {order_total}
+Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}
+
+Acompanhe o status do seu pedido em nossa plataforma.
+
+Obrigado pela preferência!
+
+Equipe {site_name}
+        """.strip()
+        
+        return send_notification(user_email, site_name, subject, message, "success")
+
+# EXEMPLO DE USO DOS TEMPLATES:
+if __name__ == "__main__":
+    templates = NotificationTemplates()
+    
+    # Teste de boas-vindas
+    result1 = templates.welcome_user(
+        user_email="suport.com@gmail.oficial",
+        site_name="Minha Loja Online",
+        user_name="João Silva"
+    )
+    
+    # Teste de alerta de segurança
+    result2 = templates.security_alert(
+        user_email="suport.com@gmail.oficial",
+        site_name="Minha Loja Online",
+        alert_details="Login de novo dispositivo (IP: 192.168.1.100)"
+    )
+    
+    # Teste de confirmação de pedido
+    result3 = templates.order_confirmation(
+        user_email="suport.com@gmail.oficial",
+        site_name="Minha Loja Online",
+        order_id="12345",
+        order_total="299,90"
+    )
+    
+    print("Todos os testes executados!")
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3>👑 Verificação Premium - Código Completo</h3>
+        <p><strong>Python:</strong> Sistema de verificação avançada:</p>
+        
+        <div class="code">
+import requests
+import secrets
+
+def send_premium_verification(user_email, site_name, verification_type="premium", theme="modern"):
+    """
+    Envia verificação premium/empresarial
+    
+    Args:
+        user_email: Email do usuário
+        site_name: Nome do seu site  
+        verification_type: premium, enterprise, vip
+        theme: modern, classic, minimal
+    
+    Returns:
+        dict: Resultado da operação
+    """
+    # Configuração
+    API_URL = "https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev"
+    API_KEY = "gmail-verification-api-2024"
+    
+    # Gerar código premium
+    if verification_type == "vip":
+        verification_code = f"VIP{secrets.randbelow(9999):04d}"
+    elif verification_type == "enterprise":
+        verification_code = f"ENT{secrets.randbelow(9999):04d}"
+    else:
+        verification_code = f"PREM{secrets.randbelow(9999):04d}"
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': API_KEY
+    }
+    
+    data = {
+        'to_email': user_email,
+        'site_name': site_name,
+        'verification_code': verification_code,
+        'type': verification_type,
+        'theme': theme,
+        'language': 'pt-BR',
+        'verification_url': f"https://meusite.com/premium-verify?code={verification_code}",
+        'custom_branding': True
+    }
+    
+    try:
+        response = requests.post(
+            f"{API_URL}/api/external/send-advanced-verification",
+            json=data,
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Verificação {verification_type} enviada!")
+            print(f"   ID: {result['email_id']}")
+            print(f"   Tracking: {result['tracking_id']}")
+            return {
+                'success': True,
+                'verification_code': verification_code,
+                'email_id': result['email_id'],
+                'tracking_id': result['tracking_id'],
+                'type': verification_type,
+                'priority': result['priority']
+            }
+        else:
+            error = response.json()
+            print(f"❌ Erro: {error['error']}")
+            return {'success': False, 'error': error['error']}
+            
+    except Exception as e:
+        print(f"❌ Erro de conexão: {e}")
+        return {'success': False, 'error': str(e)}
+
+# SISTEMA COMPLETO DE VERIFICAÇÃO POR NÍVEIS:
+class PremiumVerificationSystem:
+    def __init__(self):
+        self.API_URL = "https://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev"
+        self.API_KEY = "gmail-verification-api-2024"
+    
+    def send_verification_by_level(self, user_email, site_name, user_level="free"):
+        """Envia verificação baseada no nível do usuário"""
+        
+        level_configs = {
+            'free': {
+                'type': 'account',
+                'theme': 'minimal',
+                'priority': 'normal'
+            },
+            'premium': {
+                'type': 'premium', 
+                'theme': 'modern',
+                'priority': 'high'
+            },
+            'enterprise': {
+                'type': 'enterprise',
+                'theme': 'classic', 
+                'priority': 'critical'
+            },
+            'vip': {
+                'type': 'vip',
+                'theme': 'modern',
+                'priority': 'urgent'
+            }
+        }
+        
+        config = level_configs.get(user_level, level_configs['free'])
+        
+        if user_level == 'free':
+            # Usar verificação básica para usuários gratuitos
+            return send_email_verification(user_email, site_name, "https://meusite.com/verify")
+        else:
+            # Usar verificação premium
+            return send_premium_verification(
+                user_email=user_email,
+                site_name=site_name,
+                verification_type=config['type'],
+                theme=config['theme']
+            )
+
+# EXEMPLO DE USO:
+if __name__ == "__main__":
+    premium_system = PremiumVerificationSystem()
+    
+    # Teste para diferentes níveis de usuário
+    test_cases = [
+        ('free', 'Usuário Básico'),
+        ('premium', 'Usuário Premium'),
+        ('enterprise', 'Cliente Empresarial'), 
+        ('vip', 'Cliente VIP')
+    ]
+    
+    for level, description in test_cases:
+        print(f"\n🧪 Testando {description} ({level}):")
+        result = premium_system.send_verification_by_level(
+            user_email="suport.com@gmail.oficial",
+            site_name="Minha Plataforma Premium",
+            user_level=level
+        )
+        
+        if result['success']:
+            print(f"   ✅ Sucesso! Código: {result.get('verification_code', 'N/A')}")
+            print(f"   📧 Email ID: {result['email_id']}")
+        else:
+            print(f"   ❌ Erro: {result['error']}")
+        </div>
+    </div>
+
     <h2>🧪 Teste Rápido da API</h2>
 
     <div class="endpoint">

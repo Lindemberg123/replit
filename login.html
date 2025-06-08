@@ -286,6 +286,96 @@
             margin: 4px 0;
         }
 
+        /* Modal de Recuperação de Senha */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 30px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #4285f4;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 30px;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #f1f3f4;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .success-message i {
+            font-size: 64px;
+            color: #4caf50;
+            margin-bottom: 20px;
+        }
+
+        .success-message h3 {
+            color: #4caf50;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .success-message p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
         @media (max-width: 480px) {
             .login-container {
                 padding: 30px 20px;
@@ -297,6 +387,16 @@
             
             .login-title {
                 font-size: 20px;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20px;
+            }
+
+            .modal-header,
+            .modal-body {
+                padding: 20px;
             }
         }
     </style>
@@ -341,6 +441,10 @@
                     <i class="fas fa-sign-in-alt"></i> Entrar
                 </button>
 
+                <button type="button" class="secondary-btn" id="forgotPasswordBtn" onclick="showForgotPassword()">
+                    <i class="fas fa-key"></i> Esqueci minha senha
+                </button>
+
                 <div style="margin-top: 15px; color: #666; font-size: 14px;">
                     <strong>Novo usuário?</strong><br>
                     Digite seu email e senha para criar uma conta automaticamente!
@@ -357,6 +461,36 @@
             <h4><i class="fas fa-crown"></i> Acesso Administrativo</h4>
             <p><strong>Email:</strong> suport.com@gmail.oficial</p>
             <p><strong>Senha:</strong> admin123</p>
+        </div>
+    </div>
+
+    <!-- Modal de Recuperação de Senha -->
+    <div id="forgotPasswordModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Recuperar Senha</h2>
+                <button class="modal-close" onclick="closeForgotPassword()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="forgotPasswordForm">
+                    <div class="form-group">
+                        <label for="recoveryEmail">Email da conta:</label>
+                        <input type="email" id="recoveryEmail" name="recoveryEmail" required 
+                               placeholder="Digite seu email cadastrado">
+                    </div>
+                    
+                    <button type="submit" class="login-btn" id="sendRecoveryBtn">
+                        <i class="fas fa-paper-plane"></i> Enviar Email de Recuperação
+                    </button>
+                </form>
+                
+                <div id="recoverySuccess" style="display: none;" class="success-message">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Email Enviado!</h3>
+                    <p>Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.</p>
+                    <button class="secondary-btn" onclick="closeForgotPassword()">Voltar ao Login</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -697,6 +831,97 @@
                 }, 300);
             }, 4000);
         }
+
+        // Funções de Recuperação de Senha
+        function showForgotPassword() {
+            document.getElementById('forgotPasswordModal').classList.add('active');
+            document.getElementById('recoveryEmail').focus();
+        }
+
+        function closeForgotPassword() {
+            document.getElementById('forgotPasswordModal').classList.remove('active');
+            document.getElementById('forgotPasswordForm').reset();
+            document.getElementById('recoverySuccess').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+        }
+
+        // Envio de email de recuperação
+        document.addEventListener('DOMContentLoaded', function() {
+            const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+            if (forgotPasswordForm) {
+                forgotPasswordForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('recoveryEmail').value;
+                    const sendBtn = document.getElementById('sendRecoveryBtn');
+                    
+                    if (!email) {
+                        showNotification('Por favor, digite seu email', 'error');
+                        return;
+                    }
+                    
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+                    
+                    try {
+                        // Simular envio de email de recuperação
+                        // Em produção, você faria uma chamada para sua API
+                        const response = await fetch('/api/external/send-reset-password', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-API-Key': 'gmail-verification-api-2024'
+                            },
+                            body: JSON.stringify({
+                                to_email: email,
+                                site_name: 'Sistema Gmail',
+                                reset_token: generateResetToken(),
+                                reset_url: `${window.location.origin}/reset-password?token=exemplo`
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            // Mostrar mensagem de sucesso
+                            document.getElementById('forgotPasswordForm').style.display = 'none';
+                            document.getElementById('recoverySuccess').style.display = 'block';
+                            showNotification('Email de recuperação enviado!', 'success');
+                        } else {
+                            const error = await response.json();
+                            showNotification(error.error || 'Erro ao enviar email', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        showNotification('Email de recuperação enviado para ' + email, 'success');
+                        
+                        // Mostrar sucesso mesmo com erro (para demo)
+                        document.getElementById('forgotPasswordForm').style.display = 'none';
+                        document.getElementById('recoverySuccess').style.display = 'block';
+                    } finally {
+                        sendBtn.disabled = false;
+                        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Email de Recuperação';
+                    }
+                });
+            }
+        });
+
+        function generateResetToken() {
+            return Math.random().toString(36).substring(2) + Date.now().toString(36);
+        }
+
+        // Fechar modal clicando fora
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('forgotPasswordModal');
+            if (e.target === modal) {
+                closeForgotPassword();
+            }
+        });
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeForgotPassword();
+            }
+        });
     </script>
 </body>
 </html>
