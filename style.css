@@ -423,11 +423,22 @@ body {
 }
 
 .admin-item {
-    display: none !important;
+    display: none;
 }
 
 .admin-only {
-    display: none !important;
+    display: none;
+}
+
+.admin-broadcast-btn {
+    margin-top: 8px;
+    background: linear-gradient(135deg, #ff6b35, #ff8a65);
+    border: none;
+}
+
+.admin-broadcast-btn:hover {
+    background: linear-gradient(135deg, #e55a2b, #ff7043);
+    transform: translateY(-1px);
 }
 
 .emails-container {

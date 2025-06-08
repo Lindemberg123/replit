@@ -1011,9 +1011,26 @@ async function loadUserInfo() {
             
             // Mostrar elementos admin
             if (userInfo.is_admin) {
-                document.querySelectorAll('.admin-item, .admin-only').forEach(el => {
-                    el.style.display = el.tagName === 'BUTTON' ? 'inline-block' : 'flex';
+                console.log('Usuário é admin, mostrando elementos admin');
+                document.querySelectorAll('.admin-item').forEach(el => {
+                    el.style.display = 'flex';
+                    console.log('Mostrando elemento admin:', el);
                 });
+                document.querySelectorAll('.admin-only').forEach(el => {
+                    el.style.display = el.tagName === 'BUTTON' ? 'inline-block' : 'block';
+                    console.log('Mostrando elemento admin-only:', el);
+                });
+                
+                // Adicionar painel de broadcast
+                const composeBtn = document.querySelector('.compose-btn');
+                if (composeBtn && !document.getElementById('broadcastBtn')) {
+                    const broadcastBtn = document.createElement('button');
+                    broadcastBtn.id = 'broadcastBtn';
+                    broadcastBtn.className = 'compose-btn admin-broadcast-btn';
+                    broadcastBtn.innerHTML = '<i class="fas fa-bullhorn"></i> Enviar para Todos';
+                    broadcastBtn.onclick = showBroadcast;
+                    composeBtn.parentNode.insertBefore(broadcastBtn, composeBtn.nextSibling);
+                }
             }
             
             updateCounts();

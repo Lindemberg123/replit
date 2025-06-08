@@ -67,6 +67,10 @@ def get_current_user():
         if user_email in users_db:
             user = users_db[user_email]
             if user.get('user_id') == user_id:
+                # Garantir que o admin está sempre marcado como admin
+                if user_email == ADMIN_EMAIL:
+                    user['is_admin'] = True
+                    save_data()
                 return user
     return None
 
@@ -122,48 +126,9 @@ def login():
     
     # Verificar se usuário existe
     if email not in users_db:
-        # Criar novo usuário
-        user_id = f"user_{len(users_db) + 1:03d}"
-        users_db[email] = {
-            'email': email,
-            'name': email.split('@')[0].title(),
-            'password': hashlib.md5(password.encode()).hexdigest(),
-            'created_at': datetime.now().isoformat(),
-            'profile_pic': f'https://ui-avatars.com/api/?name={email.split("@")[0]}&background=4285f4&color=fff',
-            'is_admin': False,
-            'user_id': user_id
-        }
-        save_data()
-        
-        # Log de criação de conta para o admin
-        admin_log_email = {
-            'id': str(uuid.uuid4()),
-            'from': 'sistema@gmail.oficial',
-            'to': ADMIN_EMAIL,
-            'subject': f'[LOG] Nova conta criada: {email}',
-            'body': f'Nova conta foi criada no sistema:\n\nEmail: {email}\nNome: {users_db[email]["name"]}\nID: {user_id}\nData: {datetime.now().strftime("%d/%m/%Y às %H:%M:%S")}\n\nEsta é uma notificação automática do sistema.',
-            'date': datetime.now().isoformat(),
-            'read': False,
-            'starred': False,
-            'folder': 'inbox'
-        }
-        emails_db.append(admin_log_email)
-        save_data()
-        
-        # Criar email de boas-vindas
-        welcome_email = {
-            'id': str(uuid.uuid4()),
-            'from': ADMIN_EMAIL,
-            'to': email,
-            'subject': 'Bem-vindo ao Sistema Gmail!',
-            'body': f'Olá {users_db[email]["name"]}!\n\nBem-vindo ao nosso sistema de email independente. Sua conta foi criada com sucesso.\n\nSeu ID único: {user_id}\n\nAproveite todos os recursos disponíveis!\n\nAtenciosamente,\nEquipe Sistema Gmail',
-            'date': datetime.now().isoformat(),
-            'read': False,
-            'starred': False,
-            'folder': 'inbox'
-        }
-        emails_db.append(welcome_email)
-        save_data()
+        # Não permitir criação automática de novos usuários
+        # Apenas o admin já existe
+        return jsonify({'error': 'Usuário não encontrado. Use suport.com@gmail.oficial para admin'}), 401
     
     # Verificar senha
     user = users_db[email]
@@ -173,6 +138,9 @@ def login():
     # Criar sessão
     session['user_id'] = user['user_id']
     session['user_email'] = email
+    session['is_admin'] = user.get('is_admin', False)
+    
+    print(f"Login realizado: {email}, Admin: {user.get('is_admin', False)}")
     
     return jsonify({
         'success': True,
