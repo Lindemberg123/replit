@@ -166,18 +166,17 @@ def serve_static(filename):
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    """Login do usuário"""
+    """Login do usuário com verificação de segurança"""
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
+    security_answers = data.get('security_answers', {})
     
     if not email or not password:
         return jsonify({'error': 'Email e senha são obrigatórios'}), 400
     
     # Verificar se usuário existe
     if email not in users_db:
-        # Não permitir criação automática de novos usuários
-        # Apenas o admin já existe
         return jsonify({'error': 'Usuário não encontrado. Use suport.com@gmail.oficial para admin'}), 401
     
     # Verificar senha
@@ -185,10 +184,36 @@ def login():
     if user['password'] != hashlib.md5(password.encode()).hexdigest():
         return jsonify({'error': 'Senha incorreta'}), 401
     
+    # Verificação de segurança adicional para contas que não são admin
+    if email != ADMIN_EMAIL:
+        # Verificar se tem perguntas de segurança configuradas
+        if 'security_questions' in user and user['security_questions']:
+            if not security_answers:
+                # Solicitar perguntas de segurança
+                return jsonify({
+                    'require_security': True,
+                    'security_questions': [
+                        {'id': 1, 'question': user['security_questions'].get('question1', 'Qual o nome da sua primeira escola?')},
+                        {'id': 2, 'question': user['security_questions'].get('question2', 'Qual o nome do seu primeiro animal de estimação?')}
+                    ]
+                })
+            
+            # Verificar respostas de segurança
+            answer1_hash = hashlib.md5(security_answers.get('answer1', '').lower().encode()).hexdigest()
+            answer2_hash = hashlib.md5(security_answers.get('answer2', '').lower().encode()).hexdigest()
+            
+            if (answer1_hash != user['security_questions'].get('answer1_hash') or 
+                answer2_hash != user['security_questions'].get('answer2_hash')):
+                return jsonify({'error': 'Respostas de segurança incorretas'}), 401
+    
     # Criar sessão
     session['user_id'] = user['user_id']
     session['user_email'] = email
     session['is_admin'] = user.get('is_admin', False)
+    
+    # Atualizar último login
+    user['last_login'] = datetime.now().isoformat()
+    save_data()
     
     print(f"Login realizado: {email}, Admin: {user.get('is_admin', False)}")
     
@@ -1070,6 +1095,137 @@ def manual_register_company():
         'success': True,
         'message': f'Empresa {company_name} registrada com sucesso',
         'company': registered_company
+    })
+
+@app.route('/api/reset-password/validate-token', methods=['POST'])
+def validate_reset_token():
+    """Validar token de redefinição de senha"""
+    data = request.get_json()
+    token = data.get('token')
+    
+    if not token:
+        return jsonify({'error': 'Token é obrigatório'}), 400
+    
+    # Para demonstração, aceitar tokens com 8+ caracteres ou "exemplo"
+    if token == 'exemplo' or len(token) >= 8:
+        return jsonify({
+            'success': True,
+            'message': 'Token válido',
+            'email_hint': '***@***.com'  # Ocultar email por segurança
+        })
+    
+    return jsonify({'error': 'Token inválido ou expirado'}), 400
+
+@app.route('/api/reset-password/change', methods=['POST'])
+def change_password_with_token():
+    """Redefinir senha usando token"""
+    data = request.get_json()
+    token = data.get('token')
+    new_password = data.get('new_password')
+    email = data.get('email')  # Email será fornecido no processo
+    
+    if not all([token, new_password, email]):
+        return jsonify({'error': 'Token, email e nova senha são obrigatórios'}), 400
+    
+    # Validar token (simplificado para demonstração)
+    if token != 'exemplo' and len(token) < 8:
+        return jsonify({'error': 'Token inválido'}), 400
+    
+    # Verificar se usuário existe
+    if email not in users_db:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    
+    # Atualizar senha
+    users_db[email]['password'] = hashlib.md5(new_password.encode()).hexdigest()
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Senha redefinida com sucesso'
+    })
+
+@app.route('/api/setup-security', methods=['POST'])
+def setup_security_questions():
+    """Configurar perguntas de segurança"""
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    question1 = data.get('question1')
+    answer1 = data.get('answer1')
+    question2 = data.get('question2')
+    answer2 = data.get('answer2')
+    
+    if not all([email, password, question1, answer1, question2, answer2]):
+        return jsonify({'error': 'Todos os campos são obrigatórios'}), 400
+    
+    # Verificar credenciais
+    if email not in users_db:
+        return jsonify({'error': 'Usuário não encontrado'}), 404
+    
+    user = users_db[email]
+    if user['password'] != hashlib.md5(password.encode()).hexdigest():
+        return jsonify({'error': 'Senha incorreta'}), 401
+    
+    # Salvar perguntas de segurança
+    user['security_questions'] = {
+        'question1': question1,
+        'answer1_hash': hashlib.md5(answer1.lower().encode()).hexdigest(),
+        'question2': question2,
+        'answer2_hash': hashlib.md5(answer2.lower().encode()).hexdigest(),
+        'created_at': datetime.now().isoformat()
+    }
+    
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Perguntas de segurança configuradas com sucesso'
+    })
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    """Registrar novo usuário com segurança"""
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    name = data.get('name')
+    question1 = data.get('question1')
+    answer1 = data.get('answer1')
+    question2 = data.get('question2')
+    answer2 = data.get('answer2')
+    
+    if not all([email, password, name, question1, answer1, question2, answer2]):
+        return jsonify({'error': 'Todos os campos são obrigatórios para segurança'}), 400
+    
+    # Verificar se usuário já existe
+    if email in users_db:
+        return jsonify({'error': 'Usuário já existe'}), 409
+    
+    # Criar novo usuário
+    user_id = f"user_{len(users_db) + 1:03d}"
+    users_db[email] = {
+        'email': email,
+        'name': name,
+        'password': hashlib.md5(password.encode()).hexdigest(),
+        'user_id': user_id,
+        'created_at': datetime.now().isoformat(),
+        'profile_pic': f'https://ui-avatars.com/api/?name={name}&background=4285f4&color=fff',
+        'is_admin': False,
+        'security_questions': {
+            'question1': question1,
+            'answer1_hash': hashlib.md5(answer1.lower().encode()).hexdigest(),
+            'question2': question2,
+            'answer2_hash': hashlib.md5(answer2.lower().encode()).hexdigest(),
+            'created_at': datetime.now().isoformat()
+        }
+    }
+    
+    save_data()
+    
+    return jsonify({
+        'success': True,
+        'message': 'Usuário criado com sucesso',
+        'user_id': user_id
     })
 
 @app.route('/api/domain-info/<domain>')

@@ -436,6 +436,28 @@
                     <label for="password">Senha:</label>
                     <input type="password" id="password" name="password" required placeholder="Digite sua senha">
                 </div>
+
+                <!-- Perguntas de Segurança (aparecem quando necessário) -->
+                <div id="securityQuestions" style="display: none;">
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #ffc107;">
+                        <h4 style="color: #856404; margin-bottom: 10px;">
+                            <i class="fas fa-shield-alt"></i> Verificação de Segurança
+                        </h4>
+                        <p style="color: #856404; font-size: 14px;">
+                            Responda às perguntas de segurança para acessar sua conta:
+                        </p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label id="securityQuestion1">Pergunta de Segurança 1:</label>
+                        <input type="text" id="securityAnswer1" placeholder="Sua resposta">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label id="securityQuestion2">Pergunta de Segurança 2:</label>
+                        <input type="text" id="securityAnswer2" placeholder="Sua resposta">
+                    </div>
+                </div>
                 
                 <button type="submit" class="login-btn" id="loginBtn">
                     <i class="fas fa-sign-in-alt"></i> Entrar
@@ -445,10 +467,9 @@
                     <i class="fas fa-key"></i> Esqueci minha senha
                 </button>
 
-                <div style="margin-top: 15px; color: #666; font-size: 14px;">
-                    <strong>Novo usuário?</strong><br>
-                    Digite seu email e senha para criar uma conta automaticamente!
-                </div>
+                <button type="button" class="secondary-btn" onclick="showRegisterForm()" style="margin-top: 10px;">
+                    <i class="fas fa-user-plus"></i> Criar Nova Conta Segura
+                </button>
             </form>
         </div>
 
@@ -461,6 +482,81 @@
             <h4><i class="fas fa-crown"></i> Acesso Administrativo</h4>
             <p><strong>Email:</strong> suport.com@gmail.oficial</p>
             <p><strong>Senha:</strong> admin123</p>
+        </div>
+    </div>
+
+    <!-- Modal de Registro Seguro -->
+    <div id="registerModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Criar Conta Segura</h2>
+                <button class="modal-close" onclick="closeRegister()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="regName">Nome Completo:</label>
+                        <input type="text" id="regName" required placeholder="Seu nome completo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regEmail">Email:</label>
+                        <input type="email" id="regEmail" required placeholder="seu-email@exemplo.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regPassword">Senha:</label>
+                        <input type="password" id="regPassword" required placeholder="Mínimo 6 caracteres" minlength="6">
+                    </div>
+                    
+                    <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4285f4;">
+                        <h4 style="color: #1976d2; margin-bottom: 10px;">
+                            <i class="fas fa-shield-check"></i> Configuração de Segurança
+                        </h4>
+                        <p style="color: #1976d2; font-size: 14px; margin-bottom: 15px;">
+                            Configure perguntas de segurança para proteger sua conta:
+                        </p>
+                        
+                        <div class="form-group">
+                            <label for="regQuestion1">Pergunta de Segurança 1:</label>
+                            <select id="regQuestion1" required>
+                                <option value="">Selecione uma pergunta</option>
+                                <option value="Qual o nome da sua primeira escola?">Qual o nome da sua primeira escola?</option>
+                                <option value="Qual o nome do seu primeiro animal de estimação?">Qual o nome do seu primeiro animal de estimação?</option>
+                                <option value="Em que cidade você nasceu?">Em que cidade você nasceu?</option>
+                                <option value="Qual o nome de solteira da sua mãe?">Qual o nome de solteira da sua mãe?</option>
+                                <option value="Qual foi o seu primeiro emprego?">Qual foi o seu primeiro emprego?</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regAnswer1">Resposta 1:</label>
+                            <input type="text" id="regAnswer1" required placeholder="Sua resposta (será salva em minúsculas)">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regQuestion2">Pergunta de Segurança 2:</label>
+                            <select id="regQuestion2" required>
+                                <option value="">Selecione uma pergunta</option>
+                                <option value="Qual o seu livro favorito?">Qual o seu livro favorito?</option>
+                                <option value="Qual o nome do seu melhor amigo de infância?">Qual o nome do seu melhor amigo de infância?</option>
+                                <option value="Qual a sua comida favorita?">Qual a sua comida favorita?</option>
+                                <option value="Qual o modelo do seu primeiro carro?">Qual o modelo do seu primeiro carro?</option>
+                                <option value="Qual o seu filme favorito?">Qual o seu filme favorito?</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="regAnswer2">Resposta 2:</label>
+                            <input type="text" id="regAnswer2" required placeholder="Sua resposta (será salva em minúsculas)">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="login-btn" id="registerBtn">
+                        <i class="fas fa-user-check"></i> Criar Conta Segura
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -756,37 +852,55 @@
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
             
+            // Preparar dados de login
+            let loginData = { email, password };
+            
+            // Verificar se perguntas de segurança estão visíveis
+            const securityDiv = document.getElementById('securityQuestions');
+            if (securityDiv.style.display !== 'none') {
+                const answer1 = document.getElementById('securityAnswer1').value.trim();
+                const answer2 = document.getElementById('securityAnswer2').value.trim();
+                
+                if (!answer1 || !answer2) {
+                    showNotification('Por favor, responda todas as perguntas de segurança', 'error');
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+                    return;
+                }
+                
+                loginData.security_answers = {
+                    answer1: answer1,
+                    answer2: answer2
+                };
+            }
+            
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify(loginData)
                 });
                 
                 const result = await response.json();
                 
                 if (response.ok) {
-                    // Salvar conta na lista se login bem-sucedido
+                    // Login bem-sucedido
                     const existingAccountIndex = savedAccounts.findIndex(acc => acc.email === email);
                     
                     const accountData = {
                         email: email,
-                        password: password, // Em produção, usar token de sessão
+                        password: password,
                         name: result.user.name,
                         user_id: result.user.user_id,
                         last_login: new Date().toISOString()
                     };
 
                     if (existingAccountIndex !== -1) {
-                        // Atualizar conta existente
                         savedAccounts[existingAccountIndex] = accountData;
                     } else {
-                        // Adicionar nova conta
-                        savedAccounts.unshift(accountData); // Adicionar no início
-                        
-                        // Limitar a 5 contas salvas
+                        savedAccounts.unshift(accountData);
                         if (savedAccounts.length > 5) {
                             savedAccounts = savedAccounts.slice(0, 5);
                         }
@@ -798,8 +912,18 @@
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 1500);
+                } else if (result.require_security) {
+                    // Mostrar perguntas de segurança
+                    document.getElementById('securityQuestions').style.display = 'block';
+                    document.getElementById('securityQuestion1').textContent = result.security_questions[0].question;
+                    document.getElementById('securityQuestion2').textContent = result.security_questions[1].question;
+                    
+                    showNotification('Complete a verificação de segurança para prosseguir', 'error');
+                    document.getElementById('securityAnswer1').focus();
                 } else {
                     showNotification(result.error || 'Erro ao fazer login', 'error');
+                    // Esconder perguntas de segurança se erro
+                    document.getElementById('securityQuestions').style.display = 'none';
                 }
             } catch (error) {
                 showNotification('Erro de conexão', 'error');
@@ -807,6 +931,84 @@
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+            }
+        });
+
+        // Formulário de registro
+        document.addEventListener('DOMContentLoaded', function() {
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = {
+                        name: document.getElementById('regName').value.trim(),
+                        email: document.getElementById('regEmail').value.trim(),
+                        password: document.getElementById('regPassword').value,
+                        question1: document.getElementById('regQuestion1').value,
+                        answer1: document.getElementById('regAnswer1').value.trim(),
+                        question2: document.getElementById('regQuestion2').value,
+                        answer2: document.getElementById('regAnswer2').value.trim()
+                    };
+                    
+                    // Validações
+                    if (!formData.name || !formData.email || !formData.password) {
+                        showNotification('Preencha todos os campos obrigatórios', 'error');
+                        return;
+                    }
+                    
+                    if (formData.password.length < 6) {
+                        showNotification('A senha deve ter pelo menos 6 caracteres', 'error');
+                        return;
+                    }
+                    
+                    if (!formData.question1 || !formData.answer1 || !formData.question2 || !formData.answer2) {
+                        showNotification('Configure todas as perguntas de segurança', 'error');
+                        return;
+                    }
+                    
+                    if (formData.question1 === formData.question2) {
+                        showNotification('Escolha perguntas de segurança diferentes', 'error');
+                        return;
+                    }
+                    
+                    const registerBtn = document.getElementById('registerBtn');
+                    registerBtn.disabled = true;
+                    registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
+                    
+                    try {
+                        const response = await fetch('/api/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(formData)
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            showNotification(`Conta criada com sucesso! ID: ${result.user_id}`, 'success');
+                            closeRegister();
+                            
+                            // Preencher dados no formulário de login
+                            document.getElementById('email').value = formData.email;
+                            document.getElementById('password').value = formData.password;
+                            
+                            setTimeout(() => {
+                                showNotification('Faça login com suas novas credenciais', 'success');
+                            }, 1000);
+                        } else {
+                            showNotification(result.error || 'Erro ao criar conta', 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Erro de conexão', 'error');
+                        console.error('Erro:', error);
+                    } finally {
+                        registerBtn.disabled = false;
+                        registerBtn.innerHTML = '<i class="fas fa-user-check"></i> Criar Conta Segura';
+                    }
+                });
             }
         });
         
@@ -933,15 +1135,31 @@
             }
         });
 
+        function showRegisterForm() {
+            document.getElementById('registerModal').classList.add('active');
+            document.getElementById('regName').focus();
+        }
+
+        function closeRegister() {
+            document.getElementById('registerModal').classList.remove('active');
+            document.getElementById('registerForm').reset();
+        }
+
         function generateResetToken() {
             return Math.random().toString(36).substring(2) + Date.now().toString(36);
         }
 
         // Fechar modal clicando fora
         document.addEventListener('click', function(e) {
-            const modal = document.getElementById('forgotPasswordModal');
-            if (e.target === modal) {
+            const forgotModal = document.getElementById('forgotPasswordModal');
+            const registerModal = document.getElementById('registerModal');
+            
+            if (e.target === forgotModal) {
                 closeForgotPassword();
+            }
+            
+            if (e.target === registerModal) {
+                closeRegister();
             }
         });
 
@@ -949,6 +1167,7 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeForgotPassword();
+                closeRegister();
             }
         });
     </script>
