@@ -1,223 +1,249 @@
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for
 from flask_cors import CORS
 import json
 import os
-from datetime import datetime
+import imaplib
+import email
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from datetime import datetime
 from config import Config
+import threading
+import time
 
 app = Flask(__name__)
 CORS(app)
+app.secret_key = Config.SECRET_KEY
 
-# Use configuration from config.py
-API_KEY = Config.API_KEY
-EMAILS_FILE = Config.EMAILS_FILE
-SMTP_SERVER = Config.SMTP_SERVER
-SMTP_PORT = Config.SMTP_PORT
+# Configurações do Gmail
 GMAIL_USER = Config.GMAIL_USER
 GMAIL_PASSWORD = Config.GMAIL_PASSWORD
+EMAILS_FILE = Config.EMAILS_FILE
 
-def authenticate_request():
-    """Check if request has valid API key"""
-    auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return False
-    
-    token = auth_header.split(' ')[1]
-    return token == API_KEY
+# Armazenamento em memória para emails
+emails_storage = {
+    'inbox': [],
+    'sent': [],
+    'drafts': []
+}
 
-def load_emails():
-    """Load emails from JSON file"""
-    if os.path.exists(EMAILS_FILE):
-        try:
-            with open(EMAILS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except:
-            return []
-    return []
-
-def save_emails(emails):
-    """Save emails to JSON file"""
-    with open(EMAILS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(emails, f, ensure_ascii=False, indent=2)
-
-def send_gmail(to_email, subject, message):
-    """Send email using Gmail SMTP"""
+def connect_to_gmail_imap():
+    """Conecta ao servidor IMAP do Gmail"""
     try:
-        # Create message
+        imap = imaplib.IMAP4_SSL('imap.gmail.com')
+        imap.login(GMAIL_USER, GMAIL_PASSWORD)
+        return imap
+    except Exception as e:
+        print(f"Erro ao conectar IMAP: {e}")
+        return None
+
+def fetch_emails():
+    """Busca emails da caixa de entrada do Gmail"""
+    imap = connect_to_gmail_imap()
+    if not imap:
+        return []
+    
+    try:
+        imap.select('INBOX')
+        _, messages = imap.search(None, 'ALL')
+        
+        emails = []
+        for num in messages[0].split()[-10:]:  # Últimos 10 emails
+            _, msg_data = imap.fetch(num, '(RFC822)')
+            
+            for response_part in msg_data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_bytes(response_part[1])
+                    
+                    # Extrair informações do email
+                    subject = msg['subject'] or 'Sem assunto'
+                    from_email = msg['from']
+                    date = msg['date']
+                    
+                    # Extrair corpo do email
+                    body = ""
+                    if msg.is_multipart():
+                        for part in msg.walk():
+                            if part.get_content_type() == "text/plain":
+                                body = part.get_payload(decode=True).decode('utf-8', errors='ignore')
+                                break
+                    else:
+                        body = msg.get_payload(decode=True).decode('utf-8', errors='ignore')
+                    
+                    emails.append({
+                        'id': len(emails) + 1,
+                        'subject': subject,
+                        'from': from_email,
+                        'to': GMAIL_USER,
+                        'body': body,
+                        'date': date,
+                        'timestamp': datetime.now().isoformat(),
+                        'read': False
+                    })
+        
+        imap.close()
+        imap.logout()
+        return emails
+        
+    except Exception as e:
+        print(f"Erro ao buscar emails: {e}")
+        return []
+
+def send_email(to_email, subject, body):
+    """Envia email usando SMTP do Gmail"""
+    try:
         msg = MIMEMultipart()
         msg['From'] = GMAIL_USER
         msg['To'] = to_email
         msg['Subject'] = subject
         
-        # Add body to email
-        msg.attach(MIMEText(message, 'plain', 'utf-8'))
+        msg.attach(MIMEText(body, 'plain', 'utf-8'))
         
-        # Connect to server and send email
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(GMAIL_USER, GMAIL_PASSWORD)
         text = msg.as_string()
         server.sendmail(GMAIL_USER, to_email, text)
         server.quit()
         
+        # Adicionar aos emails enviados
+        sent_email = {
+            'id': len(emails_storage['sent']) + 1,
+            'subject': subject,
+            'from': GMAIL_USER,
+            'to': to_email,
+            'body': body,
+            'date': datetime.now().strftime('%a, %d %b %Y %H:%M:%S'),
+            'timestamp': datetime.now().isoformat(),
+            'read': True
+        }
+        emails_storage['sent'].append(sent_email)
+        
         return True, "Email enviado com sucesso"
     except Exception as e:
         return False, f"Erro ao enviar email: {str(e)}"
 
-# Routes
+def update_emails_periodically():
+    """Atualiza emails periodicamente"""
+    while True:
+        try:
+            new_emails = fetch_emails()
+            emails_storage['inbox'] = new_emails
+            time.sleep(30)  # Atualiza a cada 30 segundos
+        except Exception as e:
+            print(f"Erro na atualização automática: {e}")
+            time.sleep(60)
+
+# Iniciar thread para atualização automática
+email_thread = threading.Thread(target=update_emails_periodically, daemon=True)
+email_thread.start()
 
 @app.route('/')
 def index():
-    """Serve the main HTML page"""
+    """Página principal do Gmail"""
     return send_from_directory('.', 'index.html')
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    """Serve static files"""
+    """Servir arquivos estáticos"""
     return send_from_directory('.', filename)
 
+@app.route('/api/emails/inbox')
+def get_inbox():
+    """Obter emails da caixa de entrada"""
+    return jsonify(emails_storage['inbox'])
+
+@app.route('/api/emails/sent')
+def get_sent():
+    """Obter emails enviados"""
+    return jsonify(emails_storage['sent'])
+
+@app.route('/api/emails/drafts')
+def get_drafts():
+    """Obter rascunhos"""
+    return jsonify(emails_storage['drafts'])
+
 @app.route('/api/send-email', methods=['POST'])
-def send_email():
-    """Send email via API"""
-    if not authenticate_request():
-        return jsonify({'error': 'Unauthorized'}), 401
-    
+def send_email_api():
+    """Enviar email"""
     data = request.get_json()
     
-    # Validate required fields
-    required_fields = ['to', 'subject', 'message']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({'error': f'Missing required field: {field}'}), 400
+    if not data or not all(k in data for k in ['to', 'subject', 'body']):
+        return jsonify({'error': 'Dados obrigatórios: to, subject, body'}), 400
     
-    to_email = data['to']
-    subject = data['subject']
-    message = data['message']
-    
-    # Send email
-    success, result_message = send_gmail(to_email, subject, message)
+    success, message = send_email(data['to'], data['subject'], data['body'])
     
     if success:
-        # Save email to database
-        emails = load_emails()
-        email_record = {
-            'id': len(emails) + 1,
-            'to': to_email,
-            'from': GMAIL_USER,
-            'subject': subject,
-            'message': message,
-            'timestamp': datetime.now().isoformat(),
-            'status': 'sent'
-        }
-        emails.append(email_record)
-        save_emails(emails)
-        
-        return jsonify({
-            'success': True,
-            'message': result_message,
-            'email_id': email_record['id']
-        }), 200
+        return jsonify({'success': True, 'message': message})
     else:
-        return jsonify({
-            'success': False,
-            'error': result_message
-        }), 500
+        return jsonify({'success': False, 'error': message}), 500
 
-@app.route('/api/emails', methods=['GET'])
-def get_emails():
-    """Get all emails"""
-    if not authenticate_request():
-        return jsonify({'error': 'Unauthorized'}), 401
+@app.route('/api/email/<int:email_id>')
+def get_email_detail(email_id):
+    """Obter detalhes de um email específico"""
+    for folder in ['inbox', 'sent', 'drafts']:
+        for email_item in emails_storage[folder]:
+            if email_item['id'] == email_id:
+                email_item['read'] = True
+                return jsonify(email_item)
     
-    emails = load_emails()
-    return jsonify(emails), 200
+    return jsonify({'error': 'Email não encontrado'}), 404
 
-@app.route('/api/email/<int:email_id>', methods=['GET'])
-def get_email(email_id):
-    """Get specific email by ID"""
-    if not authenticate_request():
-        return jsonify({'error': 'Unauthorized'}), 401
+@app.route('/api/email/<int:email_id>/delete', methods=['DELETE'])
+def delete_email(email_id):
+    """Deletar email"""
+    for folder in ['inbox', 'sent', 'drafts']:
+        emails_storage[folder] = [e for e in emails_storage[folder] if e['id'] != email_id]
     
-    emails = load_emails()
-    email = next((e for e in emails if e['id'] == email_id), None)
-    
-    if email:
-        return jsonify(email), 200
-    else:
-        return jsonify({'error': 'Email not found'}), 404
+    return jsonify({'success': True, 'message': 'Email deletado'})
 
-@app.route('/api/config', methods=['POST'])
-def update_config():
-    """Update Gmail configuration"""
-    if not authenticate_request():
-        return jsonify({'error': 'Unauthorized'}), 401
-    
+@app.route('/api/save-draft', methods=['POST'])
+def save_draft():
+    """Salvar rascunho"""
     data = request.get_json()
     
-    # This is a placeholder for configuration updates
-    # In production, you'd want to securely store credentials
-    return jsonify({
-        'success': True,
-        'message': 'Configuration updated successfully'
-    }), 200
-
-@app.route('/api/status', methods=['GET'])
-def api_status():
-    """Get API status"""
-    return jsonify({
-        'status': 'online',
-        'version': '1.0.0',
-        'service': 'Gmail API Pro',
-        'timestamp': datetime.now().isoformat()
-    }), 200
-
-@app.route('/api/docs', methods=['GET'])
-def api_docs():
-    """API Documentation"""
-    docs = {
-        'title': 'Gmail API Pro Documentation',
-        'version': '1.0.0',
-        'endpoints': {
-            'POST /api/send-email': {
-                'description': 'Send email',
-                'parameters': {
-                    'to': 'string (required) - Recipient email',
-                    'subject': 'string (required) - Email subject',
-                    'message': 'string (required) - Email content'
-                },
-                'headers': {
-                    'Authorization': 'Bearer {API_KEY}',
-                    'Content-Type': 'application/json'
-                }
-            },
-            'GET /api/emails': {
-                'description': 'Get all emails',
-                'headers': {
-                    'Authorization': 'Bearer {API_KEY}'
-                }
-            },
-            'GET /api/email/{id}': {
-                'description': 'Get specific email',
-                'headers': {
-                    'Authorization': 'Bearer {API_KEY}'
-                }
-            }
-        }
+    draft = {
+        'id': len(emails_storage['drafts']) + 1,
+        'subject': data.get('subject', ''),
+        'to': data.get('to', ''),
+        'body': data.get('body', ''),
+        'timestamp': datetime.now().isoformat(),
+        'read': True
     }
-    return jsonify(docs), 200
+    
+    emails_storage['drafts'].append(draft)
+    return jsonify({'success': True, 'draft_id': draft['id']})
+
+@app.route('/api/refresh-emails', methods=['POST'])
+def refresh_emails():
+    """Atualizar emails manualmente"""
+    try:
+        new_emails = fetch_emails()
+        emails_storage['inbox'] = new_emails
+        return jsonify({'success': True, 'count': len(new_emails)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/user-info')
+def get_user_info():
+    """Obter informações do usuário"""
+    return jsonify({
+        'email': GMAIL_USER,
+        'name': GMAIL_USER.split('@')[0].title(),
+        'inbox_count': len(emails_storage['inbox']),
+        'sent_count': len(emails_storage['sent']),
+        'drafts_count': len(emails_storage['drafts'])
+    })
 
 if __name__ == '__main__':
-    # Create emails file if it doesn't exist
-    if not os.path.exists(EMAILS_FILE):
-        save_emails([])
+    # Carregar emails iniciais
+    emails_storage['inbox'] = fetch_emails()
     
-    print("🚀 Gmail API Pro Server iniciado!")
-    print(f"📧 API Key: {API_KEY}")
+    print("📧 Sistema Gmail Completo iniciado!")
+    print(f"👤 Usuário: {GMAIL_USER}")
+    print(f"📬 Emails na caixa de entrada: {len(emails_storage['inbox'])}")
     print(f"🌐 Acesse: http://0.0.0.0:5000")
-    print(f"📚 Documentação: http://0.0.0.0:5000/api/docs")
     
     app.run(host='0.0.0.0', port=5000, debug=True)

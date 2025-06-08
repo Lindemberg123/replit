@@ -4,99 +4,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gmail API Pro - Sistema Profissional de Email</title>
+    <title>Gmail - Sistema Completo de Email</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>Gmail API Pro</h1>
-            <p>Sistema Profissional de Gerenciamento de Email</p>
+    <div class="gmail-container">
+        <!-- Header -->
+        <header class="gmail-header">
+            <div class="header-left">
+                <i class="fas fa-bars menu-icon"></i>
+                <div class="logo">
+                    <i class="fas fa-envelope"></i>
+                    <span>Gmail</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Pesquisar no email">
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="refresh-btn" onclick="refreshEmails()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="user-info">
+                    <span id="userEmail"></span>
+                </div>
+            </div>
         </header>
 
-        <div class="dashboard">
-            <div class="api-section">
-                <h2>API Documentation</h2>
-                <div class="endpoint">
-                    <h3>Endpoints Disponíveis:</h3>
-                    <div class="endpoint-item">
-                        <span class="method post">POST</span>
-                        <span class="url">/api/send-email</span>
-                        <p>Enviar email através da API</p>
+        <div class="gmail-main">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <button class="compose-btn" onclick="showCompose()">
+                    <i class="fas fa-plus"></i>
+                    Escrever
+                </button>
+                
+                <nav class="sidebar-nav">
+                    <div class="nav-item active" data-folder="inbox">
+                        <i class="fas fa-inbox"></i>
+                        <span>Caixa de entrada</span>
+                        <span class="count" id="inboxCount">0</span>
                     </div>
-                    <div class="endpoint-item">
-                        <span class="method get">GET</span>
-                        <span class="url">/api/emails</span>
-                        <p>Listar emails recebidos</p>
+                    <div class="nav-item" data-folder="sent">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Enviados</span>
+                        <span class="count" id="sentCount">0</span>
                     </div>
-                    <div class="endpoint-item">
-                        <span class="method get">GET</span>
-                        <span class="url">/api/email/:id</span>
-                        <p>Obter email específico</p>
+                    <div class="nav-item" data-folder="drafts">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Rascunhos</span>
+                        <span class="count" id="draftsCount">0</span>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Lista de emails -->
+                <div class="email-list" id="emailList">
+                    <div class="email-list-header">
+                        <h2 id="folderTitle">Caixa de entrada</h2>
+                        <div class="email-actions">
+                            <button onclick="refreshEmails()">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="emails-container" id="emailsContainer">
+                        <!-- Emails serão carregados aqui -->
                     </div>
                 </div>
-            </div>
 
-            <div class="test-section">
-                <h2>Testar API</h2>
-                <form id="emailForm">
-                    <div class="form-group">
+                <!-- Visualização de email -->
+                <div class="email-view" id="emailView" style="display: none;">
+                    <div class="email-view-header">
+                        <button onclick="backToList()">
+                            <i class="fas fa-arrow-left"></i>
+                            Voltar
+                        </button>
+                        <div class="email-actions">
+                            <button onclick="deleteEmail()">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="email-content" id="emailContent">
+                        <!-- Conteúdo do email -->
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Modal de Composição -->
+        <div class="compose-modal" id="composeModal">
+            <div class="compose-content">
+                <div class="compose-header">
+                    <h3>Nova mensagem</h3>
+                    <button onclick="closeCompose()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="composeForm">
+                    <div class="compose-field">
                         <label>Para:</label>
-                        <input type="email" id="to" required>
+                        <input type="email" id="composeTo" required>
                     </div>
-                    <div class="form-group">
+                    <div class="compose-field">
                         <label>Assunto:</label>
-                        <input type="text" id="subject" required>
+                        <input type="text" id="composeSubject" required>
                     </div>
-                    <div class="form-group">
+                    <div class="compose-field">
                         <label>Mensagem:</label>
-                        <textarea id="message" required></textarea>
+                        <textarea id="composeBody" required></textarea>
                     </div>
-                    <button type="submit">Enviar Email</button>
+                    <div class="compose-actions">
+                        <button type="submit" class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            Enviar
+                        </button>
+                        <button type="button" onclick="saveDraft()" class="draft-btn">
+                            <i class="fas fa-save"></i>
+                            Salvar rascunho
+                        </button>
+                    </div>
                 </form>
-            </div>
-
-            <div class="emails-section">
-                <h2>Emails Recebidos</h2>
-                <div id="emailsList">
-                    <!-- Emails serão carregados aqui -->
-                </div>
-            </div>
-
-            <div class="api-key-section">
-                <h2>Sua API Key</h2>
-                <div class="api-key-display">
-                    <input type="text" id="apiKey" readonly value="gmail-api-pro-key-2024">
-                    <button onclick="copyApiKey()">Copiar</button>
-                </div>
-                <p class="api-usage">Use esta chave em suas requisições: <code>Authorization: Bearer gmail-api-pro-key-2024</code></p>
-            </div>
-
-            <div class="integration-examples">
-                <h2>Exemplos de Integração</h2>
-                <div class="code-example">
-                    <h3>JavaScript (Fetch)</h3>
-                    <pre><code>fetch('http://your-repl-url/api/send-email', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer gmail-api-pro-key-2024'
-  },
-  body: JSON.stringify({
-    to: 'destinatario@email.com',
-    subject: 'Assunto do Email',
-    message: 'Conteúdo da mensagem'
-  })
-})</code></pre>
-                </div>
-
-                <div class="code-example">
-                    <h3>cURL</h3>
-                    <pre><code>curl -X POST http://your-repl-url/api/send-email \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer gmail-api-pro-key-2024" \
-  -d '{"to":"destinatario@email.com","subject":"Teste","message":"Mensagem"}'</code></pre>
-                </div>
             </div>
         </div>
     </div>
