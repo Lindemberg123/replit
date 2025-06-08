@@ -109,5 +109,18 @@
     "starred": true,
     "folder": "sent",
     "highlighted": true
+  },
+  {
+    "id": "b0dcd0cc-906f-48c1-a28d-640a37677624",
+    "from": "verificacao@meusite.com",
+    "to": "lindembergs038@gmail.com",
+    "subject": "Verificação de conta - Meu Site",
+    "body": "Olá!\n\nVocê solicitou verificação de conta no site Meu Site.\n\nSeu código de verificação é: 123456\n\nOu clique no link abaixo para verificar automaticamente:\nhttps://meusite.com/verify?token=abc123\n\nSe você não solicitou esta verificação, ignore este email.\n\nEste email foi enviado através do Sistema Gmail Independente.",
+    "date": "2025-06-08T11:18:22.048395",
+    "read": true,
+    "starred": false,
+    "folder": "inbox",
+    "verification": true,
+    "site_origin": "Meu Site"
   }
 ]
