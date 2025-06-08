@@ -53,5 +53,16 @@
     "read": false,
     "starred": false,
     "folder": "inbox"
+  },
+  {
+    "id": "467137b1-4a3a-44ef-952b-a34acb22cb27",
+    "from": "suport.com@gmail.oficial",
+    "to": "lindembergs297@dono",
+    "subject": "Bem-vindo ao Sistema Gmail!",
+    "body": "Olá Lindembergs297!\n\nBem-vindo ao nosso sistema de email independente. Sua conta foi criada com sucesso.\n\nSeu ID único: user_003\n\nAproveite todos os recursos disponíveis!\n\nAtenciosamente,\nEquipe Sistema Gmail",
+    "date": "2025-06-08T01:28:15.372452",
+    "read": true,
+    "starred": false,
+    "folder": "inbox"
   }
 ]

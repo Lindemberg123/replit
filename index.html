@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -12,7 +11,7 @@
     <title>Gmail - Sistema Independente</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- PWA Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ea4335'><path d='M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z'/></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ea4335'><path d='M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z'/></svg>">
@@ -35,12 +34,17 @@
                 </div>
             </div>
             <div class="header-right">
-                <button class="refresh-btn" onclick="refreshEmails()" title="Atualizar">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
                 <div class="user-info">
-                    <img id="userProfilePic" class="profile-pic" alt="Perfil">
-                    <span id="userEmail"></span>
+                    <img src="https://ui-avatars.com/api/?name=User&background=4285f4&color=fff" 
+                         alt="User" class="user-avatar" id="userProfilePic">
+                    <div class="user-details">
+                        <div class="user-name" id="userEmail">Loading...</div>
+                        <div class="user-id" id="userId">ID: ...</div>
+                        <div class="user-status">Online</div>
+                    </div>
+                    <button class="logout-btn" onclick="logout()" title="Sair">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
             </div>
         </header>
@@ -52,7 +56,7 @@
                     <i class="fas fa-plus"></i>
                     Escrever
                 </button>
-                
+
                 <nav class="sidebar-nav">
                     <div class="nav-item active" data-folder="inbox">
                         <i class="fas fa-inbox"></i>
@@ -124,37 +128,85 @@
 
     <!-- Compose Modal -->
     <div class="compose-modal" id="composeModal">
-        <div class="compose-container">
+        <div class="compose-overlay" onclick="closeCompose()"></div>
+        <div class="compose-content">
             <div class="compose-header">
                 <h3>Nova mensagem</h3>
-                <button class="close-btn" onclick="closeCompose()">
-                    <i class="fas fa-times"></i>
-                </button>
+                <button onclick="closeCompose()"><i class="fas fa-times"></i></button>
             </div>
-            <form id="composeForm" class="compose-form">
+            <form id="composeForm">
                 <div class="compose-field">
                     <label>Para:</label>
-                    <input type="email" id="composeTo" required>
+                    <input type="email" id="composeTo" required placeholder="destinatario@email.com">
                 </div>
                 <div class="compose-field">
                     <label>Assunto:</label>
-                    <input type="text" id="composeSubject" required>
+                    <input type="text" id="composeSubject" placeholder="Assunto do email">
                 </div>
                 <div class="compose-field">
                     <label>Mensagem:</label>
-                    <textarea id="composeBody" required></textarea>
+                    <textarea id="composeBody" rows="10" placeholder="Digite sua mensagem aqui..."></textarea>
                 </div>
                 <div class="compose-actions">
-                    <button type="submit" class="send-btn">
+                    <button type="submit">
                         <i class="fas fa-paper-plane"></i>
                         Enviar
                     </button>
-                    <button type="button" class="draft-btn" onclick="saveDraft()">
+                    <button type="button" onclick="saveDraft()">
                         <i class="fas fa-save"></i>
-                        Salvar rascunho
+                        Salvar Rascunho
+                    </button>
+                    <button type="button" onclick="closeCompose()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Broadcast Modal (Admin) -->
+    <div class="compose-modal" id="broadcastModal">
+        <div class="compose-overlay" onclick="closeBroadcast()"></div>
+        <div class="compose-content">
+            <div class="compose-header">
+                <h3><i class="fas fa-bullhorn"></i> Enviar para Todos os Usuários</h3>
+                <button onclick="closeBroadcast()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="broadcastForm">
+                <div class="compose-field">
+                    <label>Assunto:</label>
+                    <input type="text" id="broadcastSubject" required placeholder="Assunto da mensagem">
+                </div>
+                <div class="compose-field">
+                    <label>Mensagem:</label>
+                    <textarea id="broadcastBody" rows="10" required placeholder="Digite a mensagem para todos os usuários..."></textarea>
+                </div>
+                <div class="compose-actions">
+                    <button type="submit">
+                        <i class="fas fa-bullhorn"></i>
+                        Enviar para Todos
+                    </button>
+                    <button type="button" onclick="closeBroadcast()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Modal (Admin) -->
+    <div class="compose-modal" id="usersModal">
+        <div class="compose-overlay" onclick="closeUsers()"></div>
+        <div class="compose-content users-content">
+            <div class="compose-header">
+                <h3><i class="fas fa-users"></i> Usuários do Sistema</h3>
+                <button onclick="closeUsers()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="users-list" id="usersList">
+                <!-- Users will be loaded here -->
+            </div>
         </div>
     </div>
 

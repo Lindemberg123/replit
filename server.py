@@ -1,5 +1,5 @@
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, session, redirect
 from flask_cors import CORS
 import json
 import os
@@ -16,32 +16,24 @@ app.secret_key = 'gmail-system-secret-key-2024'
 # Configurações do sistema
 USERS_FILE = 'users.json'
 EMAILS_FILE = 'emails.json'
-CONTACTS_FILE = 'contacts.json'
+ADMIN_EMAIL = 'suport.com@gmail.oficial'
 
 # Armazenamento em memória
-current_user = None
 users_db = {}
 emails_db = []
-contacts_db = []
+current_session = {}
 
 def load_data():
     """Carrega dados dos arquivos JSON"""
-    global users_db, emails_db, contacts_db
+    global users_db, emails_db
     
-    # Carregar usuários
     if os.path.exists(USERS_FILE):
         with open(USERS_FILE, 'r', encoding='utf-8') as f:
             users_db = json.load(f)
     
-    # Carregar emails
     if os.path.exists(EMAILS_FILE):
         with open(EMAILS_FILE, 'r', encoding='utf-8') as f:
             emails_db = json.load(f)
-    
-    # Carregar contatos
-    if os.path.exists(CONTACTS_FILE):
-        with open(CONTACTS_FILE, 'r', encoding='utf-8') as f:
-            contacts_db = json.load(f)
 
 def save_data():
     """Salva dados nos arquivos JSON"""
@@ -50,174 +42,180 @@ def save_data():
     
     with open(EMAILS_FILE, 'w', encoding='utf-8') as f:
         json.dump(emails_db, f, ensure_ascii=False, indent=2)
-    
-    with open(CONTACTS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(contacts_db, f, ensure_ascii=False, indent=2)
 
-def create_sample_user():
-    """Cria usuário de exemplo para demonstração"""
-    sample_email = "usuario@gmail.com"
-    if sample_email not in users_db:
-        users_db[sample_email] = {
-            'email': sample_email,
-            'name': 'Usuário Exemplo',
-            'password': hashlib.md5('123456'.encode()).hexdigest(),
+def create_admin_user():
+    """Cria usuário administrador"""
+    if ADMIN_EMAIL not in users_db:
+        users_db[ADMIN_EMAIL] = {
+            'email': ADMIN_EMAIL,
+            'name': 'Administrador Sistema',
+            'password': hashlib.md5('admin123'.encode()).hexdigest(),
             'created_at': datetime.now().isoformat(),
-            'profile_pic': 'https://ui-avatars.com/api/?name=Usuario+Exemplo&background=4285f4&color=fff'
+            'profile_pic': 'https://ui-avatars.com/api/?name=Admin&background=ff0000&color=fff',
+            'is_admin': True,
+            'user_id': 'admin_001'
         }
-        
-        # Criar emails de exemplo
-        sample_emails = [
-            {
-                'id': str(uuid.uuid4()),
-                'from': 'contato@empresa.com',
-                'to': sample_email,
-                'subject': 'Bem-vindo ao nosso sistema!',
-                'body': 'Olá! Bem-vindo ao nosso sistema de email. Esperamos que você tenha uma ótima experiência usando nossa plataforma.',
-                'date': (datetime.now() - timedelta(hours=2)).isoformat(),
-                'read': False,
-                'starred': False,
-                'folder': 'inbox'
-            },
-            {
-                'id': str(uuid.uuid4()),
-                'from': 'suporte@sistema.com',
-                'to': sample_email,
-                'subject': 'Configuração da sua conta',
-                'body': 'Sua conta foi configurada com sucesso. Você já pode começar a usar todos os recursos disponíveis.',
-                'date': (datetime.now() - timedelta(hours=5)).isoformat(),
-                'read': False,
-                'starred': True,
-                'folder': 'inbox'
-            },
-            {
-                'id': str(uuid.uuid4()),
-                'from': sample_email,
-                'to': 'cliente@exemplo.com',
-                'subject': 'Resposta sobre o projeto',
-                'body': 'Obrigado pelo seu interesse. Vamos analisar sua proposta e retornar em breve.',
-                'date': (datetime.now() - timedelta(hours=1)).isoformat(),
-                'read': True,
-                'starred': False,
-                'folder': 'sent'
-            }
-        ]
-        
-        emails_db.extend(sample_emails)
         save_data()
+
+def get_current_user():
+    """Obtém usuário atual da sessão"""
+    user_id = session.get('user_id')
+    if user_id:
+        for email, user in users_db.items():
+            if user.get('user_id') == user_id:
+                return user
+    return None
 
 def get_user_emails(user_email, folder='inbox'):
     """Obtém emails do usuário por pasta"""
     user_emails = []
     for email in emails_db:
-        if folder == 'inbox' and email['to'] == user_email:
-            user_emails.append(email)
-        elif folder == 'sent' and email['from'] == user_email:
-            user_emails.append(email)
-        elif folder == 'drafts' and email.get('folder') == 'drafts' and email['from'] == user_email:
-            user_emails.append(email)
-        elif folder == 'starred' and email.get('starred') and (email['to'] == user_email or email['from'] == user_email):
-            user_emails.append(email)
-    
-    return sorted(user_emails, key=lambda x: x['date'], reverse=True)
-
-def simulate_incoming_emails():
-    """Simula recebimento de novos emails"""
-    sample_senders = [
-        'newsletter@empresa.com',
-        'promocoes@loja.com',
-        'suporte@sistema.com',
-        'contato@parceiro.com'
-    ]
-    
-    subjects = [
-        'Novidades da semana',
-        'Oferta especial para você',
-        'Atualização importante',
-        'Convite para evento'
-    ]
-    
-    bodies = [
-        'Confira as novidades desta semana em nosso site.',
-        'Aproveite nossa oferta especial com desconto de 50%.',
-        'Importante: Atualizamos nossos termos de uso.',
-        'Você está convidado para nosso evento especial.'
-    ]
-    
-    while True:
         try:
-            time.sleep(60)  # Simula novo email a cada 60 segundos
-            
-            if users_db:
-                user_email = list(users_db.keys())[0]
-                
-                new_email = {
-                    'id': str(uuid.uuid4()),
-                    'from': sample_senders[len(emails_db) % len(sample_senders)],
-                    'to': user_email,
-                    'subject': subjects[len(emails_db) % len(subjects)],
-                    'body': bodies[len(emails_db) % len(bodies)],
-                    'date': datetime.now().isoformat(),
-                    'read': False,
-                    'starred': False,
-                    'folder': 'inbox'
-                }
-                
-                emails_db.append(new_email)
-                save_data()
-                
+            if folder == 'inbox' and email.get('to') == user_email:
+                user_emails.append(email)
+            elif folder == 'sent' and email.get('from') == user_email:
+                user_emails.append(email)
+            elif folder == 'drafts' and email.get('folder') == 'drafts' and email.get('from') == user_email:
+                user_emails.append(email)
+            elif folder == 'starred' and email.get('starred') and (email.get('to') == user_email or email.get('from') == user_email):
+                user_emails.append(email)
         except Exception as e:
-            print(f"Erro ao simular email: {e}")
+            print(f"Erro ao processar email: {e}")
+            continue
+    
+    return sorted(user_emails, key=lambda x: x.get('date', ''), reverse=True)
 
 # Inicializar dados
 load_data()
-create_sample_user()
-
-# Thread para simular emails
-email_thread = threading.Thread(target=simulate_incoming_emails, daemon=True)
-email_thread.start()
+create_admin_user()
 
 @app.route('/')
 def index():
-    """Página principal"""
+    """Página principal com verificação de login"""
+    user = get_current_user()
+    if not user:
+        return send_from_directory('.', 'login.html')
     return send_from_directory('.', 'index.html')
+
+@app.route('/login.html')
+def login_page():
+    return send_from_directory('.', 'login.html')
 
 @app.route('/<path:filename>')
 def serve_static(filename):
     """Servir arquivos estáticos"""
     return send_from_directory('.', filename)
 
+@app.route('/api/login', methods=['POST'])
+def login():
+    """Login do usuário"""
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({'error': 'Email e senha são obrigatórios'}), 400
+    
+    # Verificar se usuário existe
+    if email not in users_db:
+        # Criar novo usuário
+        user_id = f"user_{len(users_db) + 1:03d}"
+        users_db[email] = {
+            'email': email,
+            'name': email.split('@')[0].title(),
+            'password': hashlib.md5(password.encode()).hexdigest(),
+            'created_at': datetime.now().isoformat(),
+            'profile_pic': f'https://ui-avatars.com/api/?name={email.split("@")[0]}&background=4285f4&color=fff',
+            'is_admin': False,
+            'user_id': user_id
+        }
+        save_data()
+        
+        # Criar email de boas-vindas
+        welcome_email = {
+            'id': str(uuid.uuid4()),
+            'from': ADMIN_EMAIL,
+            'to': email,
+            'subject': 'Bem-vindo ao Sistema Gmail!',
+            'body': f'Olá {users_db[email]["name"]}!\n\nBem-vindo ao nosso sistema de email independente. Sua conta foi criada com sucesso.\n\nSeu ID único: {user_id}\n\nAproveite todos os recursos disponíveis!\n\nAtenciosamente,\nEquipe Sistema Gmail',
+            'date': datetime.now().isoformat(),
+            'read': False,
+            'starred': False,
+            'folder': 'inbox'
+        }
+        emails_db.append(welcome_email)
+        save_data()
+    
+    # Verificar senha
+    user = users_db[email]
+    if user['password'] != hashlib.md5(password.encode()).hexdigest():
+        return jsonify({'error': 'Senha incorreta'}), 401
+    
+    # Criar sessão
+    session['user_id'] = user['user_id']
+    session['user_email'] = email
+    
+    return jsonify({
+        'success': True,
+        'user': {
+            'email': email,
+            'name': user['name'],
+            'user_id': user['user_id'],
+            'is_admin': user.get('is_admin', False)
+        }
+    })
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    """Logout do usuário"""
+    session.clear()
+    return jsonify({'success': True})
+
 @app.route('/api/user-info')
 def get_user_info():
-    """Obter informações do usuário"""
-    user_email = list(users_db.keys())[0] if users_db else "usuario@gmail.com"
-    user = users_db.get(user_email, {})
+    """Obter informações do usuário logado"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
     
-    inbox_count = len(get_user_emails(user_email, 'inbox'))
+    user_email = session.get('user_email')
+    inbox_count = len([e for e in get_user_emails(user_email, 'inbox') if not e.get('read')])
     sent_count = len(get_user_emails(user_email, 'sent'))
     drafts_count = len(get_user_emails(user_email, 'drafts'))
     
     return jsonify({
         'email': user_email,
-        'name': user.get('name', 'Usuário'),
+        'name': user['name'],
+        'user_id': user['user_id'],
         'inbox_count': inbox_count,
         'sent_count': sent_count,
         'drafts_count': drafts_count,
-        'profile_pic': user.get('profile_pic', '')
+        'profile_pic': user.get('profile_pic', ''),
+        'is_admin': user.get('is_admin', False)
     })
 
 @app.route('/api/emails/<folder>')
 def get_emails(folder):
     """Obter emails por pasta"""
-    user_email = list(users_db.keys())[0] if users_db else "usuario@gmail.com"
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    user_email = session.get('user_email')
     emails = get_user_emails(user_email, folder)
     return jsonify(emails)
 
 @app.route('/api/email/<email_id>')
 def get_email_detail(email_id):
     """Obter detalhes de um email específico"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    user_email = session.get('user_email')
+    
     for email in emails_db:
-        if email['id'] == email_id:
+        if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
             email['read'] = True
             save_data()
             return jsonify(email)
@@ -227,12 +225,15 @@ def get_email_detail(email_id):
 @app.route('/api/send-email', methods=['POST'])
 def send_email():
     """Enviar email"""
-    data = request.get_json()
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
     
+    data = request.get_json()
     if not data or not all(k in data for k in ['to', 'subject', 'body']):
         return jsonify({'error': 'Dados obrigatórios: to, subject, body'}), 400
     
-    user_email = list(users_db.keys())[0] if users_db else "usuario@gmail.com"
+    user_email = session.get('user_email')
     
     new_email = {
         'id': str(uuid.uuid4()),
@@ -251,11 +252,65 @@ def send_email():
     
     return jsonify({'success': True, 'message': 'Email enviado com sucesso'})
 
+@app.route('/api/admin/broadcast', methods=['POST'])
+def admin_broadcast():
+    """Enviar email para todos os usuários (apenas admin)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    data = request.get_json()
+    if not data or not all(k in data for k in ['subject', 'body']):
+        return jsonify({'error': 'Subject e body são obrigatórios'}), 400
+    
+    sent_count = 0
+    for user_email in users_db.keys():
+        if user_email != ADMIN_EMAIL:  # Não enviar para o próprio admin
+            broadcast_email = {
+                'id': str(uuid.uuid4()),
+                'from': ADMIN_EMAIL,
+                'to': user_email,
+                'subject': f"[SISTEMA] {data['subject']}",
+                'body': data['body'],
+                'date': datetime.now().isoformat(),
+                'read': False,
+                'starred': False,
+                'folder': 'inbox'
+            }
+            emails_db.append(broadcast_email)
+            sent_count += 1
+    
+    save_data()
+    return jsonify({'success': True, 'sent_to': sent_count, 'message': f'Email enviado para {sent_count} usuários'})
+
+@app.route('/api/admin/users')
+def admin_users():
+    """Listar todos os usuários (apenas admin)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    users_list = []
+    for email, user_data in users_db.items():
+        users_list.append({
+            'email': email,
+            'name': user_data['name'],
+            'user_id': user_data['user_id'],
+            'created_at': user_data['created_at'],
+            'is_admin': user_data.get('is_admin', False)
+        })
+    
+    return jsonify(users_list)
+
 @app.route('/api/save-draft', methods=['POST'])
 def save_draft():
     """Salvar rascunho"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
     data = request.get_json()
-    user_email = list(users_db.keys())[0] if users_db else "usuario@gmail.com"
+    user_email = session.get('user_email')
     
     draft = {
         'id': str(uuid.uuid4()),
@@ -277,8 +332,24 @@ def save_draft():
 @app.route('/api/email/<email_id>/delete', methods=['DELETE'])
 def delete_email(email_id):
     """Deletar email"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
     global emails_db
-    emails_db = [e for e in emails_db if e['id'] != email_id]
+    user_email = session.get('user_email')
+    
+    # Verificar se o email pertence ao usuário
+    email_found = False
+    for email in emails_db:
+        if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
+            email_found = True
+            break
+    
+    if not email_found:
+        return jsonify({'error': 'Email não encontrado'}), 404
+    
+    emails_db = [e for e in emails_db if e.get('id') != email_id]
     save_data()
     
     return jsonify({'success': True, 'message': 'Email deletado'})
@@ -286,44 +357,63 @@ def delete_email(email_id):
 @app.route('/api/email/<email_id>/star', methods=['POST'])
 def star_email(email_id):
     """Marcar/desmarcar email como favorito"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    user_email = session.get('user_email')
+    
     for email in emails_db:
-        if email['id'] == email_id:
+        if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
             email['starred'] = not email.get('starred', False)
             save_data()
             return jsonify({'success': True, 'starred': email['starred']})
     
     return jsonify({'error': 'Email não encontrado'}), 404
 
+@app.route('/api/search', methods=['POST'])
+def search_emails():
+    """Buscar emails"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    query = data.get('query', '').lower()
+    user_email = session.get('user_email')
+    
+    results = []
+    for email in emails_db:
+        try:
+            if (email.get('to') == user_email or email.get('from') == user_email) and (
+                query in email.get('subject', '').lower() or 
+                query in email.get('body', '').lower() or 
+                query in email.get('from', '').lower()
+            ):
+                results.append(email)
+        except Exception as e:
+            print(f"Erro na busca: {e}")
+            continue
+    
+    return jsonify(results)
+
 @app.route('/api/refresh-emails', methods=['POST'])
 def refresh_emails():
     """Atualizar lista de emails"""
-    user_email = list(users_db.keys())[0] if users_db else "usuario@gmail.com"
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    user_email = session.get('user_email')
     inbox_emails = get_user_emails(user_email, 'inbox')
     
     return jsonify({'success': True, 'count': len(inbox_emails)})
 
-@app.route('/api/search', methods=['POST'])
-def search_emails():
-    """Buscar emails"""
-    data = request.get_json()
-    query = data.get('query', '').lower()
-    user_email = list(users_db.keys())[0] if users_db else "usuario@gmail.com"
-    
-    results = []
-    for email in emails_db:
-        if (email['to'] == user_email or email['from'] == user_email) and (
-            query in email['subject'].lower() or 
-            query in email['body'].lower() or 
-            query in email['from'].lower()
-        ):
-            results.append(email)
-    
-    return jsonify(results)
-
 if __name__ == '__main__':
     print("📧 Sistema Gmail Independente iniciado!")
-    print(f"👤 Usuário exemplo: usuario@gmail.com")
+    print(f"👑 Admin: {ADMIN_EMAIL} (senha: admin123)")
     print(f"📬 Emails carregados: {len(emails_db)}")
+    print(f"👥 Usuários registrados: {len(users_db)}")
     print(f"🌐 Acesse: http://0.0.0.0:5000")
     
     app.run(host='0.0.0.0', port=5000, debug=True)

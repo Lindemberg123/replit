@@ -9,10 +9,19 @@ run = ["python3", "server.py"]
 deploymentTarget = "cloudrun"
 
 [workflows]
-runButton = "Start Gmail API Server"
+runButton = "Gmail System"
 
 [[workflows.workflow]]
 name = "Start Gmail API Server"
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python server.py"
+
+[[workflows.workflow]]
+name = "Gmail System"
+author = 43599698
 mode = "sequential"
 
 [[workflows.workflow.tasks]]

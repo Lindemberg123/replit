@@ -50,16 +50,26 @@ async function loadUserInfo() {
         const response = await fetch('/api/user-info');
         if (response.ok) {
             userInfo = await response.json();
-            document.getElementById('userEmail').textContent = userInfo.email;
+            document.getElementById('userEmail').textContent = userInfo.name;
+            document.getElementById('userId').textContent = `ID: ${userInfo.user_id}`;
             
             if (userInfo.profile_pic) {
                 document.getElementById('userProfilePic').src = userInfo.profile_pic;
             }
             
+            // Mostrar painel admin se for administrador
+            if (userInfo.is_admin) {
+                document.getElementById('adminPanel').style.display = 'block';
+            }
+            
             updateCounts();
+        } else if (response.status === 401) {
+            // Usuário não logado, redirecionar para login
+            window.location.href = '/login.html';
         }
     } catch (error) {
         console.error('Erro ao carregar info do usuário:', error);
+        window.location.href = '/login.html';
     }
 }
 
@@ -751,6 +761,115 @@ function setupPWA() {
     }
 }
 
+// Funções de autenticação
+async function logout() {
+    if (confirm('Tem certeza que deseja sair?')) {
+        try {
+            await fetch('/api/logout', { method: 'POST' });
+            window.location.href = '/login.html';
+        } catch (error) {
+            console.error('Erro ao fazer logout:', error);
+            window.location.href = '/login.html';
+        }
+    }
+}
+
+// Funções de administração
+function showBroadcast() {
+    document.getElementById('broadcastModal').classList.add('active');
+    document.getElementById('broadcastSubject').focus();
+}
+
+function closeBroadcast() {
+    document.getElementById('broadcastModal').classList.remove('active');
+    document.getElementById('broadcastForm').reset();
+}
+
+async function handleBroadcast(e) {
+    e.preventDefault();
+    
+    const formData = {
+        subject: document.getElementById('broadcastSubject').value,
+        body: document.getElementById('broadcastBody').value
+    };
+    
+    try {
+        const response = await fetch('/api/admin/broadcast', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showNotification(`Email enviado para ${result.sent_to} usuários!`, 'success');
+            closeBroadcast();
+        } else {
+            showNotification(`Erro: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        showNotification('Erro de conexão', 'error');
+        console.error('Erro:', error);
+    }
+}
+
+function showUsers() {
+    document.getElementById('usersModal').classList.add('active');
+    loadUsers();
+}
+
+function closeUsers() {
+    document.getElementById('usersModal').classList.remove('active');
+}
+
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/admin/users');
+        if (response.ok) {
+            const users = await response.json();
+            displayUsers(users);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+    }
+}
+
+function displayUsers(users) {
+    const container = document.getElementById('usersList');
+    
+    if (users.length === 0) {
+        container.innerHTML = '<p>Nenhum usuário encontrado</p>';
+        return;
+    }
+    
+    container.innerHTML = users.map(user => `
+        <div class="user-item">
+            <div class="user-info-item">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=4285f4&color=fff" 
+                     alt="${user.name}" class="user-avatar-small">
+                <div class="user-details-item">
+                    <div class="user-name-item">${user.name} ${user.is_admin ? '<i class="fas fa-crown admin-badge"></i>' : ''}</div>
+                    <div class="user-email-item">${user.email}</div>
+                    <div class="user-id-item">ID: ${user.user_id}</div>
+                    <div class="user-date-item">Criado: ${formatDate(user.created_at)}</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Event listeners para modais admin
+document.addEventListener('DOMContentLoaded', function() {
+    const broadcastForm = document.getElementById('broadcastForm');
+    if (broadcastForm) {
+        broadcastForm.addEventListener('submit', handleBroadcast);
+    }
+});
+
 console.log('Sistema Gmail Independente carregado!');
 console.log('Atalhos: Ctrl+C para escrever, Ctrl+R para atualizar, Esc para voltar');
 console.log('Mobile: Swipe direita para voltar, toque no menu para navegação');
+console.log('Admin: suport.com@gmail.oficial (senha: admin123)');
