@@ -1,5 +1,61 @@
-
 // Sistema Gmail Independente - JavaScript Frontend
+
+// Sistema de Patrocínio
+const SPONSORS = {
+    gmail: {
+        name: 'Gmail',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg',
+        tagline: 'O melhor email do mundo',
+        cta: 'Criar conta Gmail',
+        url: 'https://gmail.com',
+        color: '#ea4335'
+    },
+    google: {
+        name: 'Google',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
+        tagline: 'Busque tudo com Google',
+        cta: 'Pesquisar no Google',
+        url: 'https://google.com',
+        color: '#4285f4'
+    },
+    cocacola: {
+        name: 'Coca-Cola',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/c/ce/Coca-Cola_logo.svg',
+        tagline: 'Abra a felicidade',
+        cta: 'Saiba mais',
+        url: 'https://coca-cola.com',
+        color: '#ed1c16'
+    },
+    callofduty: {
+        name: 'Call of Duty',
+        logo: 'https://logos-world.net/wp-content/uploads/2021/02/Call-of-Duty-Logo.png',
+        tagline: 'Entre na batalha',
+        cta: 'Jogar agora',
+        url: 'https://callofduty.com',
+        color: '#000000'
+    },
+    stumbleguys: {
+        name: 'Stumble Guys',
+        logo: 'https://play-lh.googleusercontent.com/Kf8WTct65hFJxBUDm5E-EpYsiDoLQiGGbnuyP6HBNax43YShXti9THPon1YKB6zPYpA',
+        tagline: 'Diversão sem fim',
+        cta: 'Baixar jogo',
+        url: 'https://stumbleguys.com',
+        color: '#ff6b35'
+    }
+};
+
+let sponsorSettings = {
+    showTopBanner: true,
+    showSidebarAds: true,
+    showEmailInserts: true,
+    showFooter: true,
+    closedBanners: JSON.parse(localStorage.getItem('gmail_closed_banners') || '[]')
+};
+
+// Configurações do sistema
+USERS_FILE = 'users.json'
+EMAILS_FILE = 'emails.json'
+ADMIN_EMAIL = 'suport.com@gmail.oficial'
 
 let currentFolder = 'inbox';
 let currentEmail = null;
@@ -18,14 +74,15 @@ async function initializeApp() {
         if (window.location.pathname.includes('login.html')) {
             return;
         }
-        
+
         await loadUserInfo();
-        
+
         // Só carregar emails se o usuário estiver logado
         if (userInfo) {
             await loadEmails();
             setupEventListeners();
             showNotification('Gmail carregado com sucesso!', 'success');
+            showSponsorBanner(); // Mostra o banner de patrocinador
         }
     } catch (error) {
         console.error('Erro ao inicializar:', error);
@@ -49,16 +106,16 @@ function setupEventListeners() {
     if (composeForm) {
         composeForm.addEventListener('submit', handleSendEmail);
     }
-    
+
     // Botão escrever
     const composeBtn = document.querySelector('.compose-btn');
     if (composeBtn) {
         composeBtn.addEventListener('click', showCompose);
     }
-    
+
     // Busca
     document.getElementById('searchInput').addEventListener('input', handleSearch);
-    
+
     // Atalhos de teclado
     document.addEventListener('keydown', handleKeyboardShortcuts);
 }
@@ -68,24 +125,24 @@ async function loadUserInfo() {
         const response = await fetch('/api/user-info');
         if (response.ok) {
             userInfo = await response.json();
-            
+
             const userEmailEl = document.getElementById('userEmail');
             const userIdEl = document.getElementById('userId');
             const userProfilePicEl = document.getElementById('userProfilePic');
             const adminPanelEl = document.getElementById('adminPanel');
-            
+
             if (userEmailEl) userEmailEl.textContent = userInfo.name;
             if (userIdEl) userIdEl.textContent = `ID: ${userInfo.user_id}`;
-            
+
             if (userInfo.profile_pic && userProfilePicEl) {
                 userProfilePicEl.src = userInfo.profile_pic;
             }
-            
+
             // Mostrar painel admin se for administrador
             if (userInfo.is_admin && adminPanelEl) {
                 adminPanelEl.style.display = 'block';
             }
-            
+
             updateCounts();
         } else if (response.status === 401) {
             // Usuário não logado, redirecionar para login apenas se não estiver já na página de login
@@ -116,13 +173,13 @@ async function loadEmails() {
     try {
         showLoading();
         let response;
-        
+
         if (currentFolder === 'highlighted') {
             response = await fetch('/api/admin/highlighted-emails');
         } else {
             response = await fetch(`/api/emails/${currentFolder}`);
         }
-        
+
         if (response.ok) {
             const emails = await response.json();
             displayEmails(emails);
@@ -137,35 +194,35 @@ async function loadEmails() {
 
 function displayEmails(emails) {
     const container = document.getElementById('emailsContainer');
-    
+
     if (emails.length === 0) {
         showEmptyState(getEmptyMessage());
         return;
     }
-    
+
     container.innerHTML = emails.map(email => {
         let emailClass = email.read ? '' : 'unread';
         if (email.highlighted) emailClass += ' highlighted';
         if (email.verification) {
             emailClass += ' verification';
-            
+
             // Classes específicas para verificações avançadas
             if (email.verification_advanced) emailClass += ' advanced';
             if (email.verification_premium) emailClass += ' premium';
             if (email.verification_type === 'enterprise') emailClass += ' enterprise';
             if (email.verification_type === 'vip') emailClass += ' vip';
-            
+
             // Classes de prioridade
             emailClass += ` ${getVerificationPriorityClass(email)}`;
         }
         if (email.password_reset) emailClass += ' password-reset';
         if (email.notification) emailClass += ' notification';
-        
+
         // Determinar ícone e cor do highlight baseado no tipo
         let highlightIcon = 'fa-star-of-life';
         let highlightColor = '#ff6b35';
         let highlightContent = '';
-        
+
         if (email.verification) {
             if (email.verification_premium) {
                 highlightIcon = 'fa-crown';
@@ -180,7 +237,7 @@ function displayEmails(emails) {
                 highlightIcon = 'fa-shield-alt';
                 highlightColor = '#34a853';
             }
-            
+
             // Adicionar indicador de expiração
             if (email.verification_expires && isEmailExpired(email)) {
                 highlightContent = `<div class="email-highlight" style="background: #ea4335;"><i class="fas fa-clock"></i></div>`;
@@ -188,13 +245,13 @@ function displayEmails(emails) {
                 highlightContent = `<div class="email-highlight" style="background: ${highlightColor};"><i class="fas ${highlightIcon}"></i></div>`;
             }
         }
-        
+
         // Snippet personalizado para verificações
         let snippet = (email.body || '').substring(0, 100);
         if (email.verification && email.verification_type) {
             snippet = `🔐 ${formatVerificationType(email.verification_type)} - ${snippet}`;
         }
-        
+
         // Data com indicador de prioridade
         let dateDisplay = formatDate(email.date);
         if (email.verification_priority && email.verification_priority !== 'normal') {
@@ -205,7 +262,7 @@ function displayEmails(emails) {
             };
             dateDisplay = `${priorityEmojis[email.verification_priority] || ''} ${dateDisplay}`;
         }
-        
+
         return `
         <div class="email-item ${emailClass}" onclick="openEmail('${email.id}')">
             <div class="email-checkbox">
@@ -227,6 +284,29 @@ function displayEmails(emails) {
         </div>
         `;
     }).join('');
+
+        // Inserir propaganda no meio da lista de emails
+        if (sponsorSettings.showEmailInserts && emails.length > 3) {
+            const sponsorKeys = Object.keys(SPONSORS);
+            const randomSponsorKey = sponsorKeys[Math.floor(Math.random() * sponsorKeys.length)];
+            const sponsor = SPONSORS[randomSponsorKey];
+
+            const adHtml = `
+                <div class="email-item sponsor-ad">
+                    <div class="sponsor-content">
+                        <img src="${sponsor.logo}" alt="${sponsor.name} Logo" class="sponsor-logo">
+                        <div class="sponsor-text">
+                            <h3>${sponsor.name}</h3>
+                            <p>${sponsor.tagline}</p>
+                            <a href="${sponsor.url}" class="sponsor-cta" style="background-color: ${sponsor.color};">${sponsor.cta}</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Inserir após o terceiro email
+            container.innerHTML = container.innerHTML.replace(/(<\/div>)/, `$1${adHtml}`);
+        }
 }
 
 function showLoading() {
@@ -267,7 +347,7 @@ function switchFolder(folder) {
     if (folderElement) {
         folderElement.classList.add('active');
     }
-    
+
     // Atualizar título
     const titles = {
         'inbox': 'Caixa de entrada',
@@ -277,11 +357,11 @@ function switchFolder(folder) {
         'highlighted': 'Emails Destacados'
     };
     document.getElementById('folderTitle').textContent = titles[folder] || 'Emails';
-    
+
     // Carregar emails
     currentFolder = folder;
     loadEmails();
-    
+
     // Voltar para lista
     backToList();
 }
@@ -292,14 +372,14 @@ async function openEmail(emailId) {
         if (response.ok) {
             const email = await response.json();
             currentEmail = email;
-            
+
             // Verificar se é mobile e usar função apropriada
             if (window.innerWidth <= 768) {
                 showEmailViewMobile(email);
             } else {
                 showEmailView(email);
             }
-            
+
             // Atualizar contadores se o email não estava lido
             if (!email.read) {
                 loadUserInfo();
@@ -314,23 +394,23 @@ async function openEmail(emailId) {
 function showEmailView(email) {
     document.getElementById('emailList').style.display = 'none';
     document.getElementById('emailView').style.display = 'flex';
-    
+
     // Atualizar botão de estrela
     const starBtn = document.getElementById('starBtn');
     if (starBtn) {
         starBtn.className = email.starred ? 'starred' : '';
     }
-    
+
     // Atualizar botão de destaque (apenas para admin)
     const highlightBtn = document.getElementById('highlightBtn');
     if (highlightBtn && userInfo && userInfo.is_admin) {
         highlightBtn.style.display = 'block';
         highlightBtn.className = email.highlighted ? 'highlighted' : '';
     }
-    
+
     let badges = '';
     let specialHeader = '';
-    
+
     // Headers especiais para verificações avançadas
     if (email.verification_premium) {
         specialHeader = `
@@ -374,36 +454,36 @@ function showEmailView(email) {
             </div>
         `;
     }
-    
+
     // Badges tradicionais
     if (email.highlighted) {
         badges += '<div class="email-highlighted-badge"><i class="fas fa-star-of-life"></i> Email em Destaque</div>';
     }
-    
+
     if (email.verification) {
         let verificationClass = 'email-verification-badge';
         let verificationIcon = 'fa-shield-alt';
         let verificationText = 'Email de Verificação';
-        
+
         if (email.verification_advanced) {
             verificationClass += ' advanced';
         }
-        
+
         if (email.verification_premium) {
             verificationClass = 'email-verification-badge premium';
             verificationIcon = 'fa-crown';
             verificationText = `Verificação ${email.verification_type?.toUpperCase() || 'Premium'}`;
         }
-        
+
         badges += `<div class="${verificationClass}"><i class="fas ${verificationIcon}"></i> ${verificationText}</div>`;
-        
+
         // Badge de expiração se aplicável
         if (email.verification_expires) {
             const expiryDate = new Date(email.verification_expires);
             const now = new Date();
             const isExpired = now > expiryDate;
             const timeLeft = isExpired ? 'Expirado' : getTimeUntilExpiry(expiryDate);
-            
+
             badges += `
                 <div class="email-verification-badge ${isExpired ? 'expired' : 'active'}" style="background: ${isExpired ? '#ea4335' : '#34a853'};">
                     <i class="fas ${isExpired ? 'fa-clock' : 'fa-hourglass-half'}"></i> 
@@ -411,7 +491,7 @@ function showEmailView(email) {
                 </div>
             `;
         }
-        
+
         // Badge de prioridade
         if (email.verification_priority && email.verification_priority !== 'normal') {
             const priorityColors = {
@@ -424,7 +504,7 @@ function showEmailView(email) {
                 'critical': 'fa-exclamation-triangle',
                 'urgent': 'fa-bolt'
             };
-            
+
             badges += `
                 <div class="email-verification-badge" style="background: ${priorityColors[email.verification_priority]};">
                     <i class="fas ${priorityIcons[email.verification_priority]}"></i> 
@@ -433,7 +513,7 @@ function showEmailView(email) {
             `;
         }
     }
-    
+
     if (email.password_reset) {
         badges += '<div class="email-reset-badge"><i class="fas fa-key"></i> Recuperação de Senha</div>';
     }
@@ -443,7 +523,7 @@ function showEmailView(email) {
     if (email.site_origin) {
         badges += `<div class="email-notification-badge"><i class="fas fa-external-link-alt"></i> Via: ${email.site_origin}</div>`;
     }
-    
+
     // Badge de segurança
     if (email.security_level && email.security_level !== 'standard') {
         badges += `
@@ -471,6 +551,7 @@ function showEmailView(email) {
             </div>
         </div>
         <div class="email-body">${(email.body || '').replace(/\n/g, '<br>')}</div>
+        ${sponsorSettings.showFooter ? getSponsorFooter() : ''}
     `;
 }
 
@@ -496,13 +577,13 @@ function closeCompose() {
 
 async function handleSendEmail(e) {
     e.preventDefault();
-    
+
     const formData = {
         to: document.getElementById('composeTo').value,
         subject: document.getElementById('composeSubject').value,
         body: document.getElementById('composeBody').value
     };
-    
+
     try {
         const response = await fetch('/api/send-email', {
             method: 'POST',
@@ -511,17 +592,17 @@ async function handleSendEmail(e) {
             },
             body: JSON.stringify(formData)
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
             showNotification('Email enviado com sucesso!', 'success');
             closeCompose();
-            
+
             if (currentFolder === 'sent') {
                 loadEmails();
             }
-            
+
             loadUserInfo();
         } else {
             showNotification(`Erro: ${result.error}`, 'error');
@@ -538,7 +619,7 @@ async function saveDraft() {
         subject: document.getElementById('composeSubject').value,
         body: document.getElementById('composeBody').value
     };
-    
+
     try {
         const response = await fetch('/api/save-draft', {
             method: 'POST',
@@ -547,17 +628,17 @@ async function saveDraft() {
             },
             body: JSON.stringify(formData)
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
             showNotification('Rascunho salvo!', 'success');
             closeCompose();
-            
+
             if (currentFolder === 'drafts') {
                 loadEmails();
             }
-            
+
             loadUserInfo();
         } else {
             showNotification('Erro ao salvar rascunho', 'error');
@@ -570,13 +651,13 @@ async function saveDraft() {
 
 async function deleteEmail() {
     if (!currentEmail) return;
-    
+
     if (confirm('Tem certeza que deseja excluir este email?')) {
         try {
             const response = await fetch(`/api/email/${currentEmail.id}/delete`, {
                 method: 'DELETE'
             });
-            
+
             if (response.ok) {
                 showNotification('Email excluído', 'success');
                 backToList();
@@ -594,15 +675,15 @@ async function deleteEmail() {
 
 async function toggleStar(emailId, event) {
     event.stopPropagation();
-    
+
     try {
         const response = await fetch(`/api/email/${emailId}/star`, {
             method: 'POST'
         });
-        
+
         if (response.ok) {
             const result = await response.json();
-            
+
             // Atualizar visual da estrela
             const starElement = event.target.closest('.email-star');
             if (result.starred) {
@@ -610,7 +691,7 @@ async function toggleStar(emailId, event) {
             } else {
                 starElement.classList.remove('starred');
             }
-            
+
             // Recarregar se estiver na pasta de favoritos
             if (currentFolder === 'starred') {
                 loadEmails();
@@ -623,16 +704,16 @@ async function toggleStar(emailId, event) {
 
 async function starCurrentEmail() {
     if (!currentEmail) return;
-    
+
     try {
         const response = await fetch(`/api/email/${currentEmail.id}/star`, {
             method: 'POST'
         });
-        
+
         if (response.ok) {
             const result = await response.json();
             const starBtn = document.getElementById('starBtn');
-            
+
             if (result.starred) {
                 starBtn.classList.add('starred');
                 showNotification('Email marcado com estrela', 'success');
@@ -640,7 +721,7 @@ async function starCurrentEmail() {
                 starBtn.classList.remove('starred');
                 showNotification('Estrela removida', 'info');
             }
-            
+
             currentEmail.starred = result.starred;
         }
     } catch (error) {
@@ -654,9 +735,9 @@ async function refreshEmails() {
         const response = await fetch('/api/refresh-emails', {
             method: 'POST'
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
             showNotification('Emails atualizados', 'success');
             loadEmails();
@@ -672,12 +753,12 @@ async function refreshEmails() {
 
 async function handleSearch(e) {
     const query = e.target.value.trim();
-    
+
     // Limpar timeout anterior
     if (searchTimeout) {
         clearTimeout(searchTimeout);
     }
-    
+
     // Aguardar 300ms antes de buscar
     searchTimeout = setTimeout(async () => {
         if (query.length > 0) {
@@ -689,7 +770,7 @@ async function handleSearch(e) {
                     },
                     body: JSON.stringify({ query })
                 });
-                
+
                 if (response.ok) {
                     const results = await response.json();
                     displayEmails(results);
@@ -705,11 +786,11 @@ async function handleSearch(e) {
 
 function replyToEmail() {
     if (!currentEmail) return;
-    
+
     document.getElementById('composeTo').value = currentEmail.from;
     document.getElementById('composeSubject').value = 'Re: ' + currentEmail.subject;
     document.getElementById('composeBody').value = `\n\n--- Email original ---\n${currentEmail.body}`;
-    
+
     showCompose();
 }
 
@@ -739,7 +820,7 @@ function formatDate(dateString) {
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) {
         return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     } else if (diffDays === 2) {
@@ -758,13 +839,13 @@ function showNotification(message, type = 'success') {
         <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle"></i>
         <span>${message}</span>
     `;
-    
+
     document.getElementById('notifications').appendChild(notification);
-    
+
     setTimeout(() => {
         notification.classList.add('show');
     }, 100);
-    
+
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => {
@@ -788,21 +869,21 @@ function markAllAsRead() {
 function setupMobileFeatures() {
     // Detectar dispositivo móvel
     const isMobile = window.innerWidth <= 768;
-    
+
     if (isMobile) {
         document.body.classList.add('mobile');
         setupMobileNavigation();
         setupTouchGestures();
         setupMobileEmailView();
     }
-    
+
     // Listener para mudanças de orientação
     window.addEventListener('orientationchange', function() {
         setTimeout(() => {
             adjustForOrientation();
         }, 100);
     });
-    
+
     // Listener para redimensionamento
     window.addEventListener('resize', function() {
         const isMobileNow = window.innerWidth <= 768;
@@ -818,16 +899,16 @@ function setupMobileNavigation() {
     overlay.className = 'mobile-overlay';
     overlay.id = 'mobileOverlay';
     document.body.appendChild(overlay);
-    
+
     // Toggle sidebar no mobile
     const menuIcon = document.querySelector('.menu-icon');
     if (menuIcon) {
         menuIcon.addEventListener('click', toggleMobileSidebar);
     }
-    
+
     // Fechar sidebar ao clicar no overlay
     overlay.addEventListener('click', closeMobileSidebar);
-    
+
     // Fechar sidebar ao selecionar item
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', function() {
@@ -841,7 +922,7 @@ function setupMobileNavigation() {
 function toggleMobileSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.getElementById('mobileOverlay');
-    
+
     sidebar.classList.toggle('active');
     overlay.classList.toggle('active');
 }
@@ -849,14 +930,14 @@ function toggleMobileSidebar() {
 function closeMobileSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.getElementById('mobileOverlay');
-    
+
     sidebar.classList.remove('active');
     overlay.classList.remove('active');
 }
 
 function setupMobileEmailView() {
     const emailView = document.getElementById('emailView');
-    
+
     // Adicionar classe para controle mobile
     if (emailView) {
         emailView.classList.add('mobile-email-view');
@@ -867,21 +948,21 @@ function setupTouchGestures() {
     // Swipe para voltar no email view
     let startX = 0;
     let startY = 0;
-    
+
     document.addEventListener('touchstart', function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
     });
-    
+
     document.addEventListener('touchend', function(e) {
         if (!startX || !startY) return;
-        
+
         const endX = e.changedTouches[0].clientX;
         const endY = e.changedTouches[0].clientY;
-        
+
         const diffX = startX - endX;
         const diffY = startY - endY;
-        
+
         // Swipe horizontal
         if (Math.abs(diffX) > Math.abs(diffY)) {
             // Swipe right para voltar (apenas se email estiver aberto)
@@ -889,7 +970,7 @@ function setupTouchGestures() {
                 backToList();
             }
         }
-        
+
         startX = 0;
         startY = 0;
     });
@@ -898,11 +979,11 @@ function setupTouchGestures() {
 function adjustForOrientation() {
     // Ajustar layout para mudanças de orientação
     const isMobile = window.innerWidth <= 768;
-    
+
     if (isMobile) {
         // Fechar sidebar se estiver aberta
         closeMobileSidebar();
-        
+
         // Ajustar altura do compose modal
         const composeModal = document.getElementById('composeModal');
         if (composeModal && composeModal.classList.contains('active')) {
@@ -922,12 +1003,12 @@ function adjustForOrientation() {
 function showEmailViewMobile(email) {
     // Primeiro mostrar o email
     showEmailView(email);
-    
+
     // Adicionar comportamento mobile
     if (window.innerWidth <= 768) {
         const emailView = document.getElementById('emailView');
         const emailList = document.getElementById('emailList');
-        
+
         if (emailView && emailList) {
             // Esconder lista e mostrar visualização
             emailList.style.display = 'none';
@@ -945,7 +1026,7 @@ function backToListMobile() {
         if (emailView) {
             emailView.classList.remove('active');
         }
-        
+
         setTimeout(() => {
             backToList();
         }, 300);
@@ -957,12 +1038,12 @@ function backToListMobile() {
 // Função mobile para compose
 function showComposeMobile() {
     showCompose();
-    
+
     // Comportamento mobile
     if (window.innerWidth <= 768) {
         // Fechar sidebar se estiver aberta
         closeMobileSidebar();
-        
+
         // Ajustar foco
         setTimeout(() => {
             const toField = document.getElementById('composeTo');
@@ -994,7 +1075,7 @@ function optimizeForMobile() {
                 }
             });
         });
-        
+
         // Observar emails
         emailsContainer.querySelectorAll('.email-item').forEach(item => {
             observer.observe(item);
@@ -1010,7 +1091,7 @@ function setupPWA() {
             // Service worker não disponível
         });
     }
-    
+
     // Prevenir zoom em inputs no iOS
     if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
         const viewportMeta = document.querySelector('meta[name="viewport"]');
@@ -1046,12 +1127,12 @@ function closeBroadcast() {
 
 async function handleBroadcast(e) {
     e.preventDefault();
-    
+
     const formData = {
         subject: document.getElementById('broadcastSubject').value,
         body: document.getElementById('broadcastBody').value
     };
-    
+
     try {
         const response = await fetch('/api/admin/broadcast', {
             method: 'POST',
@@ -1060,9 +1141,9 @@ async function handleBroadcast(e) {
             },
             body: JSON.stringify(formData)
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
             showNotification(`Email enviado para ${result.sent_to} usuários!`, 'success');
             closeBroadcast();
@@ -1098,12 +1179,12 @@ async function loadUsers() {
 
 function displayUsers(users) {
     const container = document.getElementById('usersList');
-    
+
     if (users.length === 0) {
         container.innerHTML = '<p>Nenhum usuário encontrado</p>';
         return;
     }
-    
+
     container.innerHTML = users.map(user => `
         <div class="user-item">
             <div class="user-info-item">
@@ -1143,12 +1224,12 @@ async function loadSystemLogs() {
 
 function displaySystemLogs(logs) {
     const container = document.getElementById('systemLogsList');
-    
+
     if (logs.length === 0) {
         container.innerHTML = '<p>Nenhum log encontrado</p>';
         return;
     }
-    
+
     container.innerHTML = logs.map(log => `
         <div class="user-item">
             <div class="user-info-item">
@@ -1174,16 +1255,16 @@ document.addEventListener('DOMContentLoaded', function() {
 // Função para destacar email (apenas admin)
 async function highlightCurrentEmail() {
     if (!currentEmail || !userInfo || !userInfo.is_admin) return;
-    
+
     try {
         const response = await fetch(`/api/email/${currentEmail.id}/highlight`, {
             method: 'POST'
         });
-        
+
         if (response.ok) {
             const result = await response.json();
             const highlightBtn = document.getElementById('highlightBtn');
-            
+
             if (result.highlighted) {
                 highlightBtn.classList.add('highlighted');
                 showNotification('Email marcado como destaque', 'success');
@@ -1191,7 +1272,7 @@ async function highlightCurrentEmail() {
                 highlightBtn.classList.remove('highlighted');
                 showNotification('Destaque removido', 'info');
             }
-            
+
             currentEmail.highlighted = result.highlighted;
         }
     } catch (error) {
@@ -1206,18 +1287,18 @@ async function loadUserInfo() {
         const response = await fetch('/api/user-info');
         if (response.ok) {
             userInfo = await response.json();
-            
+
             const userEmailEl = document.getElementById('userEmail');
             const userIdEl = document.getElementById('userId');
             const userProfilePicEl = document.getElementById('userProfilePic');
-            
+
             if (userEmailEl) userEmailEl.textContent = userInfo.name;
             if (userIdEl) userIdEl.textContent = `ID: ${userInfo.user_id}`;
-            
+
             if (userInfo.profile_pic && userProfilePicEl) {
                 userProfilePicEl.src = userInfo.profile_pic;
             }
-            
+
             // Mostrar elementos admin
             if (userInfo.is_admin) {
                 console.log('Usuário é admin, mostrando elementos admin');
@@ -1229,7 +1310,7 @@ async function loadUserInfo() {
                     el.style.display = el.tagName === 'BUTTON' ? 'inline-block' : 'block';
                     console.log('Mostrando elemento admin-only:', el);
                 });
-                
+
                 // Adicionar painel de broadcast
                 const composeBtn = document.querySelector('.compose-btn');
                 if (composeBtn && !document.getElementById('broadcastBtn')) {
@@ -1241,7 +1322,7 @@ async function loadUserInfo() {
                     composeBtn.parentNode.insertBefore(broadcastBtn, composeBtn.nextSibling);
                 }
             }
-            
+
             updateCounts();
         } else if (response.status === 401) {
             if (!window.location.pathname.includes('login.html')) {
@@ -1269,13 +1350,13 @@ function isEmailExpired(email) {
 function getTimeUntilExpiry(expiryDate) {
     const now = new Date();
     const diffMs = expiryDate - now;
-    
+
     if (diffMs <= 0) return 'Expirado';
-    
+
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays > 0) return `${diffDays}d`;
     if (diffHours > 0) return `${diffHours}h`;
     if (diffMins > 0) return `${diffMins}m`;
@@ -1284,13 +1365,13 @@ function getTimeUntilExpiry(expiryDate) {
 
 function getVerificationPriorityClass(email) {
     if (!email.verification_priority) return '';
-    
+
     const priorityClasses = {
         'high': 'verification-priority-high',
         'critical': 'verification-priority-critical',
         'urgent': 'verification-priority-urgent'
     };
-    
+
     return priorityClasses[email.verification_priority] || '';
 }
 
@@ -1305,7 +1386,7 @@ function formatVerificationType(type) {
         'enterprise': 'Empresarial',
         'vip': 'VIP'
     };
-    
+
     return types[type] || type;
 }
 
@@ -1316,7 +1397,7 @@ function startVerificationAutoRefresh() {
         const currentEmailsContainer = document.getElementById('emailsContainer');
         const hasVerificationEmails = currentEmailsContainer && 
             currentEmailsContainer.innerHTML.includes('verification-status-indicator');
-        
+
         if (hasVerificationEmails) {
             // Recarregar emails silenciosamente para atualizar status de expiração
             loadEmails();
@@ -1334,3 +1415,50 @@ console.log('Atalhos: Ctrl+C para escrever, Ctrl+R para atualizar, Esc para volt
 console.log('Mobile: Swipe direita para voltar, toque no menu para navegação');
 console.log('Admin: suport.com@gmail.oficial');
 console.log('🔐 Sistema de Verificação Avançada ativo!');
+
+// --- Funções para o sistema de patrocínio ---
+function showSponsorBanner() {
+    if (!sponsorSettings.showTopBanner) return;
+
+    const sponsorKeys = Object.keys(SPONSORS);
+    const randomSponsorKey = sponsorKeys[Math.floor(Math.random() * sponsorKeys.length)];
+    const sponsor = SPONSORS[randomSponsorKey];
+
+    if (sponsorSettings.closedBanners.includes(sponsor.name)) return;
+
+    const banner = document.createElement('div');
+    banner.className = 'sponsor-banner';
+    banner.style.backgroundColor = sponsor.color;
+    banner.innerHTML = `
+        <div class="sponsor-banner-content">
+            <img src="${sponsor.logo}" alt="${sponsor.name} Logo" class="sponsor-banner-logo">
+            <div class="sponsor-banner-text">
+                <h3>${sponsor.name}</h3>
+                <p>${sponsor.tagline}</p>
+            </div>
+            <a href="${sponsor.url}" class="sponsor-banner-cta">${sponsor.cta}</a>
+            <button class="sponsor-banner-close" onclick="closeSponsorBanner('${sponsor.name}')">&times;</button>
+        </div>
+    `;
+    document.body.insertBefore(banner, document.body.firstChild);
+}
+
+function closeSponsorBanner(sponsorName) {
+    const banner = document.querySelector('.sponsor-banner');
+    if (banner) banner.remove();
+
+    sponsorSettings.closedBanners.push(sponsorName);
+    localStorage.setItem('gmail_closed_banners', JSON.stringify(sponsorSettings.closedBanners));
+}
+
+function getSponsorFooter() {
+    const sponsorKeys = Object.keys(SPONSORS);
+    const randomSponsorKey = sponsorKeys[Math.floor(Math.random() * sponsorKeys.length)];
+    const sponsor = SPONSORS[randomSponsorKey];
+
+    return `
+        <div class="sponsor-footer">
+            <p>Patrocinado por <a href="${sponsor.url}" style="color: ${sponsor.color};">${sponsor.name}</a></p>
+        </div>
+    `;
+}
