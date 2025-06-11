@@ -68,5 +68,19 @@
     "theme": "default",
     "language": "pt-BR",
     "signature": "Administrador NayEmail\nSistema de Email Inteligente"
+  },
+  "vídeo@n": {
+    "email": "vídeo@n",
+    "name": "Usuário Demonstração",
+    "password": "5058f1af8388633f609cadb75a75dc9d",
+    "created_at": "2025-06-11T15:30:00.000000",
+    "profile_pic": "https://ui-avatars.com/api/?name=Demo+User&background=ff6b35&color=fff",
+    "is_admin": false,
+    "user_id": "demo_001",
+    "theme": "default",
+    "language": "pt-BR",
+    "demo_account": true,
+    "show_trailer": true,
+    "disabled": false
   }
 }

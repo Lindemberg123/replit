@@ -92,6 +92,118 @@ def create_admin_user():
     }
     save_data()
 
+def create_demo_emails():
+    """Criar emails de demonstração para conta demo"""
+    demo_email = 'vídeo@n'
+    
+    # Verificar se já existem emails demo
+    existing_demo = [e for e in emails_db if e.get('to') == demo_email or e.get('demo_email')]
+    if len(existing_demo) > 0:
+        return
+    
+    demo_emails = [
+        {
+            'id': str(uuid.uuid4()),
+            'from': 'sistema@nayemail.com',
+            'to': demo_email,
+            'subject': '🎉 Bem-vindo ao NayEmail!',
+            'body': '''Olá!
+
+Bem-vindo ao Sistema NayEmail - a nova geração de emails inteligentes!
+
+🚀 PRINCIPAIS FUNCIONALIDADES:
+• IA Conversacional integrada
+• Verificação avançada de segurança
+• Templates inteligentes
+• Sincronização multi-dispositivo
+• Interface moderna e responsiva
+
+🤖 EXPERIMENTE A IA:
+Clique no banner da IA para conversar com nossa assistente inteligente.
+
+📧 COMPOSE INTELIGENTE:
+Use nossos templates e sugestões de IA para escrever emails profissionais.
+
+💡 DICA: Explore todas as funcionalidades usando os menus laterais!
+
+Bem-vindo à revolução dos emails!
+
+Sistema NayEmail
+            ''',
+            'date': datetime.now().isoformat(),
+            'read': False,
+            'starred': True,
+            'folder': 'inbox',
+            'highlighted': True,
+            'demo_email': True
+        },
+        {
+            'id': str(uuid.uuid4()),
+            'from': 'verificacao@empresademo.nay.com',
+            'to': demo_email,
+            'subject': '🔐 Código de Verificação - Empresa Demo',
+            'body': '''Olá!
+
+Seu código de verificação é: 123456
+
+Este código é válido por 10 minutos.
+
+Se você não solicitou esta verificação, ignore este email.
+
+Atenciosamente,
+Empresa Demo
+Sistema de Verificação Automática
+            ''',
+            'date': (datetime.now() - timedelta(minutes=5)).isoformat(),
+            'read': False,
+            'starred': False,
+            'folder': 'inbox',
+            'verification': True,
+            'verification_advanced': True,
+            'verification_type': 'account',
+            'verification_priority': 'high',
+            'demo_email': True
+        },
+        {
+            'id': str(uuid.uuid4()),
+            'from': 'IA@nayemail.com',
+            'to': demo_email,
+            'subject': '🤖 Sua Assistente IA está pronta!',
+            'body': '''Olá!
+
+A NayAI, sua assistente inteligente, está configurada e pronta para uso!
+
+💬 COMO USAR:
+• Clique no banner da IA na interface principal
+• Ou envie um email para IA@nayemail.com
+• Faça perguntas sobre o sistema
+• Peça ajuda com emails
+• Tenha conversas naturais
+
+🎯 EXEMPLOS DO QUE POSSO FAZER:
+• Explicar funcionalidades do sistema
+• Ajudar a compor emails
+• Responder dúvidas técnicas
+• Dar dicas de produtividade
+• Conversar sobre qualquer assunto
+
+Estou aqui para ajudar 24/7!
+
+NayAI - Assistente Inteligente
+Powered by NayEmail System
+            ''',
+            'date': (datetime.now() - timedelta(hours=1)).isoformat(),
+            'read': False,
+            'starred': False,
+            'folder': 'inbox',
+            'ai_chat_log': True,
+            'demo_email': True
+        }
+    ]
+    
+    emails_db.extend(demo_emails)
+    save_data()
+
 def get_current_user():
     """Obtém usuário atual da sessão"""
     user_id = session.get('user_id')
@@ -162,6 +274,7 @@ def get_user_emails(user_email, folder='inbox'):
 load_data()
 load_companies_data()
 create_admin_user()
+create_demo_emails()
 
 @app.route('/')
 def index():
@@ -169,6 +282,11 @@ def index():
     user = get_current_user()
     if not user:
         return send_from_directory('.', 'login.html')
+    
+    # Verificar se é conta demo e deve mostrar trailer
+    if user.get('demo_account') and user.get('show_trailer'):
+        return send_from_directory('.', 'trailer-demo.html')
+    
     return send_from_directory('.', 'index.html')
 
 @app.route('/login.html')
@@ -1408,6 +1526,11 @@ def ai_chat_page():
         return "ID da conversa não fornecido", 400
     return send_from_directory('.', 'ai-chat.html')
 
+@app.route('/trailer-demo.html')
+def trailer_demo_page():
+    """Página de trailer/demo do sistema"""
+    return send_from_directory('.', 'trailer-demo.html')
+
 @app.route('/api/ai-chat', methods=['POST'])
 def ai_chat_api():
     """API para chat com IA"""
@@ -1928,6 +2051,26 @@ def revoke_token():
         })
     else:
         return jsonify({'error': 'Token não encontrado'}), 404
+
+@app.route('/api/mark-trailer-seen', methods=['POST'])
+def mark_trailer_seen():
+    """Marcar trailer como visto para conta demo"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    user_email = session.get('user_email')
+    if user_email in users_db and users_db[user_email].get('demo_account'):
+        users_db[user_email]['show_trailer'] = False
+        users_db[user_email]['trailer_seen_at'] = datetime.now().isoformat()
+        save_data()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Trailer marcado como visto'
+        })
+    
+    return jsonify({'error': 'Conta não é demo'}), 400
 
 @app.route('/api/login-with-token', methods=['POST'])
 def login_with_token():
