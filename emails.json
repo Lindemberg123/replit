@@ -539,5 +539,47 @@
     "starred": false,
     "folder": "sent",
     "highlighted": false
+  },
+  {
+    "id": "d666cfdb-dedf-4a44-bd59-32cc83c490d3",
+    "from": "sistema@nayemail.com",
+    "to": "vídeo@n",
+    "subject": "🎉 Bem-vindo ao NayEmail!",
+    "body": "Olá!\n\nBem-vindo ao Sistema NayEmail - a nova geração de emails inteligentes!\n\n🚀 PRINCIPAIS FUNCIONALIDADES:\n• IA Conversacional integrada\n• Verificação avançada de segurança\n• Templates inteligentes\n• Sincronização multi-dispositivo\n• Interface moderna e responsiva\n\n🤖 EXPERIMENTE A IA:\nClique no banner da IA para conversar com nossa assistente inteligente.\n\n📧 COMPOSE INTELIGENTE:\nUse nossos templates e sugestões de IA para escrever emails profissionais.\n\n💡 DICA: Explore todas as funcionalidades usando os menus laterais!\n\nBem-vindo à revolução dos emails!\n\nSistema NayEmail\n            ",
+    "date": "2025-06-11T14:58:21.651552",
+    "read": false,
+    "starred": true,
+    "folder": "inbox",
+    "highlighted": true,
+    "demo_email": true
+  },
+  {
+    "id": "c5dba835-bf09-41e9-8396-e0389a250a9d",
+    "from": "verificacao@empresademo.nay.com",
+    "to": "vídeo@n",
+    "subject": "🔐 Código de Verificação - Empresa Demo",
+    "body": "Olá!\n\nSeu código de verificação é: 123456\n\nEste código é válido por 10 minutos.\n\nSe você não solicitou esta verificação, ignore este email.\n\nAtenciosamente,\nEmpresa Demo\nSistema de Verificação Automática\n            ",
+    "date": "2025-06-11T14:53:21.651572",
+    "read": false,
+    "starred": false,
+    "folder": "inbox",
+    "verification": true,
+    "verification_advanced": true,
+    "verification_type": "account",
+    "verification_priority": "high",
+    "demo_email": true
+  },
+  {
+    "id": "9c518021-0ea5-437c-af49-d6ea0c890be4",
+    "from": "IA@nayemail.com",
+    "to": "vídeo@n",
+    "subject": "🤖 Sua Assistente IA está pronta!",
+    "body": "Olá!\n\nA NayAI, sua assistente inteligente, está configurada e pronta para uso!\n\n💬 COMO USAR:\n• Clique no banner da IA na interface principal\n• Ou envie um email para IA@nayemail.com\n• Faça perguntas sobre o sistema\n• Peça ajuda com emails\n• Tenha conversas naturais\n\n🎯 EXEMPLOS DO QUE POSSO FAZER:\n• Explicar funcionalidades do sistema\n• Ajudar a compor emails\n• Responder dúvidas técnicas\n• Dar dicas de produtividade\n• Conversar sobre qualquer assunto\n\nEstou aqui para ajudar 24/7!\n\nNayAI - Assistente Inteligente\nPowered by NayEmail System\n            ",
+    "date": "2025-06-11T13:58:21.651588",
+    "read": false,
+    "starred": false,
+    "folder": "inbox",
+    "ai_chat_log": true,
+    "demo_email": true
   }
 ]
