@@ -1418,18 +1418,30 @@ def ai_chat_api():
     data = request.get_json()
     chat_id = data.get('chat_id')
     user_message = data.get('message')
+    close_chat = data.get('close_chat', False)
     
     if not chat_id or not user_message:
         return jsonify({'error': 'Chat ID e mensagem são obrigatórios'}), 400
+    
+    # Detectar comando para fechar chat
+    close_commands = ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar', 'fim', 'tchau', 'bye']
+    should_close = close_chat or any(cmd in user_message.lower() for cmd in close_commands)
     
     # Salvar mensagem do usuário
     save_chat_message(chat_id, user['email'], 'user', user_message)
     
     # Gerar resposta da IA
-    ai_response = generate_ai_response(user_message)
+    ai_response = generate_ai_response(user_message, should_close)
     
     # Salvar resposta da IA
     save_chat_message(chat_id, 'IA@nayemail.com', 'ai', ai_response)
+    
+    # Se deve fechar, gerar e enviar relatório
+    if should_close:
+        try:
+            generate_and_send_chat_transcript(user, chat_id)
+        except Exception as e:
+            print(f"Erro ao gerar relatório: {e}")
     
     # Enviar email para IA sobre a nova mensagem
     send_ai_notification_email(user, chat_id, user_message, ai_response)
@@ -1437,16 +1449,17 @@ def ai_chat_api():
     return jsonify({
         'success': True,
         'ai_response': ai_response,
-        'chat_id': chat_id
+        'chat_id': chat_id,
+        'close_chat': should_close
     })
 
-def generate_ai_response(user_message):
+def generate_ai_response(user_message, should_close=False):
     """Gera resposta inteligente baseada na mensagem do usuário"""
     message_lower = user_message.lower()
     
     # Detectar comando para fechar chat
-    if any(word in message_lower for word in ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar']):
-        return "🔄 Entendido! Vou finalizar nossa conversa e enviar um resumo por email. Obrigada por usar a NayAI! 👋"
+    if should_close or any(word in message_lower for word in ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar', 'fim', 'tchau', 'bye']):
+        return "🔄 Entendido! Finalizando nossa conversa e enviando relatório completo por email. Obrigada por usar a NayAI! 👋"
     
     # Perguntas sobre o sistema NayEmail
     elif any(word in message_lower for word in ['sistema', 'nayemail', 'funcionalidade', 'como usar', 'rotas', 'acesso']):
@@ -1529,6 +1542,125 @@ def save_chat_message(chat_id, user_email, sender_type, message):
     # Salvar de volta
     with open(chat_file, 'w', encoding='utf-8') as f:
         json.dump(chats, f, ensure_ascii=False, indent=2)
+
+def generate_and_send_chat_transcript(user, chat_id):
+    """Gerar e enviar relatório completo da conversa"""
+    try:
+        # Carregar todas as mensagens do chat
+        chat_file = 'ai_chats.json'
+        all_chats = []
+        if os.path.exists(chat_file):
+            with open(chat_file, 'r', encoding='utf-8') as f:
+                all_chats = json.load(f)
+        
+        # Filtrar mensagens deste chat específico
+        chat_messages = [msg for msg in all_chats if msg.get('chat_id') == chat_id]
+        chat_messages.sort(key=lambda x: x.get('timestamp', ''))
+        
+        if not chat_messages:
+            return
+        
+        # Gerar relatório detalhado
+        start_time = chat_messages[0]['timestamp'] if chat_messages else datetime.now().isoformat()
+        end_time = chat_messages[-1]['timestamp'] if chat_messages else datetime.now().isoformat()
+        total_messages = len(chat_messages)
+        
+        # Criar transcript formatado
+        transcript_lines = []
+        for msg in chat_messages:
+            timestamp = datetime.fromisoformat(msg['timestamp']).strftime('%H:%M:%S')
+            sender_icon = '👤' if msg['sender_type'] == 'user' else '🤖'
+            sender_name = user['name'] if msg['sender_type'] == 'user' else 'NayAI'
+            transcript_lines.append(f"[{timestamp}] {sender_icon} {sender_name}: {msg['message']}")
+        
+        transcript_text = '\n\n'.join(transcript_lines)
+        
+        # Calcular estatísticas
+        user_messages = [msg for msg in chat_messages if msg['sender_type'] == 'user']
+        ai_messages = [msg for msg in chat_messages if msg['sender_type'] == 'ai']
+        
+        chat_duration = "N/A"
+        if len(chat_messages) >= 2:
+            start_dt = datetime.fromisoformat(start_time)
+            end_dt = datetime.fromisoformat(end_time)
+            duration_seconds = (end_dt - start_dt).total_seconds()
+            chat_duration = f"{int(duration_seconds // 60)}m {int(duration_seconds % 60)}s"
+        
+        # Corpo do email do relatório
+        report_body = f"""
+📊 RELATÓRIO COMPLETO DA CONVERSA COM NAYAI
+
+╔══════════════════════════════════════════════════════════════╗
+║                    📋 INFORMAÇÕES GERAIS                     ║
+╚══════════════════════════════════════════════════════════════╝
+
+👤 Usuário: {user['name']} ({user['email']})
+🆔 ID da Conversa: {chat_id}
+📅 Data de início: {datetime.fromisoformat(start_time).strftime('%d/%m/%Y')}
+⏰ Horário de início: {datetime.fromisoformat(start_time).strftime('%H:%M:%S')}
+⏰ Horário de término: {datetime.fromisoformat(end_time).strftime('%H:%M:%S')}
+⏱️ Duração total: {chat_duration}
+
+╔══════════════════════════════════════════════════════════════╗
+║                     📈 ESTATÍSTICAS                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+💬 Total de mensagens: {total_messages}
+👤 Mensagens do usuário: {len(user_messages)}
+🤖 Respostas da IA: {len(ai_messages)}
+📊 Taxa de resposta: {len(ai_messages)/len(user_messages)*100:.1f}% (IA sempre responde)
+
+╔══════════════════════════════════════════════════════════════╗
+║                  💬 TRANSCRIPT COMPLETO                      ║
+╚══════════════════════════════════════════════════════════════╝
+
+{transcript_text}
+
+╔══════════════════════════════════════════════════════════════╗
+║                     📝 RESUMO FINAL                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+✅ Conversa finalizada com sucesso
+📧 Relatório gerado automaticamente
+🔒 Dados salvos com segurança
+🤖 NayAI sempre disponível para novas conversas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 COMO INICIAR NOVA CONVERSA:
+• Clique no banner da IA no sistema
+• Ou envie email para IA@nayemail.com
+• IA sempre pronta para ajudar!
+
+📧 Relatório gerado pelo Sistema NayEmail
+🆔 ID do Relatório: {str(uuid.uuid4())[:8]}
+📅 Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}
+
+        """.strip()
+        
+        # Enviar relatório por email
+        report_email = {
+            'id': str(uuid.uuid4()),
+            'from': 'sistema@nayemail.com',
+            'to': user['email'],
+            'subject': f"📊 Relatório Completo - Conversa NayAI ({chat_id[:8]})",
+            'body': report_body,
+            'date': datetime.now().isoformat(),
+            'read': False,
+            'starred': True,
+            'folder': 'inbox',
+            'chat_transcript': True,
+            'chat_id': chat_id,
+            'priority': 'high'
+        }
+        
+        emails_db.append(report_email)
+        save_data()
+        
+        print(f"Relatório de chat enviado para {user['email']}: {chat_id}")
+        
+    except Exception as e:
+        print(f"Erro ao gerar relatório de chat: {e}")
 
 def send_ai_notification_email(user, chat_id, user_message, ai_response):
     """Enviar notificação para a IA sobre nova mensagem"""

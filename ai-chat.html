@@ -219,7 +219,8 @@
                     },
                     body: JSON.stringify({
                         chat_id: chatId,
-                        message: message
+                        message: message,
+                        close_chat: shouldClose
                     })
                 });
                 
@@ -232,11 +233,12 @@
                     // Mostrar resposta da IA
                     displayMessage(result.ai_response, 'ai');
                     
-                    // Se foi comando para fechar, fechar janela após 2 segundos
-                    if (shouldClose) {
+                    // Se foi comando para fechar, fechar janela imediatamente após mostrar resposta
+                    if (shouldClose || result.close_chat) {
+                        displayMessage('🔄 Finalizando conversa e enviando relatório...', 'ai');
                         setTimeout(() => {
                             window.close();
-                        }, 2000);
+                        }, 1500);
                     }
                 } else {
                     displayMessage('Desculpe, houve um erro. Tente novamente.', 'ai');
