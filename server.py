@@ -1444,50 +1444,64 @@ def generate_ai_response(user_message):
     """Gera resposta inteligente baseada na mensagem do usuário"""
     message_lower = user_message.lower()
     
+    # Detectar comando para fechar chat
+    if any(word in message_lower for word in ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar']):
+        return "🔄 Entendido! Vou finalizar nossa conversa e enviar um resumo por email. Obrigada por usar a NayAI! 👋"
+    
+    # Perguntas sobre o sistema NayEmail
+    elif any(word in message_lower for word in ['sistema', 'nayemail', 'funcionalidade', 'como usar', 'rotas', 'acesso']):
+        system_responses = [
+            "📧 O NayEmail é um sistema completo de emails! Principais funcionalidades:\n• Envio e recebimento de emails\n• Organização por pastas\n• Sistema de favoritos\n• Chat com IA (eu!)\n• Painel administrativo\n• Verificações de segurança\n\nQual funcionalidade específica te interessa?",
+            "🎯 Sobre o sistema NayEmail posso explicar:\n• Para enviar emails: use o botão 'Escrever'\n• Para organizar: arraste emails para pastas\n• Para conversar comigo: clique no banner da IA\n• Admin: acesse com admin@nayemail.com\n\nPrecisa de ajuda com algo específico?",
+            "⚡ O NayEmail tem muitas funcionalidades:\n• Emails com verificação avançada\n• Sistema de tokens para API\n• Chat inteligente (comigo!)\n• Temas personalizáveis\n• Modo offline\n• Filtros automáticos\n\nSobre qual quer saber mais?"
+        ]
+        import random
+        return random.choice(system_responses)
+    
     # Respostas contextuais
-    if any(word in message_lower for word in ['olá', 'oi', 'hello', 'hey']):
+    elif any(word in message_lower for word in ['olá', 'oi', 'hello', 'hey']):
         responses = [
-            "Olá! 👋 Como posso ajudar você hoje?",
-            "Oi! Seja bem-vindo ao NayEmail! Em que posso ser útil?",
-            "Hey! 😊 Estou aqui para conversar e ajudar. O que precisa?"
+            "Olá! 👋 Sou a NayAI, assistente do sistema NayEmail. Como posso ajudar você hoje?",
+            "Oi! 😊 Bem-vindo ao chat com a NayAI! Posso ajudar com dúvidas sobre o sistema ou só conversar.",
+            "Hey! 🤖 Sou sua assistente inteligente do NayEmail. Em que posso ser útil?"
         ]
-    elif any(word in message_lower for word in ['ajuda', 'help', 'socorro']):
+    elif any(word in message_lower for word in ['ajuda', 'help', 'socorro', 'duvida', 'dúvida']):
         responses = [
-            "Claro! Estou aqui para ajudar. Pode me contar mais sobre o que precisa?",
-            "Com certeza! Sou sua assistente e estou pronta para ajudar. Qual é sua dúvida?",
-            "Sempre disposta a ajudar! 💪 Me diga o que está precisando."
+            "🆘 Claro! Posso ajudar com:\n• Como usar o NayEmail\n• Enviar/receber emails\n• Funcionalidades do sistema\n• Ou qualquer dúvida!\n\nO que precisa saber?",
+            "💡 Estou aqui para ajudar! Sou especialista em:\n• Sistema NayEmail\n• Envio de emails\n• Organização de mensagens\n• Funcionalidades avançadas\n\nQual sua dúvida?",
+            "🚀 Sempre pronta para ajudar! Posso explicar sobre:\n• Como navegar no sistema\n• Recursos disponíveis\n• Dicas e truques\n• Resolução de problemas\n\nMe conte o que precisa!"
         ]
-    elif any(word in message_lower for word in ['email', 'e-mail', 'gmail']):
+    elif any(word in message_lower for word in ['email', 'e-mail', 'gmail', 'enviar', 'receber']):
         responses = [
-            "O NayEmail é fantástico! 📧 Posso ajudar com dúvidas sobre envio, organização ou qualquer funcionalidade.",
-            "Sobre emails posso ajudar muito! Quer saber como usar melhor o sistema? Ou tem alguma dúvida específica?",
-            "Emails são minha especialidade! ✨ Pode perguntar sobre qualquer funcionalidade do NayEmail."
+            "📬 Sobre emails no NayEmail:\n• Para enviar: clique em 'Escrever'\n• Para organizar: use as pastas da barra lateral\n• Para favoritar: clique na estrela\n• Para buscar: use a caixa de pesquisa\n\nQual operação específica quer fazer?",
+            "✉️ O sistema de emails é bem completo:\n• Caixa de entrada, enviados, rascunhos\n• Sistema de estrelas e destaques\n• Verificações de segurança\n• Recuperação de senha\n\nPrecisa de ajuda com alguma função?",
+            "📧 No NayEmail você pode:\n• Compor emails ricos\n• Agendar envios\n• Usar respostas inteligentes\n• Organizar por categorias\n• Fazer backup das conversas\n\nQuer saber como fazer algo específico?"
         ]
-    elif any(word in message_lower for word in ['obrigado', 'obrigada', 'thanks', 'valeu']):
+    elif any(word in message_lower for word in ['obrigado', 'obrigada', 'thanks', 'valeu', 'brigadão']):
         responses = [
-            "De nada! 😊 Fico feliz em ajudar. Se precisar de mais alguma coisa, estou aqui!",
-            "Por nada! É sempre um prazer ajudar. 🌟",
-            "Que bom que pude ajudar! Volte sempre que precisar. 💙"
+            "😊 De nada! Fico feliz em ajudar com o NayEmail. Se tiver mais dúvidas, é só chamar!",
+            "🌟 Por nada! É um prazer ser sua assistente. Estou sempre aqui quando precisar!",
+            "💙 Que bom que pude ajudar! Continue explorando o NayEmail, tem muitas funcionalidades legais!"
         ]
-    elif any(word in message_lower for word in ['tchau', 'bye', 'até', 'fui']):
+    elif any(word in message_lower for word in ['tchau', 'bye', 'até', 'fui', 'xau']):
         responses = [
-            "Até logo! 👋 Foi ótimo conversar com você. Volte sempre!",
-            "Tchau! 😊 Estarei aqui quando precisar. Tenha um ótimo dia!",
-            "Até mais! 🌟 Espero ter ajudado. Nos vemos em breve!"
+            "👋 Até logo! Foi ótimo conversar com você. Volte sempre que quiser usar a NayAI!",
+            "😊 Tchau! Estarei aqui quando precisar de ajuda com o NayEmail. Tenha um ótimo dia!",
+            "🌟 Até mais! Espero ter ajudado. Continue aproveitando o sistema NayEmail!"
         ]
     elif '?' in user_message:
         responses = [
-            "Ótima pergunta! 🤔 Deixe-me pensar... Baseado no que você disse, acredito que posso ajudar com informações sobre isso.",
-            "Pergunta interessante! 💭 Vou fazer o meu melhor para responder de forma útil.",
-            "Gosto de perguntas! 🧠 Me dê um momento para formular uma resposta adequada."
+            "🤔 Interessante pergunta! Vou fazer o meu melhor para responder sobre o NayEmail ou qualquer dúvida que tenha.",
+            "💭 Boa pergunta! Como assistente do NayEmail, posso ajudar com informações do sistema ou outras questões.",
+            "🧠 Deixe-me pensar na melhor resposta... Sobre o que especificamente quer saber?"
         ]
     else:
         responses = [
-            "Interessante! 💭 Pode me contar mais sobre isso? Estou aqui para ouvir e ajudar.",
-            "Entendi! 😊 Gostaria de elaborar mais? Quanto mais você me contar, melhor posso ajudar.",
-            "Compreendo. 🤝 Como posso ser mais útil nesta conversa?",
-            "Legal! ✨ Me conte mais detalhes para que eu possa ajudar da melhor forma.",
-            "Entendo seu ponto! 🎯 Há algo específico em que posso ajudar relacionado a isso?"
+            "💭 Interessante! Pode me contar mais? Sou especialista no NayEmail e adoro conversar!",
+            "😊 Entendi! Como posso ajudar melhor? Posso explicar sobre o sistema ou só bater papo.",
+            "🤝 Compreendo. Há algo específico sobre o NayEmail que posso esclarecer?",
+            "✨ Legal! Quer saber algo sobre o sistema de emails ou prefere conversar sobre outro assunto?",
+            "🎯 Entendo seu ponto! Como assistente do NayEmail, posso ajudar com qualquer dúvida do sistema."
         ]
     
     import random

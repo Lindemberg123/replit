@@ -199,6 +199,10 @@
             
             if (!message) return;
             
+            // Detectar comando para fechar chat
+            const closeCommands = ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar'];
+            const shouldClose = closeCommands.some(cmd => message.toLowerCase().includes(cmd));
+            
             // Mostrar mensagem do usuário
             displayMessage(message, 'user');
             input.value = '';
@@ -227,6 +231,13 @@
                 if (result.success) {
                     // Mostrar resposta da IA
                     displayMessage(result.ai_response, 'ai');
+                    
+                    // Se foi comando para fechar, fechar janela após 2 segundos
+                    if (shouldClose) {
+                        setTimeout(() => {
+                            window.close();
+                        }, 2000);
+                    }
                 } else {
                     displayMessage('Desculpe, houve um erro. Tente novamente.', 'ai');
                 }

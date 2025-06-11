@@ -188,8 +188,10 @@ async function loadEmails() {
             } else {
                 console.error('Resposta não é um array:', emails);
                 displayEmails([]);
+                showNotification('Erro no formato dos dados de email', 'error');
             }
         } else {
+            console.error('Erro HTTP:', response.status);
             throw new Error(`Falha ao carregar emails: ${response.status}`);
         }
     } catch (error) {
@@ -558,7 +560,7 @@ function backToList() {
 
 // Sistema de Token de Conta - Verificação automática
 async function checkTokenRequests() {
-    if (!isAdmin) return;
+    if (!userInfo || !userInfo.is_admin) return;
     
     try {
         const response = await fetch('/api/check-token-requests', {
@@ -1511,7 +1513,13 @@ function closeSmartCompose() {
 }
 
 async function loadSmartSuggestions() {
-    const context = document.getElementById('composeBody').value;
+    const composeBody = document.getElementById('composeBody');
+    if (!composeBody) {
+        console.warn('Campo de composição não encontrado');
+        return;
+    }
+    
+    const context = composeBody.value;
     
     try {
         const response = await fetch('/api/smart-compose', {
@@ -1524,10 +1532,18 @@ async function loadSmartSuggestions() {
         
         if (response.ok) {
             const result = await response.json();
-            displaySmartSuggestions(result.suggestions);
+            if (result.suggestions && Array.isArray(result.suggestions)) {
+                displaySmartSuggestions(result.suggestions);
+            } else {
+                displaySmartSuggestions(['Nenhuma sugestão disponível']);
+            }
+        } else {
+            console.error('Erro HTTP ao carregar sugestões:', response.status);
+            displaySmartSuggestions(['Erro ao carregar sugestões']);
         }
     } catch (error) {
         console.error('Erro ao carregar sugestões:', error);
+        displaySmartSuggestions(['Erro de conexão']);
     }
 }
 
