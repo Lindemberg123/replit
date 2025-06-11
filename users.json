@@ -1,6 +1,6 @@
 {
   "usuario@gmail.com": {
-    "email": "usuario@gmail.com",
+    "email": "@gmail.com",
     "name": "Usuário Exemplo",
     "password": "e10adc3949ba59abbe56e057f20f883e",
     "created_at": "2025-06-08T01:16:30.836221",
@@ -23,7 +23,7 @@
     "profile_pic": "https://ui-avatars.com/api/?name=lindembergs297&background=4285f4&color=fff",
     "is_admin": false,
     "user_id": "user_003",
-    "last_login": "2025-06-11T01:06:21.601513"
+    "last_login": "2025-06-11T01:10:14.543210"
   },
   "lindembergs038@gmail.com": {
     "email": "lindembergs038@gmail.com",
