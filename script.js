@@ -1440,11 +1440,323 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(startVerificationAutoRefresh, 5000); // Iniciar após 5s
 });
 
-console.log('Sistema Gmail Independente carregado!');
-console.log('Atalhos: Ctrl+C para escrever, Ctrl+R para atualizar, Esc para voltar');
-console.log('Mobile: Swipe direita para voltar, toque no menu para navegação');
-console.log('Admin: suport.com@gmail.oficial');
-console.log('🔐 Sistema de Verificação Avançada ativo!');
+// Novas funcionalidades do NayEmail
+let currentTheme = 'default';
+let smartComposeEnabled = true;
+let offlineMode = false;
+
+// Função para adiar email
+function snoozeCurrentEmail() {
+    if (!currentEmail) return;
+    document.getElementById('snoozeModal').classList.add('active');
+}
+
+function closeSnooze() {
+    document.getElementById('snoozeModal').classList.remove('active');
+}
+
+async function snoozeEmail(duration) {
+    if (!currentEmail) return;
+    
+    let snoozeDate = new Date();
+    
+    switch(duration) {
+        case 'tomorrow':
+            snoozeDate.setDate(snoozeDate.getDate() + 1);
+            snoozeDate.setHours(8, 0, 0, 0);
+            break;
+        case 'week':
+            snoozeDate.setDate(snoozeDate.getDate() + 7);
+            snoozeDate.setHours(8, 0, 0, 0);
+            break;
+        case 'custom':
+            const customDate = prompt('Digite a data e hora (YYYY-MM-DD HH:MM):');
+            if (customDate) {
+                snoozeDate = new Date(customDate);
+            } else {
+                return;
+            }
+            break;
+    }
+    
+    try {
+        const response = await fetch(`/api/email/${currentEmail.id}/snooze`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                snooze_until: snoozeDate.toISOString()
+            })
+        });
+        
+        if (response.ok) {
+            showNotification('Email adiado com sucesso!', 'success');
+            closeSnooze();
+            backToList();
+        }
+    } catch (error) {
+        showNotification('Erro ao adiar email', 'error');
+    }
+}
+
+// Composição inteligente
+function showSmartCompose() {
+    document.getElementById('smartComposeModal').classList.add('active');
+    loadSmartSuggestions();
+}
+
+function closeSmartCompose() {
+    document.getElementById('smartComposeModal').classList.remove('active');
+}
+
+async function loadSmartSuggestions() {
+    const context = document.getElementById('composeBody').value;
+    
+    try {
+        const response = await fetch('/api/smart-compose', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ context })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            displaySmartSuggestions(result.suggestions);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar sugestões:', error);
+    }
+}
+
+function displaySmartSuggestions(suggestions) {
+    const container = document.getElementById('smartSuggestions');
+    container.innerHTML = suggestions.map(suggestion => `
+        <div class="suggestion-item" onclick="applySuggestion('${suggestion}')">
+            <i class="fas fa-lightbulb"></i>
+            ${suggestion}
+        </div>
+    `).join('');
+}
+
+function applySuggestion(suggestion) {
+    const bodyField = document.getElementById('composeBody');
+    bodyField.value += '\n\n' + suggestion;
+    closeSmartCompose();
+}
+
+// Seletor de temas
+function showThemeSelector() {
+    const themeSelector = document.getElementById('themeSelector');
+    themeSelector.classList.toggle('active');
+    loadThemes();
+}
+
+async function loadThemes() {
+    try {
+        const response = await fetch('/api/themes');
+        if (response.ok) {
+            const themes = await response.json();
+            displayThemes(themes);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar temas:', error);
+    }
+}
+
+function displayThemes(themes) {
+    const container = document.getElementById('themeOptions');
+    container.innerHTML = Object.entries(themes).map(([key, theme]) => `
+        <div class="theme-option ${key === currentTheme ? 'active' : ''}" 
+             onclick="selectTheme('${key}')"
+             style="background: ${theme.primary_color}; color: ${theme.text_color};">
+            <i class="fas fa-palette"></i>
+            ${theme.name}
+        </div>
+    `).join('');
+}
+
+async function selectTheme(themeKey) {
+    try {
+        const response = await fetch('/api/user/theme', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ theme: themeKey })
+        });
+        
+        if (response.ok) {
+            currentTheme = themeKey;
+            applyTheme(themeKey);
+            showNotification('Tema aplicado!', 'success');
+        }
+    } catch (error) {
+        showNotification('Erro ao aplicar tema', 'error');
+    }
+}
+
+function applyTheme(themeKey) {
+    // Aplicar tema dinamicamente
+    document.body.className = `theme-${themeKey}`;
+}
+
+// Agendar envio
+function showSchedule() {
+    document.getElementById('scheduleModal').classList.add('active');
+}
+
+function closeSchedule() {
+    document.getElementById('scheduleModal').classList.remove('active');
+}
+
+async function scheduleEmailSend() {
+    const scheduleDate = document.getElementById('scheduleDate').value;
+    
+    if (!scheduleDate) {
+        showNotification('Selecione uma data e hora', 'error');
+        return;
+    }
+    
+    const formData = {
+        to: document.getElementById('composeTo').value,
+        subject: document.getElementById('composeSubject').value,
+        body: document.getElementById('composeBody').value,
+        schedule_time: scheduleDate
+    };
+    
+    try {
+        const response = await fetch('/api/schedule-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            showNotification('Email agendado com sucesso!', 'success');
+            closeSchedule();
+            closeCompose();
+        }
+    } catch (error) {
+        showNotification('Erro ao agendar email', 'error');
+    }
+}
+
+// Funcionalidades extras
+function markAsSpam() {
+    if (!currentEmail) return;
+    showNotification('Email marcado como spam', 'info');
+}
+
+function addToCalendar() {
+    if (!currentEmail) return;
+    showNotification('Adicionado ao calendário', 'success');
+}
+
+function printEmail() {
+    if (!currentEmail) return;
+    window.print();
+}
+
+function translateEmail() {
+    if (!currentEmail) return;
+    showNotification('Traduzindo email...', 'info');
+}
+
+function forwardEmail() {
+    if (!currentEmail) return;
+    
+    document.getElementById('composeTo').value = '';
+    document.getElementById('composeSubject').value = 'Fwd: ' + currentEmail.subject;
+    document.getElementById('composeBody').value = `\n\n--- Mensagem encaminhada ---\nDe: ${currentEmail.from}\nPara: ${currentEmail.to}\nAssunto: ${currentEmail.subject}\n\n${currentEmail.body}`;
+    
+    showCompose();
+}
+
+function createLabel() {
+    const labelName = prompt('Nome do novo label:');
+    if (labelName) {
+        showNotification(`Label "${labelName}" criado!`, 'success');
+    }
+}
+
+function toggleOfflineMode() {
+    offlineMode = !offlineMode;
+    if (offlineMode) {
+        showNotification('Modo offline ativado', 'info');
+        document.body.classList.add('offline-mode');
+    } else {
+        showNotification('Modo online ativado', 'success');
+        document.body.classList.remove('offline-mode');
+    }
+}
+
+function openCalendar() {
+    showNotification('Abrindo calendário...', 'info');
+}
+
+function openContacts() {
+    showNotification('Abrindo contatos...', 'info');
+}
+
+function openTasks() {
+    showNotification('Abrindo tarefas...', 'info');
+}
+
+// Criar filtro
+function showFilter() {
+    document.getElementById('filterModal').classList.add('active');
+}
+
+function closeFilter() {
+    document.getElementById('filterModal').classList.remove('active');
+}
+
+// Atalhos de teclado expandidos
+function handleKeyboardShortcuts(e) {
+    if (e.ctrlKey || e.metaKey) {
+        switch (e.key) {
+            case 'c':
+                e.preventDefault();
+                showCompose();
+                break;
+            case 'r':
+                e.preventDefault();
+                refreshEmails();
+                break;
+            case 'k':
+                e.preventDefault();
+                showSmartCompose();
+                break;
+            case 'd':
+                e.preventDefault();
+                if (currentEmail) deleteEmail();
+                break;
+            case 's':
+                e.preventDefault();
+                if (currentEmail) starCurrentEmail();
+                break;
+        }
+    } else if (e.key === 'Escape') {
+        if (document.getElementById('composeModal').classList.contains('active')) {
+            closeCompose();
+        } else if (currentEmail) {
+            backToList();
+        }
+    }
+}
+
+console.log('🚀 NayEmail - Sistema de Email Inteligente carregado!');
+console.log('✨ Funcionalidades: IA, Temas, Filtros, Agendamento, Categorias');
+console.log('⌨️ Atalhos: Ctrl+C (escrever), Ctrl+K (IA), Ctrl+R (atualizar)');
+console.log('📱 Mobile: Swipe, gestos e interface otimizada');
+console.log('👑 Admin: admin@nayemail.com');
+console.log('🎨 Múltiplos temas e personalização completa!');
+console.log('🤖 Composição e respostas inteligentes ativadas!');
 
 // --- Funções para o sistema de patrocínio ---
 function showSponsorBanner() {

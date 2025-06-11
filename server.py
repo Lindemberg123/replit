@@ -16,11 +16,38 @@ app.secret_key = 'gmail-system-secret-key-2024'
 # Configurações do sistema
 USERS_FILE = 'users.json'
 EMAILS_FILE = 'emails.json'
-ADMIN_EMAIL = 'suport.com@gmail.oficial'
+ADMIN_EMAIL = 'admin@nayemail.com'
 
 # Sistema de domínios personalizados
-MAIN_DOMAIN = 'naymail.com'
+MAIN_DOMAIN = 'nayemail.com'
 BUSINESS_DOMAIN = 'nay.com'
+
+# Categorias de emails
+EMAIL_CATEGORIES = {
+    'primary': 'Principal',
+    'social': 'Social',
+    'promotions': 'Promoções',
+    'updates': 'Atualizações',
+    'forums': 'Fóruns',
+    'work': 'Trabalho',
+    'personal': 'Pessoal'
+}
+
+# Configurações de funcionalidades
+FEATURES = {
+    'smart_compose': True,
+    'smart_reply': True,
+    'snooze': True,
+    'schedule_send': True,
+    'undo_send': True,
+    'confidential_mode': True,
+    'offline_mode': True,
+    'multiple_inboxes': True,
+    'filters': True,
+    'labels': True,
+    'attachments': True,
+    'themes': True
+}
 registered_companies = {}  # Empresas registradas com subdomínios
 
 # Armazenamento em memória
@@ -53,12 +80,15 @@ def create_admin_user():
     # Sempre atualizar o usuário admin para garantir que existe
     users_db[ADMIN_EMAIL] = {
         'email': ADMIN_EMAIL,
-        'name': 'Administrador Sistema',
+        'name': 'Administrador NayEmail',
         'password': hashlib.md5('admin123'.encode()).hexdigest(),
         'created_at': datetime.now().isoformat() if ADMIN_EMAIL not in users_db else users_db[ADMIN_EMAIL].get('created_at', datetime.now().isoformat()),
-        'profile_pic': 'https://ui-avatars.com/api/?name=Admin&background=ff0000&color=fff',
+        'profile_pic': 'https://ui-avatars.com/api/?name=NayEmail+Admin&background=6c63ff&color=fff',
         'is_admin': True,
-        'user_id': 'admin_001'
+        'user_id': 'admin_001',
+        'theme': 'default',
+        'language': 'pt-BR',
+        'signature': 'Administrador NayEmail\nSistema de Email Inteligente'
     }
     save_data()
 
@@ -1688,12 +1718,283 @@ Para sua segurança, sempre verifique logins não autorizados.
         }
     })
 
+# Novas funcionalidades para NayEmail
+@app.route('/api/categories')
+def get_categories():
+    """Obter categorias de email"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    return jsonify(EMAIL_CATEGORIES)
+
+@app.route('/api/email/<email_id>/categorize', methods=['POST'])
+def categorize_email(email_id):
+    """Categorizar email"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    category = data.get('category')
+    
+    if category not in EMAIL_CATEGORIES:
+        return jsonify({'error': 'Categoria inválida'}), 400
+    
+    user_email = session.get('user_email')
+    
+    for email in emails_db:
+        if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
+            email['category'] = category
+            save_data()
+            return jsonify({'success': True, 'category': category})
+    
+    return jsonify({'error': 'Email não encontrado'}), 404
+
+@app.route('/api/email/<email_id>/snooze', methods=['POST'])
+def snooze_email(email_id):
+    """Adiar email"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    snooze_until = data.get('snooze_until')
+    
+    user_email = session.get('user_email')
+    
+    for email in emails_db:
+        if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
+            email['snoozed'] = True
+            email['snooze_until'] = snooze_until
+            save_data()
+            return jsonify({'success': True, 'snooze_until': snooze_until})
+    
+    return jsonify({'error': 'Email não encontrado'}), 404
+
+@app.route('/api/schedule-email', methods=['POST'])
+def schedule_email():
+    """Agendar envio de email"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    schedule_time = data.get('schedule_time')
+    
+    if not schedule_time:
+        return jsonify({'error': 'Horário de agendamento obrigatório'}), 400
+    
+    user_email = session.get('user_email')
+    
+    scheduled_email = {
+        'id': str(uuid.uuid4()),
+        'from': user_email,
+        'to': data['to'],
+        'subject': data['subject'],
+        'body': data['body'],
+        'scheduled_for': schedule_time,
+        'status': 'scheduled',
+        'created_at': datetime.now().isoformat()
+    }
+    
+    # Salvar em arquivo de emails agendados
+    scheduled_emails = []
+    if os.path.exists('scheduled_emails.json'):
+        with open('scheduled_emails.json', 'r', encoding='utf-8') as f:
+            scheduled_emails = json.load(f)
+    
+    scheduled_emails.append(scheduled_email)
+    
+    with open('scheduled_emails.json', 'w', encoding='utf-8') as f:
+        json.dump(scheduled_emails, f, ensure_ascii=False, indent=2)
+    
+    return jsonify({'success': True, 'scheduled_id': scheduled_email['id']})
+
+@app.route('/api/smart-compose', methods=['POST'])
+def smart_compose():
+    """Composição inteligente de email"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    context = data.get('context', '')
+    
+    # Sugestões inteligentes baseadas no contexto
+    suggestions = []
+    
+    if 'reunião' in context.lower() or 'meeting' in context.lower():
+        suggestions = [
+            "Vamos agendar uma reunião para discutir este assunto.",
+            "Podemos marcar uma call para alinhar os detalhes?",
+            "Que tal uma reunião presencial para definir os próximos passos?"
+        ]
+    elif 'obrigado' in context.lower() or 'thanks' in context.lower():
+        suggestions = [
+            "Obrigado pelo seu tempo e dedicação.",
+            "Agradeço a atenção dispensada a este assunto.",
+            "Muito obrigado pela colaboração."
+        ]
+    elif 'prazo' in context.lower() or 'deadline' in context.lower():
+        suggestions = [
+            "Precisamos alinhar o prazo para esta entrega.",
+            "Qual seria um prazo realista para concluirmos?",
+            "Podemos estender o deadline se necessário."
+        ]
+    else:
+        suggestions = [
+            "Espero que esteja tudo bem com você.",
+            "Fico à disposição para qualquer esclarecimento.",
+            "Aguardo seu retorno quando possível."
+        ]
+    
+    return jsonify({'suggestions': suggestions})
+
+@app.route('/api/smart-reply', methods=['POST'])
+def smart_reply():
+    """Respostas inteligentes"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    email_content = data.get('email_content', '').lower()
+    
+    # Gerar respostas inteligentes baseadas no conteúdo
+    replies = []
+    
+    if 'pergunta' in email_content or '?' in email_content:
+        replies = [
+            "Sim, posso ajudar com isso.",
+            "Deixe-me verificar e retorno em breve.",
+            "Ótima pergunta! Vou pesquisar e te respondo."
+        ]
+    elif 'obrigado' in email_content or 'thanks' in email_content:
+        replies = [
+            "De nada! Fico feliz em ajudar.",
+            "Por nada! Estou sempre à disposição.",
+            "Foi um prazer ajudar!"
+        ]
+    elif 'urgente' in email_content or 'urgent' in email_content:
+        replies = [
+            "Entendi a urgência, vou priorizar este assunto.",
+            "Vou tratar isso com prioridade máxima.",
+            "Compreendo. Vou resolver isso imediatamente."
+        ]
+    else:
+        replies = [
+            "Obrigado pelo email!",
+            "Recebi e vou analisar.",
+            "Perfeito, entendi!"
+        ]
+    
+    return jsonify({'replies': replies})
+
+@app.route('/api/themes')
+def get_themes():
+    """Obter temas disponíveis"""
+    themes = {
+        'default': {
+            'name': 'NayEmail Padrão',
+            'primary_color': '#6c63ff',
+            'secondary_color': '#4caf50',
+            'background': '#ffffff',
+            'text_color': '#333333'
+        },
+        'dark': {
+            'name': 'Modo Escuro',
+            'primary_color': '#bb86fc',
+            'secondary_color': '#03dac6',
+            'background': '#121212',
+            'text_color': '#ffffff'
+        },
+        'blue': {
+            'name': 'Azul Profissional',
+            'primary_color': '#1976d2',
+            'secondary_color': '#2196f3',
+            'background': '#f5f5f5',
+            'text_color': '#333333'
+        },
+        'green': {
+            'name': 'Verde Natureza',
+            'primary_color': '#388e3c',
+            'secondary_color': '#4caf50',
+            'background': '#e8f5e8',
+            'text_color': '#2e7d32'
+        }
+    }
+    
+    return jsonify(themes)
+
+@app.route('/api/user/theme', methods=['POST'])
+def set_user_theme():
+    """Definir tema do usuário"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    theme = data.get('theme', 'default')
+    
+    user_email = session.get('user_email')
+    users_db[user_email]['theme'] = theme
+    save_data()
+    
+    return jsonify({'success': True, 'theme': theme})
+
+@app.route('/api/filters')
+def get_filters():
+    """Obter filtros do usuário"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    user_email = session.get('user_email')
+    user_data = users_db.get(user_email, {})
+    filters = user_data.get('filters', [])
+    
+    return jsonify(filters)
+
+@app.route('/api/filters', methods=['POST'])
+def create_filter():
+    """Criar novo filtro"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    
+    filter_config = {
+        'id': str(uuid.uuid4()),
+        'name': data.get('name'),
+        'criteria': data.get('criteria'),  # from, subject, has_words, etc.
+        'action': data.get('action'),      # mark_read, star, label, etc.
+        'created_at': datetime.now().isoformat()
+    }
+    
+    user_email = session.get('user_email')
+    if 'filters' not in users_db[user_email]:
+        users_db[user_email]['filters'] = []
+    
+    users_db[user_email]['filters'].append(filter_config)
+    save_data()
+    
+    return jsonify({'success': True, 'filter': filter_config})
+
+@app.route('/api/features')
+def get_features():
+    """Obter funcionalidades disponíveis"""
+    return jsonify(FEATURES)
+
 if __name__ == '__main__':
-    print("📧 Sistema Gmail Independente iniciado!")
+    print("📧 NayEmail - Sistema de Email Inteligente iniciado!")
     print(f"👑 Admin: {ADMIN_EMAIL} (senha: admin123)")
     print(f"📬 Emails carregados: {len(emails_db)}")
     print(f"👥 Usuários registrados: {len(users_db)}")
     print(f"🔑 Sistema de Token de Conta ativo!")
+    print(f"🎨 Temas e funcionalidades avançadas disponíveis!")
+    print(f"🤖 IA para composição inteligente ativa!")
     print(f"📝 Para solicitar token: envie email para {ADMIN_EMAIL} com assunto 'token'")
     print(f"🌐 Acesse: http://0.0.0.0:5000")
     

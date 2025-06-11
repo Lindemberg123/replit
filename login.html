@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema Gmail</title>
+    <title>Login - NayEmail</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -476,11 +475,11 @@
             .login-container {
                 padding: 30px 20px;
             }
-            
+
             .logo {
                 font-size: 36px;
             }
-            
+
             .login-title {
                 font-size: 20px;
             }
@@ -509,10 +508,10 @@
 <body>
     <div class="login-container">
         <div class="logo">
-            <i class="fas fa-envelope"></i>
+            <i class="fas fa-rocket"></i>
         </div>
         <h1 class="login-title">Sistema Gmail Independente</h1>
-        
+
         <button class="back-btn" id="backBtn" onclick="showSavedAccounts()">
             <i class="fas fa-arrow-left"></i> Voltar às contas
         </button>
@@ -521,9 +520,9 @@
         <div id="savedAccountsSection" class="saved-accounts">
             <h3>Escolha uma conta</h3>
             <div id="accountsList"></div>
-            
+
             <div class="divider">ou</div>
-            
+
             <button class="secondary-btn" onclick="showNewAccountForm()">
                 <i class="fas fa-plus"></i> Usar outra conta
             </button>
@@ -536,7 +535,7 @@
                     <label for="email">Email:</label>
                     <input type="email" id="email" name="email" required placeholder="seu-email@dominio.com">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="password">Senha:</label>
                     <input type="password" id="password" name="password" required placeholder="Digite sua senha">
@@ -552,18 +551,18 @@
                             Responda às perguntas de segurança para acessar sua conta:
                         </p>
                     </div>
-                    
+
                     <div class="form-group">
                         <label id="securityQuestion1">Pergunta de Segurança 1:</label>
                         <input type="text" id="securityAnswer1" placeholder="Sua resposta">
                     </div>
-                    
+
                     <div class="form-group">
                         <label id="securityQuestion2">Pergunta de Segurança 2:</label>
                         <input type="text" id="securityAnswer2" placeholder="Sua resposta">
                     </div>
                 </div>
-                
+
                 <button type="submit" class="login-btn" id="loginBtn">
                     <i class="fas fa-sign-in-alt"></i> Entrar
                 </button>
@@ -650,17 +649,17 @@
                         <label for="regName">Nome Completo:</label>
                         <input type="text" id="regName" required placeholder="Seu nome completo">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="regEmail">Email:</label>
                         <input type="email" id="regEmail" required placeholder="seu-email@exemplo.com">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="regPassword">Senha:</label>
                         <input type="password" id="regPassword" required placeholder="Mínimo 6 caracteres" minlength="6">
                     </div>
-                    
+
                     <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4285f4;">
                         <h4 style="color: #1976d2; margin-bottom: 10px;">
                             <i class="fas fa-shield-check"></i> Configuração de Segurança
@@ -673,7 +672,7 @@
                                 💡 <strong>Dica:</strong> As perguntas são opcionais e focam em preferências pessoais simples (cores, comidas, hobbies). Você pode pular se preferir.
                             </p>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="regQuestion1">Pergunta de Segurança 1:</label>
                             <select id="regQuestion1">
@@ -688,12 +687,12 @@
                                 <option value="Qual seu filme favorito?">Qual seu filme favorito?</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="regAnswer1">Resposta 1:</label>
                             <input type="text" id="regAnswer1" placeholder="Sua resposta (opcional)">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="regQuestion2">Pergunta de Segurança 2:</label>
                             <select id="regQuestion2">
@@ -708,13 +707,13 @@
                                 <option value="Qual sua rede social favorita?">Qual sua rede social favorita?</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="regAnswer2">Resposta 2:</label>
                             <input type="text" id="regAnswer2" placeholder="Sua resposta (opcional)">
                         </div>
                     </div>
-                    
+
                     <button type="submit" class="login-btn" id="registerBtn">
                         <i class="fas fa-user-check"></i> Criar Conta Segura
                     </button>
@@ -737,12 +736,12 @@
                         <input type="email" id="recoveryEmail" name="recoveryEmail" required 
                                placeholder="Digite seu email cadastrado">
                     </div>
-                    
+
                     <button type="submit" class="login-btn" id="sendRecoveryBtn">
                         <i class="fas fa-paper-plane"></i> Enviar Email de Recuperação
                     </button>
                 </form>
-                
+
                 <div id="recoverySuccess" style="display: none;" class="success-message">
                     <i class="fas fa-check-circle"></i>
                     <h3>Email Enviado!</h3>
@@ -775,12 +774,12 @@
             try {
                 const response = await fetch('/api/quick-login/recent');
                 const result = await response.json();
-                
+
                 if (result.success && result.recent_accounts.length > 0) {
                     // Mesclar contas do servidor com contas locais
                     result.recent_accounts.forEach(serverAccount => {
                         const existingIndex = savedAccounts.findIndex(acc => acc.email === serverAccount.email);
-                        
+
                         if (existingIndex === -1) {
                             // Adicionar conta do servidor se não existir localmente
                             savedAccounts.unshift({
@@ -803,12 +802,12 @@
                             };
                         }
                     });
-                    
+
                     // Limitar a 5 contas
                     if (savedAccounts.length > 5) {
                         savedAccounts = savedAccounts.slice(0, 5);
                     }
-                    
+
                     saveAccountsToStorage();
                     displayAccounts();
                 }
@@ -825,7 +824,7 @@
         function displayAccounts() {
             const accountsList = document.getElementById('accountsList');
             const savedAccountsSection = document.getElementById('savedAccountsSection');
-            
+
             if (savedAccounts.length === 0) {
                 showNewAccountForm();
                 return;
@@ -862,20 +861,20 @@
 
         function formatLastLogin(lastLogin) {
             if (!lastLogin || lastLogin === 'Nunca') return 'Nunca';
-            
+
             const date = new Date(lastLogin);
             const now = new Date();
             const diff = now - date;
-            
+
             const minutes = Math.floor(diff / (1000 * 60));
             const hours = Math.floor(diff / (1000 * 60 * 60));
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            
+
             if (minutes < 1) return 'Agora mesmo';
             if (minutes < 60) return `${minutes}m atrás`;
             if (hours < 24) return `${hours}h atrás`;
             if (days < 7) return `${days}d atrás`;
-            
+
             return date.toLocaleDateString('pt-BR');
         }
 
@@ -888,26 +887,26 @@
             // Selecionar nova conta
             const accountItem = document.querySelector(`[data-index="${index}"]`);
             accountItem.classList.add('selected');
-            
+
             selectedAccount = savedAccounts[index];
-            
+
             // Mostrar botão de login rápido
             document.getElementById('quickLoginBtn').style.display = 'block';
         }
 
         function removeAccount(index, event) {
             event.stopPropagation();
-            
+
             if (confirm('Remover esta conta da lista?')) {
                 savedAccounts.splice(index, 1);
                 saveAccountsToStorage();
                 displayAccounts();
-                
+
                 // Esconder botão de login rápido se não há contas
                 if (savedAccounts.length === 0) {
                     document.getElementById('quickLoginBtn').style.display = 'none';
                 }
-                
+
                 showNotification('Conta removida da lista', 'success');
             }
         }
@@ -917,13 +916,13 @@
             document.getElementById('newAccountForm').classList.add('active');
             document.getElementById('backBtn').classList.add('active');
             document.getElementById('quickLoginBtn').style.display = 'none';
-            document.getElementById('email').focus();
+            documentument.getElementById('email').focus();
         }
 
         function showSavedAccounts() {
             document.getElementById('newAccountForm').classList.remove('active');
             document.getElementById('backBtn').classList.remove('active');
-            
+
             if (savedAccounts.length > 0) {
                 document.getElementById('savedAccountsSection').style.display = 'block';
             } else {
@@ -939,7 +938,7 @@
 
             try {
                 let response;
-                
+
                 // Se a conta veio do servidor, usar login rápido
                 if (selectedAccount.from_server) {
                     response = await fetch('/api/quick-login/validate', {
@@ -964,12 +963,12 @@
                         })
                     });
                 }
-                
+
                 const result = await response.json();
-                
+
                 if (response.ok) {
                     showNotification(`Bem-vindo de volta, ${result.user.name}!`, 'success');
-                    
+
                     // Atualizar conta no localStorage se necessário
                     const accountIndex = savedAccounts.findIndex(acc => acc.email === selectedAccount.email);
                     if (accountIndex !== -1) {
@@ -977,7 +976,7 @@
                         savedAccounts[accountIndex].from_server = true;
                         saveAccountsToStorage();
                     }
-                    
+
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 1500);
@@ -1002,41 +1001,41 @@
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const loginBtn = document.getElementById('loginBtn');
-            
+
             if (!email || !password) {
                 showNotification('Por favor, preencha todos os campos', 'error');
                 return;
             }
-            
+
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
-            
+
             // Preparar dados de login
             let loginData = { email, password };
-            
+
             // Verificar se perguntas de segurança estão visíveis
             const securityDiv = document.getElementById('securityQuestions');
             if (securityDiv.style.display !== 'none') {
                 const answer1 = document.getElementById('securityAnswer1').value.trim();
                 const answer2 = document.getElementById('securityAnswer2').value.trim();
-                
+
                 if (!answer1 || !answer2) {
                     showNotification('Por favor, responda todas as perguntas de segurança', 'error');
                     loginBtn.disabled = false;
                     loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
                     return;
                 }
-                
+
                 loginData.security_answers = {
                     answer1: answer1,
                     answer2: answer2
                 };
             }
-            
+
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
@@ -1045,13 +1044,13 @@
                     },
                     body: JSON.stringify(loginData)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (response.ok) {
                     // Login bem-sucedido
                     const existingAccountIndex = savedAccounts.findIndex(acc => acc.email === email);
-                    
+
                     const accountData = {
                         email: email,
                         password: password,
@@ -1068,9 +1067,9 @@
                             savedAccounts = savedAccounts.slice(0, 5);
                         }
                     }
-                    
+
                     saveAccountsToStorage();
-                    
+
                     showNotification(`Bem-vindo, ${result.user.name}! ID: ${result.user.user_id}`, 'success');
                     setTimeout(() => {
                         window.location.href = '/';
@@ -1080,7 +1079,7 @@
                     document.getElementById('securityQuestions').style.display = 'block';
                     document.getElementById('securityQuestion1').textContent = result.security_questions[0].question;
                     document.getElementById('securityQuestion2').textContent = result.security_questions[1].question;
-                    
+
                     showNotification('Complete a verificação de segurança para prosseguir', 'error');
                     document.getElementById('securityAnswer1').focus();
                 } else {
@@ -1103,7 +1102,7 @@
             if (registerForm) {
                 registerForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    
+
                     const formData = {
                         name: document.getElementById('regName').value.trim(),
                         email: document.getElementById('regEmail').value.trim(),
@@ -1113,38 +1112,38 @@
                         question2: document.getElementById('regQuestion2').value,
                         answer2: document.getElementById('regAnswer2').value.trim()
                     };
-                    
+
                     // Validações
                     if (!formData.name || !formData.email || !formData.password) {
                         showNotification('Preencha todos os campos obrigatórios', 'error');
                         return;
                     }
-                    
+
                     if (formData.password.length < 6) {
                         showNotification('A senha deve ter pelo menos 6 caracteres', 'error');
                         return;
                     }
-                    
+
                     // Validar perguntas de segurança apenas se pelo menos uma foi preenchida
                     const hasSecurityQuestions = formData.question1 || formData.answer1 || formData.question2 || formData.answer2;
-                    
+
                     if (hasSecurityQuestions) {
                         // Se começou a preencher, deve completar ambas
                         if (!formData.question1 || !formData.answer1 || !formData.question2 || !formData.answer2) {
                             showNotification('Se escolher usar perguntas de segurança, complete ambas', 'error');
                             return;
                         }
-                        
+
                         if (formData.question1 === formData.question2) {
                             showNotification('Escolha perguntas de segurança diferentes', 'error');
                             return;
                         }
                     }
-                    
+
                     const registerBtn = document.getElementById('registerBtn');
                     registerBtn.disabled = true;
                     registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando conta...';
-                    
+
                     try {
                         const response = await fetch('/api/register', {
                             method: 'POST',
@@ -1153,17 +1152,17 @@
                             },
                             body: JSON.stringify(formData)
                         });
-                        
+
                         const result = await response.json();
-                        
+
                         if (response.ok) {
                             showNotification(`Conta criada com sucesso! ID: ${result.user_id}`, 'success');
                             closeRegister();
-                            
+
                             // Preencher dados no formulário de login
                             document.getElementById('email').value = formData.email;
                             document.getElementById('password').value = formData.password;
-                            
+
                             setTimeout(() => {
                                 showNotification('Faça login com suas novas credenciais', 'success');
                             }, 1000);
@@ -1180,7 +1179,7 @@
                 });
             }
         });
-        
+
         function showNotification(message, type) {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
@@ -1188,13 +1187,13 @@
                 <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
                 <span>${message}</span>
             `;
-            
+
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.classList.add('show');
             }, 100);
-            
+
             setTimeout(() => {
                 notification.classList.remove('show');
                 setTimeout(() => {
@@ -1222,29 +1221,29 @@
             if (forgotPasswordForm) {
                 forgotPasswordForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    
+
                     const email = document.getElementById('recoveryEmail').value;
                     const sendBtn = document.getElementById('sendRecoveryBtn');
-                    
+
                     if (!email) {
                         showNotification('Por favor, digite seu email', 'error');
                         return;
                     }
-                    
+
                     sendBtn.disabled = true;
                     sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
-                    
+
                     try {
                         // Para o sistema interno, gerar link direto de recuperação
                         const resetToken = generateResetToken();
                         const resetUrl = `${window.location.origin}/reset-password?token=${resetToken}`;
-                        
+
                         // Simular processo de recuperação
                         await new Promise(resolve => setTimeout(resolve, 1500));
-                        
+
                         // Mostrar link direto de recuperação
                         document.getElementById('forgotPasswordForm').style.display = 'none';
-                        
+
                         const successDiv = document.getElementById('recoverySuccess');
                         successDiv.innerHTML = `
                             <i class="fas fa-check-circle"></i>
@@ -1265,9 +1264,9 @@
                             </button>
                         `;
                         successDiv.style.display = 'block';
-                        
+
                         showNotification('Link de recuperação gerado com sucesso!', 'success');
-                        
+
                         // Opcional: Também enviar por email externo se for uma conta real
                         if (email !== 'suport.com@gmail.oficial') {
                             try {
@@ -1284,7 +1283,7 @@
                                         reset_url: resetUrl
                                     })
                                 });
-                                
+
                                 setTimeout(() => {
                                     showNotification('Email também enviado para ' + email, 'success');
                                 }, 2000);
@@ -1292,7 +1291,7 @@
                                 console.log('Email externo não enviado:', error);
                             }
                         }
-                        
+
                     } catch (error) {
                         console.error('Erro:', error);
                         showNotification('Erro ao processar recuperação', 'error');
@@ -1322,11 +1321,11 @@
         document.addEventListener('click', function(e) {
             const forgotModal = document.getElementById('forgotPasswordModal');
             const registerModal = document.getElementById('registerModal');
-            
+
             if (e.target === forgotModal) {
                 closeForgotPassword();
             }
-            
+
             if (e.target === registerModal) {
                 closeRegister();
             }
@@ -1383,7 +1382,7 @@
             document.getElementById('tokenLoginForm').classList.add('active');
             document.getElementById('backBtn').classList.add('active');
             document.getElementById('quickLoginBtn').style.display = 'none';
-            
+
             generateNewCaptcha();
             document.getElementById('userToken').focus();
         }
@@ -1391,7 +1390,7 @@
         function backToNormalLogin() {
             document.getElementById('tokenLoginForm').classList.remove('active');
             document.getElementById('backBtn').classList.remove('active');
-            
+
             if (savedAccounts.length > 0) {
                 document.getElementById('savedAccountsSection').style.display = 'block';
             } else {
@@ -1402,15 +1401,15 @@
         function generateNewCaptcha() {
             captchaVerified = false;
             const randomQuestion = captchaQuestions[Math.floor(Math.random() * captchaQuestions.length)];
-            
+
             document.getElementById('captchaQuestion').textContent = randomQuestion.question;
-            
+
             const optionsContainer = document.getElementById('captchaOptions');
             optionsContainer.innerHTML = '';
-            
+
             // Embaralhar opções
             const shuffledOptions = [...randomQuestion.options].sort(() => Math.random() - 0.5);
-            
+
             shuffledOptions.forEach(option => {
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'captcha-option';
@@ -1418,7 +1417,7 @@
                 optionDiv.onclick = () => selectCaptchaOption(optionDiv, option, randomQuestion.correct);
                 optionsContainer.appendChild(optionDiv);
             });
-            
+
             currentCaptchaAnswer = randomQuestion.correct;
         }
 
@@ -1469,9 +1468,9 @@
             if (tokenAuthForm) {
                 tokenAuthForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-                    
+
                     const token = document.getElementById('userToken').value.trim();
-                    
+
                     if (!token) {
                         showNotification('Por favor, digite seu token', 'error');
                         return;
@@ -1486,11 +1485,11 @@
                         showNotification('Complete a verificação de segurança primeiro', 'error');
                         return;
                     }
-                    
+
                     const tokenLoginBtn = document.getElementById('tokenLoginBtn');
                     tokenLoginBtn.disabled = true;
                     tokenLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando token...';
-                    
+
                     try {
                         const response = await fetch('/api/login-with-token', {
                             method: 'POST',
@@ -1502,12 +1501,12 @@
                                 captcha_verified: captchaVerified
                             })
                         });
-                        
+
                         const result = await response.json();
-                        
+
                         if (response.ok) {
                             showNotification(`Bem-vindo, ${result.user.name}! Login por token realizado.`, 'success');
-                            
+
                             // Salvar conta se não existir
                             const existingAccountIndex = savedAccounts.findIndex(acc => acc.email === result.user.email);
                             if (existingAccountIndex === -1) {
@@ -1518,14 +1517,14 @@
                                     last_login: new Date().toISOString(),
                                     token_login: true
                                 };
-                                
+
                                 savedAccounts.unshift(accountData);
                                 if (savedAccounts.length > 5) {
                                     savedAccounts = savedAccounts.slice(0, 5);
                                 }
                                 saveAccountsToStorage();
                             }
-                            
+
                             setTimeout(() => {
                                 window.location.href = '/';
                             }, 1500);

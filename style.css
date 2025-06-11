@@ -54,12 +54,24 @@ body {
     align-items: center;
     gap: 8px;
     font-size: 22px;
-    font-weight: 400;
-    color: #5f6368;
+    font-weight: 600;
+    color: #333;
 }
 
 .logo i {
-    color: #ea4335;
+    color: #6c63ff;
+    animation: logoGlow 2s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+    0%, 100% { 
+        color: #6c63ff; 
+        text-shadow: 0 0 5px rgba(108, 99, 255, 0.3);
+    }
+    50% { 
+        color: #8b7eff; 
+        text-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+    }
 }
 
 .header-center {
@@ -1029,6 +1041,266 @@ body {
 }
 
 /* Estilos de patrocínio removidos para melhorar performance */
+
+/* Seções da navegação */
+.nav-section {
+    margin: 16px 0;
+    padding: 0 24px;
+}
+
+.nav-section h4 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #5f6368;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding: 0;
+}
+
+/* Quick Actions Toolbar */
+.quick-actions {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+}
+
+.quick-actions button {
+    background: none;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #5f6368;
+    transition: all 0.2s;
+    font-size: 16px;
+}
+
+.quick-actions button:hover {
+    background: #6c63ff;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Theme Selector */
+.theme-selector {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 16px;
+    width: 250px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 200;
+}
+
+.theme-selector.active {
+    transform: translateX(0);
+}
+
+.theme-selector h4 {
+    margin-bottom: 12px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.theme-options {
+    display: grid;
+    gap: 8px;
+}
+
+.theme-option {
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.theme-option:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.theme-option.active {
+    box-shadow: 0 0 0 2px #6c63ff;
+}
+
+/* Snooze Modal */
+.snooze-options {
+    padding: 20px;
+    display: grid;
+    gap: 12px;
+}
+
+.snooze-btn {
+    background: #f8f9fa;
+    border: 1px solid #dadce0;
+    padding: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: #333;
+}
+
+.snooze-btn:hover {
+    background: #6c63ff;
+    color: white;
+    border-color: #6c63ff;
+}
+
+/* Smart Suggestions */
+.smart-suggestions {
+    padding: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.suggestion-item:hover {
+    background: #6c63ff;
+    color: white;
+}
+
+.suggestion-item i {
+    color: #6c63ff;
+}
+
+.suggestion-item:hover i {
+    color: white;
+}
+
+/* Schedule Options */
+.schedule-options {
+    padding: 20px;
+}
+
+.schedule-options label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.schedule-options input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+/* Temas */
+.theme-default {
+    --primary-color: #6c63ff;
+    --secondary-color: #4caf50;
+    --background-color: #ffffff;
+    --text-color: #333333;
+}
+
+.theme-dark {
+    --primary-color: #bb86fc;
+    --secondary-color: #03dac6;
+    --background-color: #121212;
+    --text-color: #ffffff;
+}
+
+.theme-dark .gmail-header,
+.theme-dark .sidebar,
+.theme-dark .main-content {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+.theme-dark .email-item {
+    border-bottom-color: #333;
+}
+
+.theme-dark .email-item:hover {
+    background: #2e2e2e;
+}
+
+.theme-blue {
+    --primary-color: #1976d2;
+    --secondary-color: #2196f3;
+    --background-color: #f5f5f5;
+    --text-color: #333333;
+}
+
+.theme-green {
+    --primary-color: #388e3c;
+    --secondary-color: #4caf50;
+    --background-color: #e8f5e8;
+    --text-color: #2e7d32;
+}
+
+/* Modo Offline */
+.offline-mode {
+    filter: grayscale(20%);
+}
+
+.offline-mode::before {
+    content: '📡 Modo Offline';
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #ff9800;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 1000;
+}
+
+/* Categorias coloridas */
+.nav-item[data-folder="primary"] { border-left: 3px solid #ff6b35; }
+.nav-item[data-folder="social"] { border-left: 3px solid #4285f4; }
+.nav-item[data-folder="promotions"] { border-left: 3px solid #34a853; }
+.nav-item[data-folder="work"] { border-left: 3px solid #673ab7; }
+
+/* Animações avançadas */
+.email-item {
+    transform: translateX(0);
+    transition: all 0.3s ease;
+}
+
+.email-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 
 /* Touch optimizations */
 .email-item,
