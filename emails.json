@@ -478,5 +478,42 @@
     "folder": "inbox",
     "ai_chat_log": true,
     "chat_id": "chat_1749605522662_909a7oaiy"
+  },
+  {
+    "id": "3193a287-dbce-4929-bfd2-3efa0267cc88",
+    "from": "lindembergs297@dono",
+    "to": "IA@nayemail.com",
+    "subject": "Usuário iniciou conversa com IA",
+    "body": "Usuário Lindembergs297 (lindembergs297@dono) iniciou uma nova conversa com a IA.\nID da Conversa: chat_1749606169330_or6jh8nq4",
+    "date": "2025-06-11T01:42:50.726026",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
+  },
+  {
+    "id": "ae6cec78-1cf3-48cb-9ab4-6ab35a88c495",
+    "from": "lindembergs297@dono",
+    "to": "lindembergs297@dono",
+    "subject": "🤖 Resumo da conversa com NayAI - 10/06/2025",
+    "body": "\n🤖 Resumo da sua conversa com NayAI\n\n📅 Data: 10/06/2025, 22:43:01\n🆔 ID da Conversa: chat_1749606169330_or6jh8nq4\n💬 Total de mensagens: 1\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n[22:42:49] 🤖 NayAI: Olá! 👋 Eu sou a NayAI, sua assistente inteligente. Como posso ajudar você hoje?\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n✨ Obrigado por usar a NayAI!\nEsperamos que a conversa tenha sido útil.\n\n📧 Este email foi gerado automaticamente pelo Sistema NayEmail\n    ",
+    "date": "2025-06-11T01:43:03.191688",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
+  },
+  {
+    "id": "75896d9c-8d80-469a-ba9f-00c3d1359ef7",
+    "from": "sistema@nayemail.com",
+    "to": "IA@nayemail.com",
+    "subject": "💬 Nova conversa com Lindembergs297 - Chat chat_174",
+    "body": "🤖 NOVA INTERAÇÃO COM IA\n\n👤 Usuário: Lindembergs297 (lindembergs297@dono)\n🆔 Chat ID: chat_1749605522662_909a7oaiy\n📅 Data: 11/06/2025 às 01:43:50\n\n💬 MENSAGEM DO USUÁRIO:\nOi\n\n🤖 RESPOSTA DA IA:\nOlá! 👋 Sou a NayAI, assistente do sistema NayEmail. Como posso ajudar você hoje?\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📊 ESTATÍSTICAS:\n• Status: Conversa ativa\n• Plataforma: NayEmail IA Assistant\n• Tipo: Chat em tempo real\n\n🔗 Sistema NayEmail - IA Conversacional",
+    "date": "2025-06-11T01:43:50.747921",
+    "read": false,
+    "starred": false,
+    "folder": "inbox",
+    "ai_chat_log": true,
+    "chat_id": "chat_1749605522662_909a7oaiy"
   }
 ]
