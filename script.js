@@ -581,7 +581,7 @@ async function checkTokenRequests() {
 
 // Verificar solicitações de token a cada 30 segundos (apenas para admin)
 setInterval(() => {
-    if (isAdmin) {
+    if (userInfo && userInfo.is_admin) {
         checkTokenRequests();
     }
 }, 30000);
@@ -1757,6 +1757,208 @@ console.log('📱 Mobile: Swipe, gestos e interface otimizada');
 console.log('👑 Admin: admin@nayemail.com');
 console.log('🎨 Múltiplos temas e personalização completa!');
 console.log('🤖 Composição e respostas inteligentes ativadas!');
+
+// Sistema de IA Conversacional
+let aiChatWindow = null;
+let currentChatId = null;
+let chatHistory = [];
+
+// Mostrar banner da IA
+function showAIBanner() {
+    const banner = document.createElement('div');
+    banner.className = 'ai-banner';
+    banner.innerHTML = `
+        <div class="ai-banner-content">
+            <div class="ai-banner-left">
+                <div class="ai-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="ai-info">
+                    <h3>🤖 NayAI - Assistente Inteligente</h3>
+                    <p>Converse com nossa IA avançada! Tire dúvidas, peça ajuda ou apenas bate-papo.</p>
+                </div>
+            </div>
+            <div class="ai-banner-actions">
+                <button onclick="startAIChat()" class="ai-chat-btn">
+                    <i class="fas fa-comments"></i>
+                    Conversar com IA
+                </button>
+                <button onclick="closeAIBanner()" class="ai-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(banner);
+    
+    // Animar entrada
+    setTimeout(() => {
+        banner.classList.add('show');
+    }, 100);
+}
+
+function closeAIBanner() {
+    const banner = document.querySelector('.ai-banner');
+    if (banner) {
+        banner.classList.remove('show');
+        setTimeout(() => banner.remove(), 300);
+    }
+}
+
+async function startAIChat() {
+    closeAIBanner();
+    
+    try {
+        // Gerar ID único da conversa
+        currentChatId = generateChatId();
+        chatHistory = [];
+        
+        // Abrir janela de chat
+        openAIChatWindow();
+        
+        // Enviar email de início para IA
+        await sendEmailToAI('Usuário iniciou conversa com IA', `Usuário ${userInfo.name} (${userInfo.email}) iniciou uma nova conversa com a IA.\nID da Conversa: ${currentChatId}`);
+        
+        // Mensagem de boas-vindas
+        addAIMessage('Olá! 👋 Eu sou a NayAI, sua assistente inteligente. Como posso ajudar você hoje?');
+        
+    } catch (error) {
+        console.error('Erro ao iniciar chat com IA:', error);
+        showNotification('Erro ao conectar com a IA', 'error');
+    }
+}
+
+function generateChatId() {
+    return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+function openAIChatWindow() {
+    if (aiChatWindow && !aiChatWindow.closed) {
+        aiChatWindow.focus();
+        return;
+    }
+    
+    const chatUrl = `/ai-chat?chat_id=${currentChatId}`;
+    aiChatWindow = window.open(chatUrl, 'AIChat', 'width=500,height=700,scrollbars=yes,resizable=yes');
+    
+    // Verificar se o usuário fechou a janela
+    const checkClosed = setInterval(() => {
+        if (aiChatWindow.closed) {
+            clearInterval(checkClosed);
+            finalizeChatSession();
+        }
+    }, 1000);
+}
+
+async function finalizeChatSession() {
+    if (chatHistory.length > 0) {
+        try {
+            // Salvar conversa e enviar por email
+            await sendChatSummaryToUser();
+            showNotification('Conversa salva e enviada por email!', 'success');
+        } catch (error) {
+            console.error('Erro ao finalizar chat:', error);
+        }
+    }
+    
+    currentChatId = null;
+    chatHistory = [];
+}
+
+async function sendEmailToAI(subject, message) {
+    try {
+        const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                to: 'IA@nayemail.com',
+                subject: subject,
+                body: message
+            })
+        });
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao enviar email para IA:', error);
+    }
+}
+
+async function sendChatSummaryToUser() {
+    const chatSummary = formatChatHistory();
+    
+    const emailBody = `
+🤖 Resumo da sua conversa com NayAI
+
+📅 Data: ${new Date().toLocaleString('pt-BR')}
+🆔 ID da Conversa: ${currentChatId}
+💬 Total de mensagens: ${chatHistory.length}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${chatSummary}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ Obrigado por usar a NayAI!
+Esperamos que a conversa tenha sido útil.
+
+📧 Este email foi gerado automaticamente pelo Sistema NayEmail
+    `;
+    
+    try {
+        const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                to: userInfo.email,
+                subject: `🤖 Resumo da conversa com NayAI - ${new Date().toLocaleDateString('pt-BR')}`,
+                body: emailBody
+            })
+        });
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Erro ao enviar resumo:', error);
+    }
+}
+
+function formatChatHistory() {
+    return chatHistory.map((msg, index) => {
+        const time = new Date(msg.timestamp).toLocaleTimeString('pt-BR');
+        const sender = msg.sender === 'user' ? '👤 Você' : '🤖 NayAI';
+        return `[${time}] ${sender}: ${msg.message}`;
+    }).join('\n\n');
+}
+
+function addAIMessage(message) {
+    const messageObj = {
+        sender: 'ai',
+        message: message,
+        timestamp: new Date().toISOString()
+    };
+    
+    chatHistory.push(messageObj);
+    
+    // Enviar para janela de chat se estiver aberta
+    if (aiChatWindow && !aiChatWindow.closed) {
+        aiChatWindow.postMessage({
+            type: 'ai_message',
+            message: messageObj
+        }, '*');
+    }
+}
+
+// Mostrar banner da IA automaticamente após 3 segundos
+setTimeout(() => {
+    if (userInfo && !localStorage.getItem('ai_banner_dismissed')) {
+        showAIBanner();
+    }
+}, 3000);
 
 // --- Funções para o sistema de patrocínio ---
 function showSponsorBanner() {

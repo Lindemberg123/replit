@@ -4,7 +4,8 @@
     "name": "Usuário Exemplo",
     "password": "e10adc3949ba59abbe56e057f20f883e",
     "created_at": "2025-06-08T01:16:30.836221",
-    "profile_pic": "https://ui-avatars.com/api/?name=Usuario+Exemplo&background=4285f4&color=fff"
+    "profile_pic": "https://ui-avatars.com/api/?name=Usuario+Exemplo&background=4285f4&color=fff",
+    "disabled": false
   },
   "suport.com@gmail.oficial": {
     "email": "suport.com@gmail.oficial",
@@ -13,7 +14,8 @@
     "created_at": "2025-06-08T01:25:33.863107",
     "profile_pic": "https://ui-avatars.com/api/?name=Admin&background=ff0000&color=fff",
     "is_admin": true,
-    "user_id": "admin_001"
+    "user_id": "admin_001",
+    "disabled": false
   },
   "lindembergs297@dono": {
     "email": "lindembergs297@dono",
@@ -23,7 +25,8 @@
     "profile_pic": "https://ui-avatars.com/api/?name=lindembergs297&background=4285f4&color=fff",
     "is_admin": false,
     "user_id": "user_003",
-    "last_login": "2025-06-11T01:10:14.543210"
+    "last_login": "2025-06-11T01:10:14.543210",
+    "disabled": false
   },
   "lindembergs038@gmail.com": {
     "email": "lindembergs038@gmail.com",
@@ -32,7 +35,8 @@
     "created_at": "2025-06-08T01:35:26.194282",
     "profile_pic": "https://ui-avatars.com/api/?name=lindembergs038&background=4285f4&color=fff",
     "is_admin": false,
-    "user_id": "user_004"
+    "user_id": "user_004",
+    "disabled": true
   },
   "lindembergs297@gmail.com": {
     "email": "lindembergs297@gmail.com",
@@ -42,6 +46,7 @@
     "created_at": "2025-06-08T18:38:34.691780",
     "profile_pic": "https://ui-avatars.com/api/?name=Lindemberg oliveira&background=4285f4&color=fff",
     "is_admin": false,
+    "disabled": false,
     "security_questions": {
       "question1": "Qual o nome da sua primeira escola?",
       "answer1_hash": "70d5c017158a635272db360ef3c7e945",

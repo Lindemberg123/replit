@@ -1618,3 +1618,140 @@ button {
         background: #e8f0fe;
     }
 }
+
+/* Adicionando estilos para o banner da IA */
+.ai-banner {
+    position: relative;
+    background: linear-gradient(135deg, #6c63ff, #8b7eff);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+    margin-bottom: 20px;
+    overflow: hidden;
+    max-width: 600px;
+}
+
+.ai-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shine 4s infinite;
+}
+
+.ai-banner-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.ai-banner-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-banner-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.ai-banner-description {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
+
+.ai-banner-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.ai-banner-button {
+    background: white;
+    color: #6c63ff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.ai-banner-button:hover {
+    background: #f1f3f4;
+}
+
+.ai-banner-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Compose Modal */
+.compose-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.compose-modal.active {
+    display: flex;
+}
+
+.compose-content {
+    background: #fff;
+    border-radius: 8px;
+    width: 500px;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 768px) {
+    .compose-modal .compose-content {
+        margin: 10px;
+        height: calc(100vh - 20px);
+    }
+
+    .ai-banner {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .ai-banner-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .ai-banner-left {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .ai-banner-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+}

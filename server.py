@@ -214,6 +214,10 @@ def login():
     if user['password'] != hashlib.md5(password.encode()).hexdigest():
         return jsonify({'error': 'Senha incorreta'}), 401
     
+    # Verificar se conta está banida
+    if user.get('disabled', False):
+        return jsonify({'error': 'Sua conta foi banida. Entre em contato com o suporte.', 'banned': True}), 403
+    
     # Verificação de segurança adicional para contas que não são admin
     if email != ADMIN_EMAIL:
         # Verificar se tem perguntas de segurança configuradas
@@ -990,7 +994,8 @@ def get_quick_login_accounts():
             'profile_pic': user_data.get('profile_pic', f'https://ui-avatars.com/api/?name={user_data["name"]}&background=4285f4&color=fff'),
             'is_admin': user_data.get('is_admin', False),
             'created_at': user_data.get('created_at', datetime.now().isoformat()),
-            'last_login': user_data.get('last_login', 'Nunca')
+            'last_login': user_data.get('last_login', 'Nunca'),
+            'disabled': user_data.get('disabled', False)
         }
         accounts_list.append(account_info)
     
@@ -1018,6 +1023,10 @@ def validate_quick_login():
         return jsonify({'error': 'Usuário não encontrado'}), 404
     
     user = users_db[email]
+    
+    # Verificar se conta está banida
+    if user.get('disabled', False):
+        return jsonify({'error': 'Conta banida', 'banned': True}), 403
     
     # Atualizar último login
     user['last_login'] = datetime.now().isoformat()
@@ -1390,6 +1399,166 @@ Este é um email automático do sistema.
         'new_requests': new_requests,
         'message': f'{new_requests} novas solicitações processadas'
     })
+
+@app.route('/ai-chat')
+def ai_chat_page():
+    """Página de chat com IA"""
+    chat_id = request.args.get('chat_id')
+    if not chat_id:
+        return "ID da conversa não fornecido", 400
+    return send_from_directory('.', 'ai-chat.html')
+
+@app.route('/api/ai-chat', methods=['POST'])
+def ai_chat_api():
+    """API para chat com IA"""
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Usuário não logado'}), 401
+    
+    data = request.get_json()
+    chat_id = data.get('chat_id')
+    user_message = data.get('message')
+    
+    if not chat_id or not user_message:
+        return jsonify({'error': 'Chat ID e mensagem são obrigatórios'}), 400
+    
+    # Salvar mensagem do usuário
+    save_chat_message(chat_id, user['email'], 'user', user_message)
+    
+    # Gerar resposta da IA
+    ai_response = generate_ai_response(user_message)
+    
+    # Salvar resposta da IA
+    save_chat_message(chat_id, 'IA@nayemail.com', 'ai', ai_response)
+    
+    # Enviar email para IA sobre a nova mensagem
+    send_ai_notification_email(user, chat_id, user_message, ai_response)
+    
+    return jsonify({
+        'success': True,
+        'ai_response': ai_response,
+        'chat_id': chat_id
+    })
+
+def generate_ai_response(user_message):
+    """Gera resposta inteligente baseada na mensagem do usuário"""
+    message_lower = user_message.lower()
+    
+    # Respostas contextuais
+    if any(word in message_lower for word in ['olá', 'oi', 'hello', 'hey']):
+        responses = [
+            "Olá! 👋 Como posso ajudar você hoje?",
+            "Oi! Seja bem-vindo ao NayEmail! Em que posso ser útil?",
+            "Hey! 😊 Estou aqui para conversar e ajudar. O que precisa?"
+        ]
+    elif any(word in message_lower for word in ['ajuda', 'help', 'socorro']):
+        responses = [
+            "Claro! Estou aqui para ajudar. Pode me contar mais sobre o que precisa?",
+            "Com certeza! Sou sua assistente e estou pronta para ajudar. Qual é sua dúvida?",
+            "Sempre disposta a ajudar! 💪 Me diga o que está precisando."
+        ]
+    elif any(word in message_lower for word in ['email', 'e-mail', 'gmail']):
+        responses = [
+            "O NayEmail é fantástico! 📧 Posso ajudar com dúvidas sobre envio, organização ou qualquer funcionalidade.",
+            "Sobre emails posso ajudar muito! Quer saber como usar melhor o sistema? Ou tem alguma dúvida específica?",
+            "Emails são minha especialidade! ✨ Pode perguntar sobre qualquer funcionalidade do NayEmail."
+        ]
+    elif any(word in message_lower for word in ['obrigado', 'obrigada', 'thanks', 'valeu']):
+        responses = [
+            "De nada! 😊 Fico feliz em ajudar. Se precisar de mais alguma coisa, estou aqui!",
+            "Por nada! É sempre um prazer ajudar. 🌟",
+            "Que bom que pude ajudar! Volte sempre que precisar. 💙"
+        ]
+    elif any(word in message_lower for word in ['tchau', 'bye', 'até', 'fui']):
+        responses = [
+            "Até logo! 👋 Foi ótimo conversar com você. Volte sempre!",
+            "Tchau! 😊 Estarei aqui quando precisar. Tenha um ótimo dia!",
+            "Até mais! 🌟 Espero ter ajudado. Nos vemos em breve!"
+        ]
+    elif '?' in user_message:
+        responses = [
+            "Ótima pergunta! 🤔 Deixe-me pensar... Baseado no que você disse, acredito que posso ajudar com informações sobre isso.",
+            "Pergunta interessante! 💭 Vou fazer o meu melhor para responder de forma útil.",
+            "Gosto de perguntas! 🧠 Me dê um momento para formular uma resposta adequada."
+        ]
+    else:
+        responses = [
+            "Interessante! 💭 Pode me contar mais sobre isso? Estou aqui para ouvir e ajudar.",
+            "Entendi! 😊 Gostaria de elaborar mais? Quanto mais você me contar, melhor posso ajudar.",
+            "Compreendo. 🤝 Como posso ser mais útil nesta conversa?",
+            "Legal! ✨ Me conte mais detalhes para que eu possa ajudar da melhor forma.",
+            "Entendo seu ponto! 🎯 Há algo específico em que posso ajudar relacionado a isso?"
+        ]
+    
+    import random
+    return random.choice(responses)
+
+def save_chat_message(chat_id, user_email, sender_type, message):
+    """Salva mensagem do chat em arquivo"""
+    chat_data = {
+        'chat_id': chat_id,
+        'user_email': user_email,
+        'sender_type': sender_type,
+        'message': message,
+        'timestamp': datetime.now().isoformat()
+    }
+    
+    # Carregar conversas existentes
+    chat_file = 'ai_chats.json'
+    chats = []
+    if os.path.exists(chat_file):
+        with open(chat_file, 'r', encoding='utf-8') as f:
+            chats = json.load(f)
+    
+    chats.append(chat_data)
+    
+    # Salvar de volta
+    with open(chat_file, 'w', encoding='utf-8') as f:
+        json.dump(chats, f, ensure_ascii=False, indent=2)
+
+def send_ai_notification_email(user, chat_id, user_message, ai_response):
+    """Enviar notificação para a IA sobre nova mensagem"""
+    try:
+        ai_email = {
+            'id': str(uuid.uuid4()),
+            'from': 'sistema@nayemail.com',
+            'to': 'IA@nayemail.com',
+            'subject': f'💬 Nova conversa com {user["name"]} - Chat {chat_id[:8]}',
+            'body': f"""
+🤖 NOVA INTERAÇÃO COM IA
+
+👤 Usuário: {user['name']} ({user['email']})
+🆔 Chat ID: {chat_id}
+📅 Data: {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}
+
+💬 MENSAGEM DO USUÁRIO:
+{user_message}
+
+🤖 RESPOSTA DA IA:
+{ai_response}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 ESTATÍSTICAS:
+• Status: Conversa ativa
+• Plataforma: NayEmail IA Assistant
+• Tipo: Chat em tempo real
+
+🔗 Sistema NayEmail - IA Conversacional
+            """.strip(),
+            'date': datetime.now().isoformat(),
+            'read': False,
+            'starred': False,
+            'folder': 'inbox',
+            'ai_chat_log': True,
+            'chat_id': chat_id
+        }
+        
+        emails_db.append(ai_email)
+        save_data()
+        
+    except Exception as e:
+        print(f"Erro ao enviar notificação para IA: {e}")
 
 @app.route('/token')
 def token_page():
