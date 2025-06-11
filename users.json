@@ -23,7 +23,7 @@
     "profile_pic": "https://ui-avatars.com/api/?name=lindembergs297&background=4285f4&color=fff",
     "is_admin": false,
     "user_id": "user_003",
-    "last_login": "2025-06-08T18:47:44.978752"
+    "last_login": "2025-06-11T01:06:21.601513"
   },
   "lindembergs038@gmail.com": {
     "email": "lindembergs038@gmail.com",
@@ -49,5 +49,17 @@
       "answer2_hash": "70d5c017158a635272db360ef3c7e945",
       "created_at": "2025-06-08T18:38:34.691792"
     }
+  },
+  "admin@nayemail.com": {
+    "email": "admin@nayemail.com",
+    "name": "Administrador NayEmail",
+    "password": "0192023a7bbd73250516f069df18b500",
+    "created_at": "2025-06-11T01:09:16.763783",
+    "profile_pic": "https://ui-avatars.com/api/?name=NayEmail+Admin&background=6c63ff&color=fff",
+    "is_admin": true,
+    "user_id": "admin_001",
+    "theme": "default",
+    "language": "pt-BR",
+    "signature": "Administrador NayEmail\nSistema de Email Inteligente"
   }
 }
