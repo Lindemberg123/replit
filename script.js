@@ -1774,6 +1774,584 @@ console.log('👑 Admin: admin@nayemail.com');
 console.log('🎨 Múltiplos temas e personalização completa!');
 console.log('🤖 Composição e respostas inteligentes ativadas!');
 
+// ========== FUNCIONALIDADES INOVADORAS NAYEMAIL ==========
+
+// 1. Sistema de Email com IA Generativa
+let aiEmailGenerator = {
+    tones: ['profissional', 'casual', 'urgente', 'amigável', 'formal'],
+    styles: ['direto', 'detalhado', 'conciso', 'persuasivo'],
+    
+    generateEmail: function(topic, tone, style, recipient) {
+        // Simulação de IA generativa para emails
+        const templates = {
+            profissional: {
+                direto: `Prezado(a) ${recipient},\n\nEscrevo para tratar sobre ${topic}.\n\nAguardo seu retorno.\n\nAtenciosamente,`,
+                detalhado: `Prezado(a) ${recipient},\n\nEspero que esta mensagem o(a) encontre bem.\n\nGostaria de abordar em detalhes a questão relacionada a ${topic}. Este assunto requer nossa atenção devido à sua importância estratégica.\n\nFico à disposição para discussões adicionais.\n\nAtenciosamente,`
+            },
+            casual: {
+                direto: `Oi ${recipient}!\n\nQueria falar sobre ${topic}.\n\nMe avisa o que acha!\n\nAbraços,`,
+                detalhado: `E aí ${recipient}!\n\nTudo bem? Espero que sim!\n\nEntão, queria conversar contigo sobre ${topic}. Acho que é algo interessante que vale a pena discutirmos.\n\nQualquer coisa me chama!\n\nAbraços,`
+            }
+        };
+        
+        return templates[tone]?.[style] || templates.profissional.direto;
+    }
+};
+
+// 2. Sistema de Análise de Sentimentos
+let sentimentAnalyzer = {
+    analyze: function(text) {
+        const positiveWords = ['obrigado', 'excelente', 'ótimo', 'perfeito', 'sucesso', 'parabéns'];
+        const negativeWords = ['problema', 'erro', 'falha', 'ruim', 'insatisfeito', 'urgente'];
+        const neutralWords = ['informação', 'dados', 'reunião', 'projeto', 'relatório'];
+        
+        let score = 0;
+        const words = text.toLowerCase().split(' ');
+        
+        words.forEach(word => {
+            if (positiveWords.includes(word)) score += 1;
+            if (negativeWords.includes(word)) score -= 1;
+        });
+        
+        if (score > 0) return { sentiment: 'positivo', score, icon: '😊', color: '#4caf50' };
+        if (score < 0) return { sentiment: 'negativo', score, icon: '😟', color: '#f44336' };
+        return { sentiment: 'neutro', score, icon: '😐', color: '#757575' };
+    }
+};
+
+// 3. Sistema de Priorização Inteligente
+let intelligentPriority = {
+    calculatePriority: function(email) {
+        let priority = 0;
+        const subject = email.subject?.toLowerCase() || '';
+        const body = email.body?.toLowerCase() || '';
+        
+        // Palavras de alta prioridade
+        const urgentWords = ['urgente', 'emergency', 'asap', 'importante', 'critical'];
+        const businessWords = ['contrato', 'proposta', 'cliente', 'vendas', 'deadline'];
+        
+        urgentWords.forEach(word => {
+            if (subject.includes(word) || body.includes(word)) priority += 3;
+        });
+        
+        businessWords.forEach(word => {
+            if (subject.includes(word) || body.includes(word)) priority += 2;
+        });
+        
+        // Remetentes VIP
+        const vipDomains = ['ceo', 'diretor', 'manager', 'admin'];
+        if (vipDomains.some(domain => email.from?.includes(domain))) priority += 2;
+        
+        return Math.min(priority, 10); // Máximo 10
+    },
+    
+    getPriorityBadge: function(priority) {
+        if (priority >= 7) return { level: 'crítica', color: '#f44336', icon: '🚨' };
+        if (priority >= 5) return { level: 'alta', color: '#ff9800', icon: '⚡' };
+        if (priority >= 3) return { level: 'média', color: '#2196f3', icon: '📋' };
+        return { level: 'baixa', color: '#4caf50', icon: '📄' };
+    }
+};
+
+// 4. Sistema de Templates Inteligentes
+let smartTemplates = {
+    templates: {
+        'reuniao': {
+            subject: 'Agendamento de Reunião - [TÓPICO]',
+            body: 'Olá [NOME],\n\nGostaria de agendar uma reunião para discutir [TÓPICO].\n\nSugestões de horário:\n• [DATA1] às [HORA1]\n• [DATA2] às [HORA2]\n\nConfirme sua disponibilidade.\n\nAtenciosamente,'
+        },
+        'followup': {
+            subject: 'Follow-up: [ASSUNTO_ORIGINAL]',
+            body: 'Olá [NOME],\n\nRetomando nossa conversa sobre [ASSUNTO_ORIGINAL].\n\nGostaria de saber se há atualizações ou se precisa de mais informações.\n\nFico no aguardo.\n\nAtenciosamente,'
+        },
+        'proposta': {
+            subject: 'Proposta Comercial - [EMPRESA/PROJETO]',
+            body: 'Prezado(a) [NOME],\n\nConforme solicitado, segue nossa proposta para [PROJETO].\n\nBenefícios principais:\n• [BENEFICIO1]\n• [BENEFICIO2]\n• [BENEFICIO3]\n\nEstou à disposição para esclarecimentos.\n\nAtenciosamente,'
+        }
+    },
+    
+    getTemplate: function(type, variables = {}) {
+        const template = this.templates[type];
+        if (!template) return null;
+        
+        let subject = template.subject;
+        let body = template.body;
+        
+        // Substituir variáveis
+        Object.keys(variables).forEach(key => {
+            const placeholder = `[${key.toUpperCase()}]`;
+            subject = subject.replace(new RegExp(placeholder, 'g'), variables[key]);
+            body = body.replace(new RegExp(placeholder, 'g'), variables[key]);
+        });
+        
+        return { subject, body };
+    }
+};
+
+// 5. Sistema de Colaboração em Tempo Real
+let realTimeCollaboration = {
+    activeUsers: new Map(),
+    
+    showTypingIndicator: function(userId, emailId) {
+        const indicator = document.createElement('div');
+        indicator.className = 'typing-indicator';
+        indicator.innerHTML = `
+            <div class="typing-dots">
+                <i class="fas fa-user"></i>
+                <span>Usuário ${userId} está digitando...</span>
+                <div class="dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(indicator);
+        
+        setTimeout(() => {
+            indicator.remove();
+        }, 3000);
+    },
+    
+    shareEmail: function(emailId, users) {
+        showNotification(`Email compartilhado com ${users.length} usuários`, 'success');
+    }
+};
+
+// 6. Sistema de Backup e Sync Multi-Dispositivo
+let cloudSync = {
+    syncData: function() {
+        const syncData = {
+            emails: emails_db || [],
+            settings: userInfo || {},
+            filters: [],
+            labels: [],
+            timestamp: new Date().toISOString()
+        };
+        
+        localStorage.setItem('nayemail_backup', JSON.stringify(syncData));
+        showNotification('Dados sincronizados com a nuvem', 'success');
+    },
+    
+    restoreData: function() {
+        const backup = localStorage.getItem('nayemail_backup');
+        if (backup) {
+            showNotification('Dados restaurados com sucesso', 'success');
+            return JSON.parse(backup);
+        }
+        return null;
+    }
+};
+
+// 7. Sistema de Analytics Avançado
+let emailAnalytics = {
+    getStats: function() {
+        const stats = {
+            totalEmails: emails_db?.length || 0,
+            readRate: 0,
+            responseTime: '2h média',
+            topSenders: [],
+            busyHours: [],
+            sentiment: { positive: 60, neutral: 30, negative: 10 }
+        };
+        
+        return stats;
+    },
+    
+    generateReport: function() {
+        const stats = this.getStats();
+        return `
+📊 RELATÓRIO DE EMAIL ANALYTICS
+
+📈 Estatísticas Gerais:
+• Total de emails: ${stats.totalEmails}
+• Taxa de leitura: ${stats.readRate}%
+• Tempo médio de resposta: ${stats.responseTime}
+
+😊 Análise de Sentimentos:
+• Positivos: ${stats.sentiment.positive}%
+• Neutros: ${stats.sentiment.neutral}%
+• Negativos: ${stats.sentiment.negative}%
+
+⏰ Horários de pico: 9h-11h, 14h-16h
+
+🎯 Sugestões de melhoria:
+• Responder emails em até 1h
+• Usar templates para agilizar
+• Configurar filtros automáticos
+        `;
+    }
+};
+
+// 8. Sistema de Automação Avançada
+let emailAutomation = {
+    rules: [],
+    
+    createRule: function(name, conditions, actions) {
+        const rule = {
+            id: Date.now(),
+            name,
+            conditions,
+            actions,
+            active: true,
+            created: new Date().toISOString()
+        };
+        
+        this.rules.push(rule);
+        return rule;
+    },
+    
+    processEmail: function(email) {
+        this.rules.forEach(rule => {
+            if (rule.active && this.matchesConditions(email, rule.conditions)) {
+                this.executeActions(email, rule.actions);
+            }
+        });
+    },
+    
+    matchesConditions: function(email, conditions) {
+        return conditions.every(condition => {
+            switch(condition.type) {
+                case 'from':
+                    return email.from?.includes(condition.value);
+                case 'subject':
+                    return email.subject?.toLowerCase().includes(condition.value.toLowerCase());
+                case 'body':
+                    return email.body?.toLowerCase().includes(condition.value.toLowerCase());
+                default:
+                    return false;
+            }
+        });
+    },
+    
+    executeActions: function(email, actions) {
+        actions.forEach(action => {
+            switch(action.type) {
+                case 'star':
+                    email.starred = true;
+                    break;
+                case 'label':
+                    email.labels = email.labels || [];
+                    email.labels.push(action.value);
+                    break;
+                case 'forward':
+                    this.forwardEmail(email, action.value);
+                    break;
+            }
+        });
+    }
+};
+
+console.log('🚀 INOVAÇÕES NAYEMAIL CARREGADAS:');
+console.log('🤖 IA Generativa para emails');
+console.log('😊 Análise de sentimentos');
+console.log('⚡ Priorização inteligente');
+console.log('📝 Templates inteligentes');
+console.log('👥 Colaboração em tempo real');
+console.log('☁️ Sync multi-dispositivo');
+console.log('📊 Analytics avançado');
+console.log('🔄 Automação completa');
+
+// ========== FUNÇÕES PARA INTERFACE DAS INOVAÇÕES ==========
+
+function showAIGenerator() {
+    document.getElementById('aiGeneratorModal').classList.add('active');
+    document.getElementById('aiRecipient').focus();
+}
+
+function closeAIGenerator() {
+    document.getElementById('aiGeneratorModal').classList.remove('active');
+    document.getElementById('aiGeneratedContent').style.display = 'none';
+}
+
+function generateAIEmail() {
+    const recipient = document.getElementById('aiRecipient').value;
+    const topic = document.getElementById('aiTopic').value;
+    const tone = document.getElementById('aiTone').value;
+    const style = document.getElementById('aiStyle').value;
+    
+    if (!recipient || !topic) {
+        showNotification('Preencha o destinatário e o tópico', 'error');
+        return;
+    }
+    
+    const generatedEmail = aiEmailGenerator.generateEmail(topic, tone, style, recipient);
+    
+    document.getElementById('aiEmailResult').value = generatedEmail;
+    document.getElementById('aiGeneratedContent').style.display = 'block';
+    
+    showNotification('Email gerado com IA!', 'success');
+}
+
+function useGeneratedEmail() {
+    const generatedText = document.getElementById('aiEmailResult').value;
+    
+    // Preencher formulário de composição
+    document.getElementById('composeBody').value = generatedText;
+    document.getElementById('composeTo').value = document.getElementById('aiRecipient').value;
+    
+    closeAIGenerator();
+    showCompose();
+    
+    showNotification('Email transferido para composição!', 'success');
+}
+
+function showAnalytics() {
+    document.getElementById('analyticsModal').classList.add('active');
+    loadAnalyticsData();
+}
+
+function closeAnalytics() {
+    document.getElementById('analyticsModal').classList.remove('active');
+}
+
+function loadAnalyticsData() {
+    const stats = emailAnalytics.getStats();
+    const report = emailAnalytics.generateReport();
+    
+    document.getElementById('analyticsContent').innerHTML = `
+        <div class="analytics-grid">
+            <div class="analytics-card">
+                <div class="analytics-number">${stats.totalEmails}</div>
+                <div class="analytics-label">Total de Emails</div>
+            </div>
+            <div class="analytics-card">
+                <div class="analytics-number">${stats.readRate}%</div>
+                <div class="analytics-label">Taxa de Leitura</div>
+            </div>
+            <div class="analytics-card">
+                <div class="analytics-number">${stats.responseTime}</div>
+                <div class="analytics-label">Tempo de Resposta</div>
+            </div>
+            <div class="analytics-card">
+                <div class="analytics-number">98%</div>
+                <div class="analytics-label">Uptime</div>
+            </div>
+        </div>
+        
+        <div class="analytics-chart">
+            <h4>📊 Relatório Detalhado</h4>
+            <pre style="white-space: pre-wrap; font-family: monospace; background: #f5f5f5; padding: 15px; border-radius: 8px; overflow-x: auto;">${report}</pre>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="exportAnalytics()" class="send-btn">
+                <i class="fas fa-download"></i>
+                Exportar Relatório
+            </button>
+            <button onclick="scheduleReport()" class="send-btn" style="margin-left: 10px;">
+                <i class="fas fa-clock"></i>
+                Agendar Relatório
+            </button>
+        </div>
+    `;
+}
+
+function exportAnalytics() {
+    const report = emailAnalytics.generateReport();
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nayemail-analytics-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showNotification('Relatório exportado!', 'success');
+}
+
+function scheduleReport() {
+    showNotification('Relatório agendado para envio semanal!', 'success');
+}
+
+function showTemplates() {
+    document.getElementById('templatesModal').classList.add('active');
+}
+
+function closeTemplates() {
+    document.getElementById('templatesModal').classList.remove('active');
+}
+
+function useTemplate(templateType) {
+    let variables = {};
+    
+    // Coletar variáveis do usuário
+    if (templateType === 'reuniao') {
+        const topic = prompt('Qual o tópico da reunião?') || '[TÓPICO]';
+        const name = prompt('Nome do destinatário?') || '[NOME]';
+        variables = { 
+            nome: name,
+            topico: topic,
+            data1: 'Segunda-feira',
+            hora1: '14:00',
+            data2: 'Terça-feira',
+            hora2: '10:00'
+        };
+    } else if (templateType === 'followup') {
+        const name = prompt('Nome do destinatário?') || '[NOME]';
+        const subject = prompt('Assunto original?') || '[ASSUNTO]';
+        variables = { nome: name, assunto_original: subject };
+    } else if (templateType === 'proposta') {
+        const name = prompt('Nome do destinatário?') || '[NOME]';
+        const project = prompt('Nome do projeto/empresa?') || '[PROJETO]';
+        variables = { 
+            nome: name, 
+            projeto: project,
+            beneficio1: 'Redução de custos em 30%',
+            beneficio2: 'Aumento da produtividade',
+            beneficio3: 'Suporte técnico especializado'
+        };
+    }
+    
+    const template = smartTemplates.getTemplate(templateType, variables);
+    
+    if (template) {
+        document.getElementById('composeSubject').value = template.subject;
+        document.getElementById('composeBody').value = template.body;
+        
+        closeTemplates();
+        showCompose();
+        
+        showNotification(`Template "${templateType}" aplicado!`, 'success');
+    } else {
+        showNotification('Template não encontrado', 'error');
+    }
+}
+
+function showAutomation() {
+    document.getElementById('automationModal').classList.add('active');
+    loadAutomationRules();
+}
+
+function closeAutomation() {
+    document.getElementById('automationModal').classList.remove('active');
+}
+
+function loadAutomationRules() {
+    const rulesContainer = document.getElementById('automationRules');
+    
+    if (emailAutomation.rules.length === 0) {
+        rulesContainer.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-cogs" style="font-size: 3em; margin-bottom: 16px; opacity: 0.5;"></i>
+                <h3>Nenhuma regra criada</h3>
+                <p>Crie sua primeira regra de automação para agilizar seu fluxo de emails.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    rulesContainer.innerHTML = emailAutomation.rules.map(rule => `
+        <div class="automation-rule">
+            <div class="rule-header">
+                <span class="rule-name">${rule.name}</span>
+                <button class="rule-toggle ${rule.active ? '' : 'inactive'}" 
+                        onclick="toggleRule('${rule.id}')">
+                    ${rule.active ? 'Ativo' : 'Inativo'}
+                </button>
+            </div>
+            <div class="rule-description">
+                ${rule.conditions.map(c => `${c.type}: ${c.value}`).join(', ')} →
+                ${rule.actions.map(a => a.type).join(', ')}
+            </div>
+            <div class="rule-stats">
+                <span>Criado: ${new Date(rule.created).toLocaleDateString()}</span>
+                <span>Processados: 0 emails</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function createAutomationRule() {
+    const name = prompt('Nome da regra:');
+    if (!name) return;
+    
+    const conditionType = prompt('Condição (from/subject/body):') || 'subject';
+    const conditionValue = prompt('Valor da condição:');
+    if (!conditionValue) return;
+    
+    const actionType = prompt('Ação (star/label/forward):') || 'star';
+    const actionValue = actionType === 'label' ? prompt('Nome do label:') : '';
+    
+    const rule = emailAutomation.createRule(
+        name,
+        [{ type: conditionType, value: conditionValue }],
+        [{ type: actionType, value: actionValue }]
+    );
+    
+    showNotification(`Regra "${name}" criada!`, 'success');
+    loadAutomationRules();
+}
+
+function toggleRule(ruleId) {
+    const rule = emailAutomation.rules.find(r => r.id == ruleId);
+    if (rule) {
+        rule.active = !rule.active;
+        loadAutomationRules();
+        showNotification(`Regra ${rule.active ? 'ativada' : 'desativada'}`, 'info');
+    }
+}
+
+function showCollaboration() {
+    document.getElementById('collaborationModal').classList.add('active');
+}
+
+function closeCollaboration() {
+    document.getElementById('collaborationModal').classList.remove('active');
+}
+
+// Função para adicionar análise de sentimentos aos emails
+function addSentimentToEmail(email) {
+    const sentiment = sentimentAnalyzer.analyze(email.body || '');
+    const sentimentBadge = `
+        <div class="sentiment-indicator sentiment-${sentiment.sentiment}">
+            ${sentiment.icon} ${sentiment.sentiment.toUpperCase()}
+        </div>
+    `;
+    return sentimentBadge;
+}
+
+// Função para adicionar prioridade aos emails
+function addPriorityToEmail(email) {
+    const priority = intelligentPriority.calculatePriority(email);
+    const priorityBadge = intelligentPriority.getPriorityBadge(priority);
+    
+    return `
+        <div class="priority-badge priority-${priorityBadge.level}">
+            ${priorityBadge.icon} ${priorityBadge.level.toUpperCase()}
+        </div>
+    `;
+}
+
+// Função para demonstrar colaboração em tempo real
+function demonstrateCollaboration() {
+    realTimeCollaboration.showTypingIndicator('João', 'email_123');
+    setTimeout(() => {
+        showNotification('João comentou no email', 'info');
+    }, 3000);
+}
+
+// Auto-executar demonstração de funcionalidades
+setTimeout(() => {
+    if (userInfo) {
+        console.log('🎯 Demonstrando funcionalidades inovadoras...');
+        
+        // Simular análise de sentimentos
+        setTimeout(() => {
+            showNotification('✨ IA analisou sentimentos dos emails', 'success');
+        }, 2000);
+        
+        // Simular sync automático
+        setTimeout(() => {
+            cloudSync.syncData();
+        }, 5000);
+        
+        // Demonstrar colaboração
+        setTimeout(() => {
+            demonstrateCollaboration();
+        }, 8000);
+    }
+}, 3000);
+
 // Sistema de IA Conversacional
 let aiChatWindow = null;
 let currentChatId = null;

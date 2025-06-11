@@ -408,21 +408,175 @@
         <button onclick="showSmartCompose()" title="Composição Inteligente">
             <i class="fas fa-robot"></i>
         </button>
-        <button onclick="toggleOfflineMode()" title="Modo Offline">
-            <i class="fas fa-wifi-slash"></i>
+        <button onclick="showAIGenerator()" title="IA Geradora de Emails">
+            <i class="fas fa-magic"></i>
         </button>
-        <button onclick="openCalendar()" title="Calendário">
-            <i class="fas fa-calendar"></i>
+        <button onclick="showAnalytics()" title="Analytics Avançado">
+            <i class="fas fa-chart-line"></i>
         </button>
-        <button onclick="openContacts()" title="Contatos">
-            <i class="fas fa-address-book"></i>
+        <button onclick="showTemplates()" title="Templates Inteligentes">
+            <i class="fas fa-file-alt"></i>
         </button>
-        <button onclick="openTasks()" title="Tarefas">
-            <i class="fas fa-tasks"></i>
+        <button onclick="showAutomation()" title="Automação">
+            <i class="fas fa-cogs"></i>
+        </button>
+        <button onclick="showCollaboration()" title="Colaboração">
+            <i class="fas fa-users"></i>
+        </button>
+        <button onclick="cloudSync.syncData()" title="Sync Nuvem">
+            <i class="fas fa-cloud-upload-alt"></i>
         </button>
         <button onclick="showThemeSelector()" title="Temas">
             <i class="fas fa-palette"></i>
         </button>
+    </div>
+
+    <!-- IA Email Generator Modal -->
+    <div class="compose-modal" id="aiGeneratorModal">
+        <div class="compose-overlay" onclick="closeAIGenerator()"></div>
+        <div class="compose-content">
+            <div class="compose-header">
+                <h3><i class="fas fa-magic"></i> IA Geradora de Emails</h3>
+                <button onclick="closeAIGenerator()"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="padding: 20px;">
+                <div class="compose-field">
+                    <label>Para quem:</label>
+                    <input type="text" id="aiRecipient" placeholder="Nome do destinatário">
+                </div>
+                <div class="compose-field">
+                    <label>Tópico:</label>
+                    <input type="text" id="aiTopic" placeholder="Sobre o que é o email">
+                </div>
+                <div class="compose-field">
+                    <label>Tom:</label>
+                    <select id="aiTone">
+                        <option value="profissional">Profissional</option>
+                        <option value="casual">Casual</option>
+                        <option value="urgente">Urgente</option>
+                        <option value="amigável">Amigável</option>
+                        <option value="formal">Formal</option>
+                    </select>
+                </div>
+                <div class="compose-field">
+                    <label>Estilo:</label>
+                    <select id="aiStyle">
+                        <option value="direto">Direto</option>
+                        <option value="detalhado">Detalhado</option>
+                        <option value="conciso">Conciso</option>
+                        <option value="persuasivo">Persuasivo</option>
+                    </select>
+                </div>
+                <div class="compose-actions">
+                    <button onclick="generateAIEmail()" class="send-btn">
+                        <i class="fas fa-magic"></i>
+                        Gerar Email
+                    </button>
+                </div>
+                <div id="aiGeneratedContent" style="margin-top: 20px; display: none;">
+                    <h4>Email Gerado:</h4>
+                    <textarea id="aiEmailResult" rows="10" style="width: 100%; margin-bottom: 10px;"></textarea>
+                    <button onclick="useGeneratedEmail()" class="send-btn">
+                        <i class="fas fa-check"></i>
+                        Usar Este Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div class="compose-modal" id="analyticsModal">
+        <div class="compose-overlay" onclick="closeAnalytics()"></div>
+        <div class="compose-content users-content">
+            <div class="compose-header">
+                <h3><i class="fas fa-chart-line"></i> Analytics Avançado</h3>
+                <button onclick="closeAnalytics()"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="analyticsContent" style="padding: 20px;">
+                <!-- Conteúdo será preenchido dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates Modal -->
+    <div class="compose-modal" id="templatesModal">
+        <div class="compose-overlay" onclick="closeTemplates()"></div>
+        <div class="compose-content">
+            <div class="compose-header">
+                <h3><i class="fas fa-file-alt"></i> Templates Inteligentes</h3>
+                <button onclick="closeTemplates()"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="padding: 20px;">
+                <div class="template-grid">
+                    <div class="template-card" onclick="useTemplate('reuniao')">
+                        <i class="fas fa-calendar"></i>
+                        <h4>Reunião</h4>
+                        <p>Template para agendar reuniões</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('followup')">
+                        <i class="fas fa-reply"></i>
+                        <h4>Follow-up</h4>
+                        <p>Template para acompanhamento</p>
+                    </div>
+                    <div class="template-card" onclick="useTemplate('proposta')">
+                        <i class="fas fa-handshake"></i>
+                        <h4>Proposta</h4>
+                        <p>Template comercial</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Automation Modal -->
+    <div class="compose-modal" id="automationModal">
+        <div class="compose-overlay" onclick="closeAutomation()"></div>
+        <div class="compose-content">
+            <div class="compose-header">
+                <h3><i class="fas fa-cogs"></i> Automação de Emails</h3>
+                <button onclick="closeAutomation()"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="padding: 20px;">
+                <button onclick="createAutomationRule()" class="send-btn" style="margin-bottom: 20px;">
+                    <i class="fas fa-plus"></i>
+                    Nova Regra
+                </button>
+                <div id="automationRules">
+                    <!-- Regras serão listadas aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collaboration Modal -->
+    <div class="compose-modal" id="collaborationModal">
+        <div class="compose-overlay" onclick="closeCollaboration()"></div>
+        <div class="compose-content">
+            <div class="compose-header">
+                <h3><i class="fas fa-users"></i> Colaboração em Tempo Real</h3>
+                <button onclick="closeCollaboration()"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="padding: 20px;">
+                <div class="collab-features">
+                    <div class="collab-card">
+                        <i class="fas fa-share"></i>
+                        <h4>Compartilhar Email</h4>
+                        <p>Colabore em emails com sua equipe</p>
+                    </div>
+                    <div class="collab-card">
+                        <i class="fas fa-comments"></i>
+                        <h4>Chat em Tempo Real</h4>
+                        <p>Discuta emails em tempo real</p>
+                    </div>
+                    <div class="collab-card">
+                        <i class="fas fa-eye"></i>
+                        <h4>Visualização Conjunta</h4>
+                        <p>Veja quem está online</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Notifications -->
