@@ -157,5 +157,55 @@
     "folder": "inbox",
     "password_reset": true,
     "site_origin": "Sistema Gmail"
+  },
+  {
+    "id": "67847d09-6446-46ae-bed2-6cdf81703b16",
+    "from": "suport.com@gmail.oficial",
+    "to": "suport.com@gmail.oficial",
+    "subject": "token",
+    "body": "token",
+    "date": "2025-06-08T18:41:31.860553",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
+  },
+  {
+    "id": "69c2ce5a-af69-4a8c-9acf-b27f561973d6",
+    "from": "suporte@sistemagmail.nay.com",
+    "to": "lindembergs297@gmail.com",
+    "subject": "Recuperação de senha - Sistema Gmail",
+    "body": "Olá!\n\nVocê solicitou recuperação de senha no site Sistema Gmail.\n\nClique no link abaixo para redefinir sua senha:\nhttps://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev/reset-password?token=mq6ht62s64mbo0fs11\n\nToken de recuperação: mq6ht62s64mbo0fs11\n\nEste link expira em 24 horas.\n\nSe você não solicitou esta recuperação, ignore este email e sua conta permanecerá segura.\n\nEste email foi enviado através do Sistema Gmail Independente.",
+    "date": "2025-06-08T18:42:24.077022",
+    "read": false,
+    "starred": false,
+    "folder": "inbox",
+    "password_reset": true,
+    "site_origin": "Sistema Gmail"
+  },
+  {
+    "id": "2e51b4c2-bcc4-4ab7-bb1d-502e0d27197d",
+    "from": "suporte@sistemagmail.nay.com",
+    "to": "lindembergs297@dono",
+    "subject": "Recuperação de senha - Sistema Gmail",
+    "body": "Olá!\n\nVocê solicitou recuperação de senha no site Sistema Gmail.\n\nClique no link abaixo para redefinir sua senha:\nhttps://37b18808-226f-4838-9cd0-06e8905de082-00-24jzov5xta9v4.spock.replit.dev/reset-password?token=fsz7d6vweh6mbo0js24\n\nToken de recuperação: fsz7d6vweh6mbo0js24\n\nEste link expira em 24 horas.\n\nSe você não solicitou esta recuperação, ignore este email e sua conta permanecerá segura.\n\nEste email foi enviado através do Sistema Gmail Independente.",
+    "date": "2025-06-08T18:45:30.741768",
+    "read": true,
+    "starred": false,
+    "folder": "inbox",
+    "password_reset": true,
+    "site_origin": "Sistema Gmail"
+  },
+  {
+    "id": "5a030bed-c12d-4946-a943-d47022aee3b9",
+    "from": "lindembergs297@dono",
+    "to": "suport.com@gmail.oficial",
+    "subject": "token",
+    "body": "token",
+    "date": "2025-06-08T18:48:05.599977",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
   }
 ]
