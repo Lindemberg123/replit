@@ -321,5 +321,56 @@
     "folder": "inbox",
     "ai_chat_log": true,
     "chat_id": "chat_1749605304359_uyijolfiz"
+  },
+  {
+    "id": "9ad26097-7fb5-4ff5-b150-00302df7c3ae",
+    "from": "lindembergs297@dono",
+    "to": "IA@nayemail.com",
+    "subject": "Usuário iniciou conversa com IA",
+    "body": "Usuário Lindembergs297 (lindembergs297@dono) iniciou uma nova conversa com a IA.\nID da Conversa: chat_1749605522662_909a7oaiy",
+    "date": "2025-06-11T01:32:04.161809",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
+  },
+  {
+    "id": "59cbb305-4fed-401d-bb73-7f91374ab845",
+    "from": "sistema@nayemail.com",
+    "to": "IA@nayemail.com",
+    "subject": "💬 Nova conversa com Lindembergs297 - Chat chat_174",
+    "body": "🤖 NOVA INTERAÇÃO COM IA\n\n👤 Usuário: Lindembergs297 (lindembergs297@dono)\n🆔 Chat ID: chat_1749605522662_909a7oaiy\n📅 Data: 11/06/2025 às 01:33:55\n\n💬 MENSAGEM DO USUÁRIO:\nOla\n\n🤖 RESPOSTA DA IA:\n💭 Interessante! Pode me contar mais? Sou especialista no NayEmail e adoro conversar!\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📊 ESTATÍSTICAS:\n• Status: Conversa ativa\n• Plataforma: NayEmail IA Assistant\n• Tipo: Chat em tempo real\n\n🔗 Sistema NayEmail - IA Conversacional",
+    "date": "2025-06-11T01:33:55.779611",
+    "read": false,
+    "starred": false,
+    "folder": "inbox",
+    "ai_chat_log": true,
+    "chat_id": "chat_1749605522662_909a7oaiy"
+  },
+  {
+    "id": "bd03479e-47e9-4f10-aacd-651ffe346840",
+    "from": "sistema@nayemail.com",
+    "to": "IA@nayemail.com",
+    "subject": "💬 Nova conversa com Lindembergs297 - Chat chat_174",
+    "body": "🤖 NOVA INTERAÇÃO COM IA\n\n👤 Usuário: Lindembergs297 (lindembergs297@dono)\n🆔 Chat ID: chat_1749605522662_909a7oaiy\n📅 Data: 11/06/2025 às 01:34:02\n\n💬 MENSAGEM DO USUÁRIO:\nfechar\n\n🤖 RESPOSTA DA IA:\n🔄 Entendido! Vou finalizar nossa conversa e enviar um resumo por email. Obrigada por usar a NayAI! 👋\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📊 ESTATÍSTICAS:\n• Status: Conversa ativa\n• Plataforma: NayEmail IA Assistant\n• Tipo: Chat em tempo real\n\n🔗 Sistema NayEmail - IA Conversacional",
+    "date": "2025-06-11T01:34:02.002108",
+    "read": false,
+    "starred": false,
+    "folder": "inbox",
+    "ai_chat_log": true,
+    "chat_id": "chat_1749605522662_909a7oaiy"
+  },
+  {
+    "id": "5cb9d7a7-539c-4478-a1df-ad633807ee12",
+    "from": "sistema@nayemail.com",
+    "to": "IA@nayemail.com",
+    "subject": "💬 Nova conversa com Lindembergs297 - Chat chat_174",
+    "body": "🤖 NOVA INTERAÇÃO COM IA\n\n👤 Usuário: Lindembergs297 (lindembergs297@dono)\n🆔 Chat ID: chat_1749605522662_909a7oaiy\n📅 Data: 11/06/2025 às 01:34:08\n\n💬 MENSAGEM DO USUÁRIO:\nOk\n\n🤖 RESPOSTA DA IA:\n✨ Legal! Quer saber algo sobre o sistema de emails ou prefere conversar sobre outro assunto?\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📊 ESTATÍSTICAS:\n• Status: Conversa ativa\n• Plataforma: NayEmail IA Assistant\n• Tipo: Chat em tempo real\n\n🔗 Sistema NayEmail - IA Conversacional",
+    "date": "2025-06-11T01:34:08.916873",
+    "read": false,
+    "starred": false,
+    "folder": "inbox",
+    "ai_chat_log": true,
+    "chat_id": "chat_1749605522662_909a7oaiy"
   }
 ]

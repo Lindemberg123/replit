@@ -82,5 +82,47 @@
     "sender_type": "ai",
     "message": "Entendo seu ponto! 🎯 Há algo específico em que posso ajudar relacionado a isso?",
     "timestamp": "2025-06-11T01:29:59.881705"
+  },
+  {
+    "chat_id": "chat_1749605522662_909a7oaiy",
+    "user_email": "lindembergs297@dono",
+    "sender_type": "user",
+    "message": "Ola",
+    "timestamp": "2025-06-11T01:33:55.772990"
+  },
+  {
+    "chat_id": "chat_1749605522662_909a7oaiy",
+    "user_email": "IA@nayemail.com",
+    "sender_type": "ai",
+    "message": "💭 Interessante! Pode me contar mais? Sou especialista no NayEmail e adoro conversar!",
+    "timestamp": "2025-06-11T01:33:55.773689"
+  },
+  {
+    "chat_id": "chat_1749605522662_909a7oaiy",
+    "user_email": "lindembergs297@dono",
+    "sender_type": "user",
+    "message": "fechar",
+    "timestamp": "2025-06-11T01:34:01.992754"
+  },
+  {
+    "chat_id": "chat_1749605522662_909a7oaiy",
+    "user_email": "IA@nayemail.com",
+    "sender_type": "ai",
+    "message": "🔄 Entendido! Vou finalizar nossa conversa e enviar um resumo por email. Obrigada por usar a NayAI! 👋",
+    "timestamp": "2025-06-11T01:34:01.993935"
+  },
+  {
+    "chat_id": "chat_1749605522662_909a7oaiy",
+    "user_email": "lindembergs297@dono",
+    "sender_type": "user",
+    "message": "Ok",
+    "timestamp": "2025-06-11T01:34:08.915345"
+  },
+  {
+    "chat_id": "chat_1749605522662_909a7oaiy",
+    "user_email": "IA@nayemail.com",
+    "sender_type": "ai",
+    "message": "✨ Legal! Quer saber algo sobre o sistema de emails ou prefere conversar sobre outro assunto?",
+    "timestamp": "2025-06-11T01:34:08.915840"
   }
 ]
