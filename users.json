@@ -15,7 +15,8 @@
     "profile_pic": "https://ui-avatars.com/api/?name=Admin&background=ff0000&color=fff",
     "is_admin": true,
     "user_id": "admin_001",
-    "disabled": false
+    "disabled": false,
+    "last_login": "2025-06-11T13:58:08.942544"
   },
   "lindembergs297@dono": {
     "email": "lindembergs297@dono",
@@ -25,8 +26,9 @@
     "profile_pic": "https://ui-avatars.com/api/?name=lindembergs297&background=4285f4&color=fff",
     "is_admin": false,
     "user_id": "user_003",
-    "last_login": "2025-06-11T01:27:36.298961",
-    "disabled": false
+    "last_login": "2025-06-11T13:58:52.825217",
+    "disabled": false,
+    "theme": "green"
   },
   "lindembergs038@gmail.com": {
     "email": "lindembergs038@gmail.com",
