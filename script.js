@@ -310,7 +310,7 @@ function displayEmails(emails) {
     }).join('');
 
     container.innerHTML = emailsHTML;
-    
+
     // Carregar anúncios do Google após inserir HTML
     addGoogleAdsToEmails();
 
@@ -936,8 +936,7 @@ function handleKeyboardShortcuts(e) {
     } else if (e.key === 'Escape') {
         if (document.getElementById('composeModal').classList.contains('active')) {
             closeCompose();
-        } else if (currentEmail) {
-            backToList();
+        } else if (currentEmail) {            backToList();
         }
     }
 }
@@ -2466,18 +2465,55 @@ let aiChatWindow = null;
 let currentChatId = null;
 let chatHistory = [];
 
+// Configuração do AdSense
+let adsenseConfig = null;
+
+// Carregar configuração do AdSense
+async function loadAdsenseConfig() {
+    try {
+        const response = await fetch('/adsense-config.json');
+        adsenseConfig = await response.json();
+        console.log('✅ Configuração do AdSense carregada:', adsenseConfig.google_adsense.client_id);
+    } catch (error) {
+        console.error('❌ Erro ao carregar configuração do AdSense:', error);
+        // Fallback para configuração padrão
+        adsenseConfig = {
+            google_adsense: {
+                script_code: '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7407644640365147" crossorigin="anonymous"></script>',
+                client_id: 'ca-pub-7407644640365147',
+                enabled: true
+            }
+        };
+    }
+}
+
 // Carregar Google AdSense
-function loadGoogleAds() {
+async function loadGoogleAds() {
+    // Carregar configuração primeiro
+    if (!adsenseConfig) {
+        await loadAdsenseConfig();
+    }
+
+    // Verificar se está habilitado
+    if (!adsenseConfig.google_adsense.enabled) {
+        console.log('🚫 Google AdSense desabilitado nas configurações');
+        return;
+    }
+
     // Verificar se já foi carregado
     if (document.querySelector('script[src*="googlesyndication.com"]')) {
         return;
     }
 
+    const clientId = adsenseConfig.google_adsense.client_id;
+
     const script = document.createElement('script');
     script.async = true;
-    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7407644640365147';
+    script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
     script.crossOrigin = 'anonymous';
     document.head.appendChild(script);
+
+    console.log('🎯 Google AdSense carregado com cliente:', clientId);
 
     // Aguardar carregamento e inicializar anúncios
     script.onload = function() {
@@ -2749,7 +2785,7 @@ setTimeout(() => {
 function initializeAdsSystem() {
     // Carregar Google AdSense
     loadGoogleAds();
-    
+
     // Adicionar anúncios em pontos estratégicos após carregamento
     setTimeout(() => {
         addGoogleAdsToEmails();
@@ -2851,8 +2887,7 @@ function createEmbeddedAd() {
                 <img src="${randomSponsor.logo}" alt="${randomSponsor.name}" class="embedded-ad-logo">
                 <div class="embedded-ad-text">
                     <h4>${randomSponsor.name}</h4>
-                    <p>${randomSponsor.tagline}</p>
-                    <span class="embedded-ad-description">${randomSponsor.description}</span>
+                    <p>${randomSponsor.tagline}</p>                    <span class="embedded-ad-description">${randomSponsor.description}</span>
                 </div>
                 <a href="${randomSponsor.url}" target="_blank" class="embedded-ad-cta" style="background: ${randomSponsor.color};">
                     ${randomSponsor.cta}
