@@ -10,7 +10,8 @@ import hashlib
 import uuid
 
 app = Flask(__name__)
-CORS(app)
+# Configurar CORS para produção
+CORS(app, supports_credentials=True, origins=["*"])
 app.secret_key = 'gmail-system-secret-key-2024'
 
 # Configurações do sistema
@@ -281,7 +282,7 @@ def index():
     """Página principal com verificação de login"""
     user = get_current_user()
     if not user:
-        return send_from_directory('.', 'login.html')
+        return redirect('/login.html')
     
     # Verificar se é conta demo e deve mostrar trailer
     if user.get('demo_account') and user.get('show_trailer'):
