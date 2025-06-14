@@ -641,5 +641,29 @@
     "starred": false,
     "folder": "sent",
     "highlighted": false
+  },
+  {
+    "id": "9ff6ae8a-eb9e-4cb4-9cb6-1585412de589",
+    "from": "suport.com@gmail.oficial",
+    "to": "IA@nayemail.com",
+    "subject": "Usuário iniciou conversa com IA",
+    "body": "Usuário Administrador Sistema (suport.com@gmail.oficial) iniciou uma nova conversa com a IA.\nID da Conversa: chat_1749901496689_smya7aztl",
+    "date": "2025-06-14T11:44:57.181802",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
+  },
+  {
+    "id": "b55ad105-632b-45b6-ae5c-f17d1ecb2446",
+    "from": "suport.com@gmail.oficial",
+    "to": "suport.com@gmail.oficial",
+    "subject": "🤖 Resumo da conversa com NayAI - 14/06/2025",
+    "body": "\n🤖 Resumo da sua conversa com NayAI\n\n📅 Data: 14/06/2025, 08:45:05\n🆔 ID da Conversa: chat_1749901496689_smya7aztl\n💬 Total de mensagens: 1\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n[08:44:57] 🤖 NayAI: Olá! 👋 Eu sou a NayAI, sua assistente inteligente. Como posso ajudar você hoje?\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n✨ Obrigado por usar a NayAI!\nEsperamos que a conversa tenha sido útil.\n\n📧 Este email foi gerado automaticamente pelo Sistema NayEmail\n    ",
+    "date": "2025-06-14T11:45:06.814408",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
   }
 ]
