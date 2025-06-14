@@ -419,6 +419,11 @@ def get_user_info():
         
         user_email = session.get('user_email')
         
+        # Garantir que emails_db está inicializado
+        if not emails_db:
+            print("emails_db não inicializado, carregando dados...")
+            load_data()
+        
         # Calcular contadores com tratamento de erro
         try:
             inbox_count = len([e for e in get_user_emails(user_email, 'inbox') if not e.get('read')])

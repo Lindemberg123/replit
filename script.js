@@ -82,11 +82,18 @@ async function initializeApp() {
         if (userInfo) {
             await loadEmails();
             setupEventListeners();
-            showNotification('Gmail carregado com sucesso!', 'success');
+            showNotification('NayEmail carregado com sucesso!', 'success');
+        } else {
+            // Se não há usuário logado, redirecionar
+            window.location.href = '/login.html';
         }
     } catch (error) {
         console.error('Erro ao inicializar:', error);
-        showNotification('Erro ao carregar Gmail', 'error');
+        showNotification('Erro ao carregar NayEmail', 'error');
+        // Redirecionar para login em caso de erro
+        setTimeout(() => {
+            window.location.href = '/login.html';
+        }, 2000);
     }
 }
 
@@ -134,7 +141,6 @@ async function loadUserInfo() {
             const userEmailEl = document.getElementById('userEmail');
             const userIdEl = document.getElementById('userId');
             const userProfilePicEl = document.getElementById('userProfilePic');
-            const adminPanelEl = document.getElementById('adminPanel');
 
             if (userEmailEl) userEmailEl.textContent = userInfo.name;
             if (userIdEl) userIdEl.textContent = `ID: ${userInfo.user_id}`;
@@ -143,9 +149,28 @@ async function loadUserInfo() {
                 userProfilePicEl.src = userInfo.profile_pic;
             }
 
-            // Mostrar painel admin se for administrador
-            if (userInfo.is_admin && adminPanelEl) {
-                adminPanelEl.style.display = 'block';
+            // Mostrar elementos admin
+            if (userInfo.is_admin) {
+                console.log('Usuário é admin, mostrando elementos admin');
+                document.querySelectorAll('.admin-item').forEach(el => {
+                    el.style.display = 'flex';
+                    console.log('Mostrando elemento admin:', el);
+                });
+                document.querySelectorAll('.admin-only').forEach(el => {
+                    el.style.display = el.tagName === 'BUTTON' ? 'inline-block' : 'block';
+                    console.log('Mostrando elemento admin-only:', el);
+                });
+
+                // Adicionar painel de broadcast
+                const composeBtn = document.querySelector('.compose-btn');
+                if (composeBtn && !document.getElementById('broadcastBtn')) {
+                    const broadcastBtn = document.createElement('button');
+                    broadcastBtn.id = 'broadcastBtn';
+                    broadcastBtn.className = 'compose-btn admin-broadcast-btn';
+                    broadcastBtn.innerHTML = '<i class="fas fa-bullhorn"></i> Enviar para Todos';
+                    broadcastBtn.onclick = showBroadcast;
+                    composeBtn.parentNode.insertBefore(broadcastBtn, composeBtn.nextSibling);
+                }
             }
 
             updateCounts();
@@ -208,6 +233,11 @@ async function loadEmails() {
 
 function displayEmails(emails) {
     const container = document.getElementById('emailsContainer');
+
+    if (!container) {
+        console.error('Container de emails não encontrado');
+        return;
+    }
 
     if (!emails || emails.length === 0) {
         showEmptyState(getEmptyMessage());
@@ -981,8 +1011,7 @@ function setupTouchGestures() {
     document.addEventListener('touchstart', function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
-    .touches[0].clientY;
-    });
+    }, { passive: true });
 
     document.addEventListener('touchend', function(e) {
         if (!startX || !startY) return;
