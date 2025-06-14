@@ -134,7 +134,7 @@ async function loadUserInfo() {
             userInfo = await response.json();
 
             // Garantir que emails_db está inicializado
-            if (!emails_db) {
+            if (!emails_db || !Array.isArray(emails_db)) {
                 emails_db = [];
             }
 
@@ -965,8 +965,7 @@ function setupMobileNavigation() {
         menuIcon.addEventListener('click', toggleMobileSidebar);
     }
 
-    // Fechar sidebar```tool_code
- ao clicar no overlay
+    // Fechar sidebar ao clicar no overlay
     overlay.addEventListener('click', closeMobileSidebar);
 
     // Fechar sidebar ao selecionar item
@@ -1358,7 +1357,7 @@ async function loadUserInfo() {
             userInfo = await response.json();
 
             // Garantir que emails_db está inicializado
-            if (!emails_db) {
+            if (!emails_db || !Array.isArray(emails_db)) {
                 emails_db = [];
             }
 
