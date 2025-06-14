@@ -593,5 +593,17 @@
     "starred": false,
     "folder": "sent",
     "highlighted": false
+  },
+  {
+    "id": "9a332e01-90ff-4d83-a989-fdf4b05b4e75",
+    "from": "suport.com@gmail.oficial",
+    "to": "IA@nayemail.com",
+    "subject": "Usuário iniciou conversa com IA",
+    "body": "Usuário Administrador Sistema (suport.com@gmail.oficial) iniciou uma nova conversa com a IA.\nID da Conversa: chat_1749900467701_r8vi6qxhg",
+    "date": "2025-06-14T11:27:48.941314",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
   }
 ]
