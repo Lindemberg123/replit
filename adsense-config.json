@@ -1,7 +1,9 @@
+
 {
   "google_adsense": {
     "script_code": "<script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7407644640365147\" crossorigin=\"anonymous\"></script>",
     "client_id": "ca-pub-7407644640365147",
+    "ad_slot": "5528383567",
     "enabled": true
   }
 }
