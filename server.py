@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify, send_from_directory, session, redirect
 from flask_cors import CORS
 import json
@@ -59,11 +58,11 @@ current_session = {}
 def load_data():
     """Carrega dados dos arquivos JSON"""
     global users_db, emails_db
-    
+
     if os.path.exists(USERS_FILE):
         with open(USERS_FILE, 'r', encoding='utf-8') as f:
             users_db = json.load(f)
-    
+
     if os.path.exists(EMAILS_FILE):
         with open(EMAILS_FILE, 'r', encoding='utf-8') as f:
             emails_db = json.load(f)
@@ -72,7 +71,7 @@ def save_data():
     """Salva dados nos arquivos JSON"""
     with open(USERS_FILE, 'w', encoding='utf-8') as f:
         json.dump(users_db, f, ensure_ascii=False, indent=2)
-    
+
     with open(EMAILS_FILE, 'w', encoding='utf-8') as f:
         json.dump(emails_db, f, ensure_ascii=False, indent=2)
 
@@ -96,12 +95,12 @@ def create_admin_user():
 def create_demo_emails():
     """Criar emails de demonstração para conta demo"""
     demo_email = 'vídeo@n'
-    
+
     # Verificar se já existem emails demo
     existing_demo = [e for e in emails_db if e.get('to') == demo_email or e.get('demo_email')]
     if len(existing_demo) > 0:
         return
-    
+
     demo_emails = [
         {
             'id': str(uuid.uuid4()),
@@ -201,7 +200,7 @@ Powered by NayEmail System
             'demo_email': True
         }
     ]
-    
+
     emails_db.extend(demo_emails)
     save_data()
 
@@ -209,7 +208,7 @@ def get_current_user():
     """Obtém usuário atual da sessão"""
     user_id = session.get('user_id')
     user_email = session.get('user_email')
-    
+
     if user_id and user_email:
         # Verificar se o usuário ainda existe no banco
         if user_email in users_db:
@@ -255,18 +254,18 @@ def load_companies_data():
 def get_user_emails(user_email, folder='inbox'):
     """Obtém emails do usuário por pasta"""
     user_emails = []
-    
+
     # Verificar se emails_db existe e é uma lista
     if not emails_db or not isinstance(emails_db, list):
         print(f"emails_db não inicializado corretamente: {type(emails_db)}")
         return []
-    
+
     for email in emails_db:
         try:
             # Verificar se email é um dicionário válido
             if not isinstance(email, dict):
                 continue
-                
+
             if folder == 'inbox' and email.get('to') == user_email:
                 user_emails.append(email)
             elif folder == 'sent' and email.get('from') == user_email:
@@ -278,7 +277,7 @@ def get_user_emails(user_email, folder='inbox'):
         except Exception as e:
             print(f"Erro ao processar email: {e}")
             continue
-    
+
     try:
         return sorted(user_emails, key=lambda x: x.get('date', ''), reverse=True)
     except Exception as e:
@@ -297,11 +296,11 @@ def index():
     user = get_current_user()
     if not user:
         return redirect('/login.html')
-    
+
     # Verificar se é conta demo e deve mostrar trailer
     if user.get('demo_account') and user.get('show_trailer'):
         return send_from_directory('.', 'trailer-demo.html')
-    
+
     return send_from_directory('.', 'index.html')
 
 @app.route('/login.html')
@@ -334,23 +333,23 @@ def login():
     email = data.get('email')
     password = data.get('password')
     security_answers = data.get('security_answers', {})
-    
+
     if not email or not password:
         return jsonify({'error': 'Email e senha são obrigatórios'}), 400
-    
+
     # Verificar se usuário existe
     if email not in users_db:
         return jsonify({'error': 'Usuário não encontrado. Use suport.com@gmail.oficial para admin'}), 401
-    
+
     # Verificar senha
     user = users_db[email]
     if user['password'] != hashlib.md5(password.encode()).hexdigest():
         return jsonify({'error': 'Senha incorreta'}), 401
-    
+
     # Verificar se conta está banida
     if user.get('disabled', False):
         return jsonify({'error': 'Sua conta foi banida. Entre em contato com o suporte.', 'banned': True}), 403
-    
+
     # Verificação de segurança adicional para contas que não são admin
     if email != ADMIN_EMAIL:
         # Verificar se tem perguntas de segurança configuradas
@@ -364,26 +363,26 @@ def login():
                         {'id': 2, 'question': user['security_questions'].get('question2', 'Qual o nome do seu primeiro animal de estimação?')}
                     ]
                 })
-            
+
             # Verificar respostas de segurança
             answer1_hash = hashlib.md5(security_answers.get('answer1', '').lower().encode()).hexdigest()
             answer2_hash = hashlib.md5(security_answers.get('answer2', '').lower().encode()).hexdigest()
-            
+
             if (answer1_hash != user['security_questions'].get('answer1_hash') or 
                 answer2_hash != user['security_questions'].get('answer2_hash')):
                 return jsonify({'error': 'Respostas de segurança incorretas'}), 401
-    
+
     # Criar sessão
     session['user_id'] = user['user_id']
     session['user_email'] = email
     session['is_admin'] = user.get('is_admin', False)
-    
+
     # Atualizar último login
     user['last_login'] = datetime.now().isoformat()
     save_data()
-    
+
     print(f"Login realizado: {email}, Admin: {user.get('is_admin', False)}")
-    
+
     return jsonify({
         'success': True,
         'user': {
@@ -406,7 +405,7 @@ def clear_saved_accounts():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     return jsonify({'success': True, 'message': 'Use localStorage.clear() no frontend para limpar contas salvas'})
 
 @app.route('/api/user-info')
@@ -416,14 +415,14 @@ def get_user_info():
         user = get_current_user()
         if not user:
             return jsonify({'error': 'Usuário não logado'}), 401
-        
+
         user_email = session.get('user_email')
-        
+
         # Garantir que emails_db está inicializado
         if not emails_db:
             print("emails_db não inicializado, carregando dados...")
             load_data()
-        
+
         # Calcular contadores com tratamento de erro
         try:
             inbox_count = len([e for e in get_user_emails(user_email, 'inbox') if not e.get('read')])
@@ -432,7 +431,7 @@ def get_user_info():
         except Exception as e:
             print(f"Erro ao calcular contadores: {e}")
             inbox_count = sent_count = drafts_count = 0
-        
+
         return jsonify({
             'email': user_email,
             'name': user['name'],
@@ -453,7 +452,7 @@ def get_emails(folder):
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     user_email = session.get('user_email')
     emails = get_user_emails(user_email, folder)
     return jsonify(emails)
@@ -464,15 +463,15 @@ def get_email_detail(email_id):
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     user_email = session.get('user_email')
-    
+
     for email in emails_db:
         if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
             email['read'] = True
             save_data()
             return jsonify(email)
-    
+
     return jsonify({'error': 'Email não encontrado'}), 404
 
 @app.route('/api/send-email', methods=['POST'])
@@ -481,13 +480,13 @@ def send_email():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     if not data or not all(k in data for k in ['to', 'subject', 'body']):
         return jsonify({'error': 'Dados obrigatórios: to, subject, body'}), 400
-    
+
     user_email = session.get('user_email')
-    
+
     new_email = {
         'id': str(uuid.uuid4()),
         'from': user_email,
@@ -500,10 +499,10 @@ def send_email():
         'folder': 'sent',
         'highlighted': data.get('highlighted', False)
     }
-    
+
     emails_db.append(new_email)
     save_data()
-    
+
     return jsonify({'success': True, 'message': 'Email enviado com sucesso'})
 
 @app.route('/api/admin/broadcast', methods=['POST'])
@@ -512,11 +511,11 @@ def admin_broadcast():
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     data = request.get_json()
     if not data or not all(k in data for k in ['subject', 'body']):
         return jsonify({'error': 'Subject e body são obrigatórios'}), 400
-    
+
     sent_count = 0
     for user_email in users_db.keys():
         if user_email != ADMIN_EMAIL:  # Não enviar para o próprio admin
@@ -533,7 +532,7 @@ def admin_broadcast():
             }
             emails_db.append(broadcast_email)
             sent_count += 1
-    
+
     save_data()
     return jsonify({'success': True, 'sent_to': sent_count, 'message': f'Email enviado para {sent_count} usuários'})
 
@@ -543,13 +542,13 @@ def admin_users():
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     users_list = []
     for email, user_data in users_db.items():
         # Garantir que todos os usuários tenham user_id
         if 'user_id' not in user_data:
             user_data['user_id'] = f"user_{len(users_db) + 1:03d}"
-            
+
         users_list.append({
             'email': email,
             'name': user_data['name'],
@@ -557,7 +556,7 @@ def admin_users():
             'created_at': user_data.get('created_at', datetime.now().isoformat()),
             'is_admin': user_data.get('is_admin', False)
         })
-    
+
     save_data()  # Salvar as correções
     return jsonify(users_list)
 
@@ -567,7 +566,7 @@ def admin_system_logs():
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     # Filtrar emails de log do sistema
     system_logs = []
     for email in emails_db:
@@ -576,7 +575,7 @@ def admin_system_logs():
             '[LOG]' in email.get('subject', '')
         ):
             system_logs.append(email)
-    
+
     return jsonify(sorted(system_logs, key=lambda x: x.get('date', ''), reverse=True))
 
 @app.route('/api/save-draft', methods=['POST'])
@@ -585,10 +584,10 @@ def save_draft():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     user_email = session.get('user_email')
-    
+
     draft = {
         'id': str(uuid.uuid4()),
         'from': user_email,
@@ -600,10 +599,10 @@ def save_draft():
         'starred': False,
         'folder': 'drafts'
     }
-    
+
     emails_db.append(draft)
     save_data()
-    
+
     return jsonify({'success': True, 'draft_id': draft['id']})
 
 @app.route('/api/email/<email_id>/delete', methods=['DELETE'])
@@ -612,23 +611,23 @@ def delete_email(email_id):
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     global emails_db
     user_email = session.get('user_email')
-    
+
     # Verificar se o email pertence ao usuário
     email_found = False
     for email in emails_db:
         if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
             email_found = True
             break
-    
+
     if not email_found:
         return jsonify({'error': 'Email não encontrado'}), 404
-    
+
     emails_db = [e for e in emails_db if e.get('id') != email_id]
     save_data()
-    
+
     return jsonify({'success': True, 'message': 'Email deletado'})
 
 @app.route('/api/email/<email_id>/star', methods=['POST'])
@@ -637,15 +636,15 @@ def star_email(email_id):
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     user_email = session.get('user_email')
-    
+
     for email in emails_db:
         if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
             email['starred'] = not email.get('starred', False)
             save_data()
             return jsonify({'success': True, 'starred': email['starred']})
-    
+
     return jsonify({'error': 'Email não encontrado'}), 404
 
 @app.route('/api/email/<email_id>/highlight', methods=['POST'])
@@ -654,13 +653,13 @@ def highlight_email(email_id):
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     for email in emails_db:
         if email.get('id') == email_id:
             email['highlighted'] = not email.get('highlighted', False)
             save_data()
             return jsonify({'success': True, 'highlighted': email['highlighted']})
-    
+
     return jsonify({'error': 'Email não encontrado'}), 404
 
 @app.route('/api/admin/highlighted-emails')
@@ -669,7 +668,7 @@ def get_highlighted_emails():
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     highlighted = [email for email in emails_db if email.get('highlighted', False)]
     return jsonify(sorted(highlighted, key=lambda x: x.get('date', ''), reverse=True))
 
@@ -679,11 +678,11 @@ def search_emails():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     query = data.get('query', '').lower()
     user_email = session.get('user_email')
-    
+
     results = []
     for email in emails_db:
         try:
@@ -696,7 +695,7 @@ def search_emails():
         except Exception as e:
             print(f"Erro na busca: {e}")
             continue
-    
+
     return jsonify(results)
 
 @app.route('/api/refresh-emails', methods=['POST'])
@@ -705,37 +704,37 @@ def refresh_emails():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     user_email = session.get('user_email')
     inbox_emails = get_user_emails(user_email, 'inbox')
-    
+
     return jsonify({'success': True, 'count': len(inbox_emails)})
 
 @app.route('/api/external/send-verification', methods=['POST'])
 def send_verification_email():
     """API para sites externos enviarem emails de verificação com sistema avançado"""
     data = request.get_json()
-    
+
     # Verificar API key de segurança
     api_key = request.headers.get('X-API-Key')
     if not api_key or api_key != 'gmail-verification-api-2024':
         return jsonify({'error': 'API key inválida'}), 401
-    
+
     # Validar dados obrigatórios
     required_fields = ['to_email', 'site_name', 'verification_code', 'verification_url']
     if not data or not all(field in data for field in required_fields):
         return jsonify({'error': 'Campos obrigatórios: to_email, site_name, verification_code, verification_url'}), 400
-    
+
     # Verificar se o usuário existe no sistema
     to_email = data['to_email']
     if to_email not in users_db:
         return jsonify({'error': 'Usuário não encontrado no sistema'}), 404
-    
+
     # Determinar prioridade e tipo especial
     priority = data.get('priority', 'normal')  # high, normal, low
     verification_type = data.get('type', 'account')  # account, email, phone, security
     expires_in = data.get('expires_in', 3600)  # segundos até expirar
-    
+
     # Configurar ícones e cores baseado no tipo
     type_config = {
         'account': {'icon': 'fa-user-check', 'color': '#34a853', 'label': 'Verificação de Conta'},
@@ -744,12 +743,12 @@ def send_verification_email():
         'security': {'icon': 'fa-shield-check', 'color': '#ea4335', 'label': 'Verificação de Segurança'},
         'two_factor': {'icon': 'fa-key', 'color': '#9c27b0', 'label': 'Autenticação 2FA'}
     }
-    
+
     config = type_config.get(verification_type, type_config['account'])
-    
+
     # Criar corpo do email mais avançado
     expiry_time = datetime.now() + timedelta(seconds=expires_in)
-    
+
     body = f"""
 🔐 {config['label']} - {data['site_name']}
 
@@ -781,18 +780,18 @@ Clique no botão abaixo para verificar automaticamente:
 📧 Este email foi enviado através do Sistema Gmail Independente
 🆔 ID da Verificação: {str(uuid.uuid4())[:8]}
     """.strip()
-    
+
     # Gerar email de origem baseado no sistema de domínios
     company_name = data['site_name']
     from_email = generate_business_email(company_name, 'verificacao')
-    
+
     # Registrar empresa se não existir
     if company_name.lower().replace(' ', '') not in registered_companies:
         register_company_domain(company_name, {
             'type': 'verification_service',
             'auto_registered': True
         })
-    
+
     # Criar email de verificação avançado
     verification_email = {
         'id': str(uuid.uuid4()),
@@ -817,15 +816,15 @@ Clique no botão abaixo para verificar automaticamente:
         'auto_expire': True,
         'tracking_id': str(uuid.uuid4())[:8]
     }
-    
+
     # Auto-destacar emails de alta prioridade ou segurança
     if priority == 'high' or verification_type in ['security', 'two_factor']:
         verification_email['highlighted'] = True
         verification_email['priority_highlight'] = True
-    
+
     emails_db.append(verification_email)
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': 'Email de verificação avançado enviado',
@@ -840,32 +839,32 @@ Clique no botão abaixo para verificar automaticamente:
 def send_reset_password_email():
     """API para sites externos enviarem emails de recuperação de senha"""
     data = request.get_json()
-    
+
     # Verificar API key
     api_key = request.headers.get('X-API-Key')
     if not api_key or api_key != 'gmail-verification-api-2024':
         return jsonify({'error': 'API key inválida'}), 401
-    
+
     # Validar dados
     required_fields = ['to_email', 'site_name', 'reset_token', 'reset_url']
     if not data or not all(field in data for field in required_fields):
         return jsonify({'error': 'Campos obrigatórios: to_email, site_name, reset_token, reset_url'}), 400
-    
+
     to_email = data['to_email']
     if to_email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
-    
+
     # Gerar email de origem usando sistema de domínios
     company_name = data['site_name']
     from_email = generate_business_email(company_name, 'suporte')
-    
+
     # Registrar empresa se não existir
     if company_name.lower().replace(' ', '') not in registered_companies:
         register_company_domain(company_name, {
             'type': 'password_recovery',
             'auto_registered': True
         })
-    
+
     # Criar email de recuperação
     reset_email = {
         'id': str(uuid.uuid4()),
@@ -895,10 +894,10 @@ Este email foi enviado através do Sistema Gmail Independente.
         'password_reset': True,
         'site_origin': data['site_name']
     }
-    
+
     emails_db.append(reset_email)
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': 'Email de recuperação enviado',
@@ -909,32 +908,32 @@ Este email foi enviado através do Sistema Gmail Independente.
 def send_notification_email():
     """API para sites externos enviarem emails de notificação"""
     data = request.get_json()
-    
+
     # Verificar API key
     api_key = request.headers.get('X-API-Key')
     if not api_key or api_key != 'gmail-verification-api-2024':
         return jsonify({'error': 'API key inválida'}), 401
-    
+
     # Validar dados
     required_fields = ['to_email', 'site_name', 'subject', 'message']
     if not data or not all(field in data for field in required_fields):
         return jsonify({'error': 'Campos obrigatórios: to_email, site_name, subject, message'}), 400
-    
+
     to_email = data['to_email']
     if to_email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
-    
+
     # Gerar email de origem usando sistema de domínios
     company_name = data['site_name']
     from_email = generate_business_email(company_name, 'notificacoes')
-    
+
     # Registrar empresa se não existir
     if company_name.lower().replace(' ', '') not in registered_companies:
         register_company_domain(company_name, {
             'type': 'notifications',
             'auto_registered': True
         })
-    
+
     # Criar email de notificação
     notification_email = {
         'id': str(uuid.uuid4()),
@@ -955,10 +954,10 @@ Site: {data['site_name']}
         'notification': True,
         'site_origin': data['site_name']
     }
-    
+
     emails_db.append(notification_email)
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': 'Email de notificação enviado',
@@ -969,27 +968,27 @@ Site: {data['site_name']}
 def send_advanced_verification():
     """API para enviar verificações avançadas com recursos especiais"""
     data = request.get_json()
-    
+
     # Verificar API key
     api_key = request.headers.get('X-API-Key')
     if not api_key or api_key != 'gmail-verification-api-2024':
         return jsonify({'error': 'API key inválida'}), 401
-    
+
     # Validar dados
     required_fields = ['to_email', 'site_name', 'verification_code']
     if not data or not all(field in data for field in required_fields):
         return jsonify({'error': 'Campos obrigatórios: to_email, site_name, verification_code'}), 400
-    
+
     to_email = data['to_email']
     if to_email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
-    
+
     # Configurações avançadas
     verification_type = data.get('type', 'premium')  # premium, enterprise, vip
     theme = data.get('theme', 'modern')  # modern, classic, minimal
     language = data.get('language', 'pt-BR')
     custom_branding = data.get('custom_branding', False)
-    
+
     # Templates por tipo
     if verification_type == 'premium':
         subject_emoji = '⭐'
@@ -1007,7 +1006,7 @@ def send_advanced_verification():
         subject_emoji = '🔐'
         priority_level = 'normal'
         highlight_color = '#4285f4'
-    
+
     # Corpo do email premium
     advanced_body = f"""
 {subject_emoji} VERIFICAÇÃO {verification_type.upper()} - {data['site_name']}
@@ -1046,11 +1045,11 @@ Você está acessando recursos {verification_type} no {data['site_name']}.
 📧 Sistema Gmail Independente - Verificação Avançada
 🆔 Tracking: {str(uuid.uuid4())[:8]}
     """.strip()
-    
+
     # Gerar email de origem usando sistema de domínios
     company_name = data['site_name']
     from_email = generate_business_email(company_name, verification_type)
-    
+
     # Registrar empresa se não existir
     if company_name.lower().replace(' ', '') not in registered_companies:
         register_company_domain(company_name, {
@@ -1058,7 +1057,7 @@ Você está acessando recursos {verification_type} no {data['site_name']}.
             'verification_type': verification_type,
             'auto_registered': True
         })
-    
+
     # Criar email avançado
     advanced_email = {
         'id': str(uuid.uuid4()),
@@ -1084,10 +1083,10 @@ Você está acessando recursos {verification_type} no {data['site_name']}.
         'tracking_id': str(uuid.uuid4())[:8],
         'custom_branding': custom_branding
     }
-    
+
     emails_db.append(advanced_email)
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': f'Verificação {verification_type} enviada com sucesso',
@@ -1102,19 +1101,19 @@ Você está acessando recursos {verification_type} no {data['site_name']}.
 def check_user_exists():
     """API para verificar se um usuário existe no sistema"""
     data = request.get_json()
-    
+
     # Verificar API key
     api_key = request.headers.get('X-API-Key')
     if not api_key or api_key != 'gmail-verification-api-2024':
         return jsonify({'error': 'API key inválida'}), 401
-    
+
     email = data.get('email')
     if not email:
         return jsonify({'error': 'Email é obrigatório'}), 400
-    
+
     exists = email in users_db
     user_info = None
-    
+
     if exists:
         user = users_db[email]
         user_info = {
@@ -1122,7 +1121,7 @@ def check_user_exists():
             'user_id': user['user_id'],
             'created_at': user.get('created_at')
         }
-    
+
     return jsonify({
         'exists': exists,
         'user_info': user_info
@@ -1132,7 +1131,7 @@ def check_user_exists():
 def get_quick_login_accounts():
     """API para obter todas as contas cadastradas para login rápido"""
     accounts_list = []
-    
+
     for email, user_data in users_db.items():
         # Não incluir senhas por segurança, apenas informações básicas
         account_info = {
@@ -1146,10 +1145,10 @@ def get_quick_login_accounts():
             'disabled': user_data.get('disabled', False)
         }
         accounts_list.append(account_info)
-    
+
     # Ordenar por data de criação mais recente
     accounts_list.sort(key=lambda x: x['created_at'], reverse=True)
-    
+
     return jsonify({
         'success': True,
         'accounts': accounts_list,
@@ -1160,33 +1159,33 @@ def get_quick_login_accounts():
 def validate_quick_login():
     """API para validar login rápido com email"""
     data = request.get_json()
-    
+
     if not data or 'email' not in data:
         return jsonify({'error': 'Email é obrigatório'}), 400
-    
+
     email = data['email']
-    
+
     # Verificar se usuário existe
     if email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
-    
+
     user = users_db[email]
-    
+
     # Verificar se conta está banida
     if user.get('disabled', False):
         return jsonify({'error': 'Conta banida', 'banned': True}), 403
-    
+
     # Atualizar último login
     user['last_login'] = datetime.now().isoformat()
     save_data()
-    
+
     # Criar sessão
     session['user_id'] = user['user_id']
     session['user_email'] = email
     session['is_admin'] = user.get('is_admin', False)
-    
+
     print(f"Login rápido realizado: {email}, Admin: {user.get('is_admin', False)}")
-    
+
     return jsonify({
         'success': True,
         'message': 'Login rápido realizado com sucesso',
@@ -1203,7 +1202,7 @@ def validate_quick_login():
 def get_recent_accounts():
     """API para obter contas com login recente (últimas 5)"""
     recent_accounts = []
-    
+
     # Filtrar contas que têm last_login
     for email, user_data in users_db.items():
         if 'last_login' in user_data and user_data['last_login'] != 'Nunca':
@@ -1216,13 +1215,13 @@ def get_recent_accounts():
                 'last_login': user_data['last_login']
             }
             recent_accounts.append(account_info)
-    
+
     # Ordenar por último login mais recente
     recent_accounts.sort(key=lambda x: x['last_login'], reverse=True)
-    
+
     # Retornar apenas as 5 mais recentes
     recent_accounts = recent_accounts[:5]
-    
+
     return jsonify({
         'success': True,
         'recent_accounts': recent_accounts,
@@ -1235,7 +1234,7 @@ def get_registered_companies():
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     companies_list = []
     for key, company in registered_companies.items():
         companies_list.append({
@@ -1246,7 +1245,7 @@ def get_registered_companies():
             'email_types': company['email_types'],
             'auto_registered': company.get('info', {}).get('auto_registered', False)
         })
-    
+
     return jsonify({
         'success': True,
         'companies': companies_list,
@@ -1261,13 +1260,13 @@ def manual_register_company():
     user = get_current_user()
     if not user or not user.get('is_admin'):
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     data = request.get_json()
     company_name = data.get('company_name')
-    
+
     if not company_name:
         return jsonify({'error': 'Nome da empresa é obrigatório'}), 400
-    
+
     company_info = {
         'type': 'manual_registration',
         'registered_by': user['email'],
@@ -1275,9 +1274,9 @@ def manual_register_company():
         'description': data.get('description', ''),
         'contact_email': data.get('contact_email', '')
     }
-    
+
     registered_company = register_company_domain(company_name, company_info)
-    
+
     return jsonify({
         'success': True,
         'message': f'Empresa {company_name} registrada com sucesso',
@@ -1289,10 +1288,10 @@ def validate_reset_token():
     """Validar token de redefinição de senha"""
     data = request.get_json()
     token = data.get('token')
-    
+
     if not token:
         return jsonify({'error': 'Token é obrigatório'}), 400
-    
+
     # Para demonstração, aceitar tokens com 8+ caracteres ou "exemplo"
     if token == 'exemplo' or len(token) >= 8:
         return jsonify({
@@ -1300,7 +1299,7 @@ def validate_reset_token():
             'message': 'Token válido',
             'email_hint': '***@***.com'  # Ocultar email por segurança
         })
-    
+
     return jsonify({'error': 'Token inválido ou expirado'}), 400
 
 @app.route('/api/reset-password/change', methods=['POST'])
@@ -1310,22 +1309,22 @@ def change_password_with_token():
     token = data.get('token')
     new_password = data.get('new_password')
     email = data.get('email')  # Email será fornecido no processo
-    
+
     if not all([token, new_password, email]):
         return jsonify({'error': 'Token, email e nova senha são obrigatórios'}), 400
-    
+
     # Validar token (simplificado para demonstração)
     if token != 'exemplo' and len(token) < 8:
         return jsonify({'error': 'Token inválido'}), 400
-    
+
     # Verificar se usuário existe
     if email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
-    
+
     # Atualizar senha
     users_db[email]['password'] = hashlib.md5(new_password.encode()).hexdigest()
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': 'Senha redefinida com sucesso'
@@ -1341,18 +1340,18 @@ def setup_security_questions():
     answer1 = data.get('answer1')
     question2 = data.get('question2')
     answer2 = data.get('answer2')
-    
+
     if not all([email, password, question1, answer1, question2, answer2]):
         return jsonify({'error': 'Todos os campos são obrigatórios'}), 400
-    
+
     # Verificar credenciais
     if email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
-    
+
     user = users_db[email]
     if user['password'] != hashlib.md5(password.encode()).hexdigest():
         return jsonify({'error': 'Senha incorreta'}), 401
-    
+
     # Salvar perguntas de segurança
     user['security_questions'] = {
         'question1': question1,
@@ -1361,9 +1360,9 @@ def setup_security_questions():
         'answer2_hash': hashlib.md5(answer2.lower().encode()).hexdigest(),
         'created_at': datetime.now().isoformat()
     }
-    
+
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': 'Perguntas de segurança configuradas com sucesso'
@@ -1380,19 +1379,19 @@ def register():
     answer1 = data.get('answer1')
     question2 = data.get('question2')
     answer2 = data.get('answer2')
-    
+
     if not all([email, password, name]):
         return jsonify({'error': 'Email, senha e nome são obrigatórios'}), 400
-    
+
     # Verificar perguntas de segurança apenas se pelo menos uma foi fornecida
     has_security_questions = any([question1, answer1, question2, answer2])
     if has_security_questions and not all([question1, answer1, question2, answer2]):
         return jsonify({'error': 'Se escolher usar perguntas de segurança, complete ambas'}), 400
-    
+
     # Verificar se usuário já existe
     if email in users_db:
         return jsonify({'error': 'Usuário já existe'}), 409
-    
+
     # Criar novo usuário
     user_id = f"user_{len(users_db) + 1:03d}"
     user_data = {
@@ -1404,7 +1403,7 @@ def register():
         'profile_pic': f'https://ui-avatars.com/api/?name={name}&background=4285f4&color=fff',
         'is_admin': False
     }
-    
+
     # Adicionar perguntas de segurança apenas se foram fornecidas
     if has_security_questions:
         user_data['security_questions'] = {
@@ -1414,11 +1413,11 @@ def register():
             'answer2_hash': hashlib.md5(answer2.lower().encode()).hexdigest(),
             'created_at': datetime.now().isoformat()
         }
-    
+
     users_db[email] = user_data
-    
+
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': 'Usuário criado com sucesso',
@@ -1435,7 +1434,7 @@ def get_domain_info(domain):
             'domain': MAIN_DOMAIN,
             'description': 'Domínio principal para usuários'
         })
-    
+
     # Verificar se é subdomínio empresarial
     if domain.endswith(f'.{BUSINESS_DOMAIN}'):
         company_key = domain.replace(f'.{BUSINESS_DOMAIN}', '')
@@ -1446,7 +1445,7 @@ def get_domain_info(domain):
                 'company': company,
                 'available_emails': [f"{email_type}@{domain}" for email_type in company['email_types']]
             })
-    
+
     return jsonify({'error': 'Domínio não encontrado'}), 404
 
 # Sistema de Token de Conta
@@ -1470,14 +1469,14 @@ def check_token_requests():
     """Verificar emails de solicitação de token automaticamente"""
     # Verificar se há emails para o admin com assunto "token"
     admin_emails = get_user_emails(ADMIN_EMAIL, 'inbox')
-    
+
     new_requests = 0
     for email in admin_emails:
         try:
             if not email.get('read') and 'token' in email.get('subject', '').lower():
                 # Processar solicitação de token
                 request_id = generate_token_request_id()
-                
+
                 # Salvar solicitação
                 token_requests[request_id] = {
                     'email_id': email['id'],
@@ -1485,10 +1484,10 @@ def check_token_requests():
                     'request_time': datetime.now().isoformat(),
                     'processed': False
                 }
-                
+
                 # Gerar URL do token
                 token_url = f"{request.host_url}token?{request_id}?sistem"
-                
+
                 # Enviar resposta com link
                 response_email = {
                     'id': str(uuid.uuid4()),
@@ -1527,21 +1526,21 @@ Este é um email automático do sistema.
                     'token_response': True,
                     'request_id': request_id
                 }
-                
+
                 emails_db.append(response_email)
-                
+
                 # Marcar email original como lido
                 email['read'] = True
-                
+
                 new_requests += 1
-                
+
         except Exception as e:
             print(f"Erro ao processar solicitação de token: {e}")
             continue
-    
+
     if new_requests > 0:
         save_data()
-    
+
     return jsonify({
         'success': True,
         'new_requests': new_requests,
@@ -1566,7 +1565,7 @@ def ai_chat_api():
     """API para chat com IA"""
     # Tentar validar sessão do usuário
     user = get_current_user()
-    
+
     # Se não conseguir validar pela sessão, tentar pelo chat_id ou permitir acesso temporário
     if not user:
         # Para demonstração, vamos criar um usuário temporário baseado no chat_id
@@ -1577,38 +1576,38 @@ def ai_chat_api():
             'name': 'Usuário Temporário',
             'user_id': 'temp_001'
         }
-    
+
     data = request.get_json()
     chat_id = data.get('chat_id')
     user_message = data.get('message')
     close_chat = data.get('close_chat', False)
-    
+
     if not chat_id or not user_message:
         return jsonify({'error': 'Chat ID e mensagem são obrigatórios'}), 400
-    
+
     # Detectar comando para fechar chat
     close_commands = ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar', 'fim', 'tchau', 'bye']
     should_close = close_chat or any(cmd in user_message.lower() for cmd in close_commands)
-    
+
     # Salvar mensagem do usuário
     save_chat_message(chat_id, user['email'], 'user', user_message)
-    
+
     # Gerar resposta da IA
     ai_response = generate_ai_response(user_message, should_close)
-    
+
     # Salvar resposta da IA
     save_chat_message(chat_id, 'IA@nayemail.com', 'ai', ai_response)
-    
+
     # Se deve fechar, gerar e enviar relatório
     if should_close:
         try:
             generate_and_send_chat_transcript(user, chat_id)
         except Exception as e:
             print(f"Erro ao gerar relatório: {e}")
-    
+
     # Enviar email para IA sobre a nova mensagem
     send_ai_notification_email(user, chat_id, user_message, ai_response)
-    
+
     return jsonify({
         'success': True,
         'ai_response': ai_response,
@@ -1619,11 +1618,11 @@ def ai_chat_api():
 def generate_ai_response(user_message, should_close=False):
     """Gera resposta inteligente baseada na mensagem do usuário"""
     message_lower = user_message.lower()
-    
+
     # Detectar comando para fechar chat
     if should_close or any(word in message_lower for word in ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar', 'fim', 'tchau', 'bye']):
         return "🔄 Entendido! Finalizando nossa conversa e enviando relatório completo por email. Obrigada por usar a NayAI! 👋"
-    
+
     # Perguntas sobre o sistema NayEmail
     elif any(word in message_lower for word in ['sistema', 'nayemail', 'funcionalidade', 'como usar', 'rotas', 'acesso']):
         system_responses = [
@@ -1633,7 +1632,7 @@ def generate_ai_response(user_message, should_close=False):
         ]
         import random
         return random.choice(system_responses)
-    
+
     # Respostas contextuais
     elif any(word in message_lower for word in ['olá', 'oi', 'hello', 'hey']):
         responses = [
@@ -1679,32 +1678,38 @@ def generate_ai_response(user_message, should_close=False):
             "✨ Legal! Quer saber algo sobre o sistema de emails ou prefere conversar sobre outro assunto?",
             "🎯 Entendo seu ponto! Como assistente do NayEmail, posso ajudar com qualquer dúvida do sistema."
         ]
-    
+
     import random
     return random.choice(responses)
 
 def save_chat_message(chat_id, user_email, sender_type, message):
-    """Salva mensagem do chat em arquivo"""
-    chat_data = {
-        'chat_id': chat_id,
-        'user_email': user_email,
-        'sender_type': sender_type,
-        'message': message,
-        'timestamp': datetime.now().isoformat()
-    }
-    
-    # Carregar conversas existentes
-    chat_file = 'ai_chats.json'
-    chats = []
-    if os.path.exists(chat_file):
-        with open(chat_file, 'r', encoding='utf-8') as f:
-            chats = json.load(f)
-    
-    chats.append(chat_data)
-    
-    # Salvar de volta
-    with open(chat_file, 'w', encoding='utf-8') as f:
-        json.dump(chats, f, ensure_ascii=False, indent=2)
+    """Salvar mensagem do chat"""
+    try:
+        if os.path.exists('ai_chats.json') and os.path.getsize('ai_chats.json') > 0:
+            with open('ai_chats.json', 'r', encoding='utf-8') as f:
+                try:
+                    chats = json.load(f)
+                except json.JSONDecodeError:
+                    chats = {}
+        else:
+            chats = {}
+
+        chat_data = {
+            'chat_id': chat_id,
+            'user_email': user_email,
+            'sender_type': sender_type,
+            'message': message,
+            'timestamp': datetime.now().isoformat()
+        }
+
+        chats.append(chat_data)
+
+        # Salvar de volta
+        with open('ai_chats.json', 'w', encoding='utf-8') as f:
+            json.dump(chats, f, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        print(f"Erro ao salvar mensagem no chat: {e}")
 
 def generate_and_send_chat_transcript(user, chat_id):
     """Gerar e enviar relatório completo da conversa"""
@@ -1715,19 +1720,19 @@ def generate_and_send_chat_transcript(user, chat_id):
         if os.path.exists(chat_file):
             with open(chat_file, 'r', encoding='utf-8') as f:
                 all_chats = json.load(f)
-        
+
         # Filtrar mensagens deste chat específico
         chat_messages = [msg for msg in all_chats if msg.get('chat_id') == chat_id]
         chat_messages.sort(key=lambda x: x.get('timestamp', ''))
-        
+
         if not chat_messages:
             return
-        
+
         # Gerar relatório detalhado
         start_time = chat_messages[0]['timestamp'] if chat_messages else datetime.now().isoformat()
         end_time = chat_messages[-1]['timestamp'] if chat_messages else datetime.now().isoformat()
         total_messages = len(chat_messages)
-        
+
         # Criar transcript formatado
         transcript_lines = []
         for msg in chat_messages:
@@ -1735,20 +1740,20 @@ def generate_and_send_chat_transcript(user, chat_id):
             sender_icon = '👤' if msg['sender_type'] == 'user' else '🤖'
             sender_name = user['name'] if msg['sender_type'] == 'user' else 'NayAI'
             transcript_lines.append(f"[{timestamp}] {sender_icon} {sender_name}: {msg['message']}")
-        
+
         transcript_text = '\n\n'.join(transcript_lines)
-        
+
         # Calcular estatísticas
         user_messages = [msg for msg in chat_messages if msg['sender_type'] == 'user']
         ai_messages = [msg for msg in chat_messages if msg['sender_type'] == 'ai']
-        
+
         chat_duration = "N/A"
         if len(chat_messages) >= 2:
             start_dt = datetime.fromisoformat(start_time)
             end_dt = datetime.fromisoformat(end_time)
             duration_seconds = (end_dt - start_dt).total_seconds()
             chat_duration = f"{int(duration_seconds // 60)}m {int(duration_seconds % 60)}s"
-        
+
         # Corpo do email do relatório
         report_body = f"""
 📊 RELATÓRIO COMPLETO DA CONVERSA COM NAYAI
@@ -1800,7 +1805,7 @@ def generate_and_send_chat_transcript(user, chat_id):
 📅 Gerado em: {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}
 
         """.strip()
-        
+
         # Enviar relatório por email
         report_email = {
             'id': str(uuid.uuid4()),
@@ -1816,12 +1821,12 @@ def generate_and_send_chat_transcript(user, chat_id):
             'chat_id': chat_id,
             'priority': 'high'
         }
-        
+
         emails_db.append(report_email)
         save_data()
-        
+
         print(f"Relatório de chat enviado para {user['email']}: {chat_id}")
-        
+
     except Exception as e:
         print(f"Erro ao gerar relatório de chat: {e}")
 
@@ -1862,10 +1867,10 @@ def send_ai_notification_email(user, chat_id, user_message, ai_response):
             'ai_chat_log': True,
             'chat_id': chat_id
         }
-        
+
         emails_db.append(ai_email)
         save_data()
-        
+
     except Exception as e:
         print(f"Erro ao enviar notificação para IA: {e}")
 
@@ -1878,7 +1883,7 @@ def token_page():
         parts = full_path.split('?')
         if len(parts) >= 3 and parts[2] == 'sistem':
             request_id = parts[1]
-            
+
             # Verificar se solicitação existe
             if request_id in token_requests:
                 return send_from_directory('.', 'token-generator.html')
@@ -1905,37 +1910,37 @@ def token_page():
 def generate_account_token():
     """Gerar token para usuário"""
     data = request.get_json()
-    
+
     # Extrair request_id da URL atual (passado pelo frontend)
     request_id = data.get('request_id')
     email = data.get('email')
     password = data.get('password')
     name = data.get('name')
     account_id = data.get('account_id')
-    
+
     if not all([request_id, email, password, name]):
         return jsonify({'error': 'Todos os campos são obrigatórios'}), 400
-    
+
     # Verificar se solicitação existe
     if request_id not in token_requests:
         return jsonify({'error': 'Solicitação de token inválida'}), 404
-    
+
     # Verificar se usuário existe e senha está correta
     if email not in users_db:
         return jsonify({'error': 'Usuário não encontrado'}), 404
-    
+
     user = users_db[email]
     if user['password'] != hashlib.md5(password.encode()).hexdigest():
         return jsonify({'error': 'Senha incorreta'}), 401
-    
+
     # Verificar se email da solicitação corresponde ao usuário
     token_request = token_requests[request_id]
     if token_request['from_email'] != email:
         return jsonify({'error': 'Email não corresponde à solicitação'}), 403
-    
+
     # Gerar token
     user_token = generate_user_token()
-    
+
     # Salvar token gerado
     generated_tokens[user_token] = {
         'user_email': email,
@@ -1946,11 +1951,11 @@ def generate_account_token():
         'request_id': request_id,
         'active': True
     }
-    
+
     # Marcar solicitação como processada
     token_requests[request_id]['processed'] = True
     token_requests[request_id]['token_generated'] = user_token
-    
+
     # Enviar confirmação por email
     confirmation_email = {
         'id': str(uuid.uuid4()),
@@ -1996,10 +2001,10 @@ Este token é válido e pode ser usado para acessar nossa API.
         'token_confirmation': True,
         'user_token': user_token
     }
-    
+
     emails_db.append(confirmation_email)
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': 'Token gerado com sucesso',
@@ -2016,15 +2021,15 @@ Este token é válido e pode ser usado para acessar nossa API.
 def validate_token_request():
     """Validar solicitação de token"""
     request_id = request.args.get('request_id')
-    
+
     if not request_id:
         return jsonify({'error': 'ID da solicitação é obrigatório'}), 400
-    
+
     if request_id not in token_requests:
         return jsonify({'error': 'Solicitação não encontrada'}), 404
-    
+
     token_request = token_requests[request_id]
-    
+
     return jsonify({
         'valid': True,
         'from_email': token_request['from_email'],
@@ -2038,10 +2043,10 @@ def list_user_tokens():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     user_email = session.get('user_email')
     user_tokens = []
-    
+
     for token, token_data in generated_tokens.items():
         if token_data['user_email'] == user_email and token_data.get('active', True):
             user_tokens.append({
@@ -2050,7 +2055,7 @@ def list_user_tokens():
                 'account_id': token_data.get('account_id'),
                 'active': token_data.get('active', True)
             })
-    
+
     return jsonify({
         'success': True,
         'tokens': user_tokens,
@@ -2063,26 +2068,26 @@ def revoke_token():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     token_preview = data.get('token_preview')  # Formato: "abc12345...xyz67890"
-    
+
     if not token_preview:
         return jsonify({'error': 'Preview do token é obrigatório'}), 400
-    
+
     user_email = session.get('user_email')
     revoked_count = 0
-    
+
     # Encontrar e desativar token baseado no preview
     for token, token_data in generated_tokens.items():
         if (token_data['user_email'] == user_email and 
             token_preview == f"{token[:8]}...{token[-8:]}"):
-            
+
             token_data['active'] = False
             token_data['revoked_at'] = datetime.now().isoformat()
             revoked_count += 1
             break
-    
+
     if revoked_count > 0:
         save_data()
         return jsonify({
@@ -2098,18 +2103,18 @@ def mark_trailer_seen():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     user_email = session.get('user_email')
     if user_email in users_db and users_db[user_email].get('demo_account'):
         users_db[user_email]['show_trailer'] = False
         users_db[user_email]['trailer_seen_at'] = datetime.now().isoformat()
         save_data()
-        
+
         return jsonify({
             'success': True,
             'message': 'Trailer marcado como visto'
         })
-    
+
     return jsonify({'error': 'Conta não é demo'}), 400
 
 @app.route('/api/login-with-token', methods=['POST'])
@@ -2118,47 +2123,47 @@ def login_with_token():
     data = request.get_json()
     token = data.get('token')
     captcha_verified = data.get('captcha_verified', False)
-    
+
     if not token:
         return jsonify({'error': 'Token é obrigatório'}), 400
-    
+
     if not captcha_verified:
         return jsonify({'error': 'Verificação de segurança não completada'}), 400
-    
+
     # Verificar se token existe e está ativo
     if token not in generated_tokens:
         return jsonify({'error': 'Token inválido ou não encontrado'}), 401
-    
+
     token_data = generated_tokens[token]
-    
+
     if not token_data.get('active', True):
         return jsonify({'error': 'Token foi desativado'}), 401
-    
+
     # Verificar se usuário ainda existe
     user_email = token_data['user_email']
     if user_email not in users_db:
         return jsonify({'error': 'Usuário associado ao token não existe mais'}), 404
-    
+
     user = users_db[user_email]
-    
+
     # Criar sessão
     session['user_id'] = user['user_id']
     session['user_email'] = user_email
     session['is_admin'] = user.get('is_admin', False)
     session['login_method'] = 'token'
     session['token_used'] = token[:16] + '...'  # Registrar parte do token usado
-    
+
     # Atualizar último login
     user['last_login'] = datetime.now().isoformat()
-    
+
     # Registrar uso do token
     token_data['last_used'] = datetime.now().isoformat()
     token_data['usage_count'] = token_data.get('usage_count', 0) + 1
-    
+
     save_data()
-    
+
     print(f"Login por token realizado: {user_email}, Admin: {user.get('is_admin', False)}, Token: {token[:8]}...")
-    
+
     # Enviar email de notificação de login por token
     login_notification = {
         'id': str(uuid.uuid4()),
@@ -2195,10 +2200,10 @@ Para sua segurança, sempre verifique logins não autorizados.
         'token_login_notification': True,
         'security_alert': True
     }
-    
+
     emails_db.append(login_notification)
     save_data()
-    
+
     return jsonify({
         'success': True,
         'message': 'Login por token realizado com sucesso',
@@ -2223,7 +2228,7 @@ def get_categories():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     return jsonify(EMAIL_CATEGORIES)
 
 @app.route('/api/email/<email_id>/categorize', methods=['POST'])
@@ -2232,21 +2237,21 @@ def categorize_email(email_id):
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     category = data.get('category')
-    
+
     if category not in EMAIL_CATEGORIES:
         return jsonify({'error': 'Categoria inválida'}), 400
-    
+
     user_email = session.get('user_email')
-    
+
     for email in emails_db:
         if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
             email['category'] = category
             save_data()
             return jsonify({'success': True, 'category': category})
-    
+
     return jsonify({'error': 'Email não encontrado'}), 404
 
 @app.route('/api/email/<email_id>/snooze', methods=['POST'])
@@ -2255,19 +2260,19 @@ def snooze_email(email_id):
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     snooze_until = data.get('snooze_until')
-    
+
     user_email = session.get('user_email')
-    
+
     for email in emails_db:
         if email.get('id') == email_id and (email.get('to') == user_email or email.get('from') == user_email):
             email['snoozed'] = True
             email['snooze_until'] = snooze_until
             save_data()
             return jsonify({'success': True, 'snooze_until': snooze_until})
-    
+
     return jsonify({'error': 'Email não encontrado'}), 404
 
 @app.route('/api/schedule-email', methods=['POST'])
@@ -2276,15 +2281,15 @@ def schedule_email():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     schedule_time = data.get('schedule_time')
-    
+
     if not schedule_time:
         return jsonify({'error': 'Horário de agendamento obrigatório'}), 400
-    
+
     user_email = session.get('user_email')
-    
+
     scheduled_email = {
         'id': str(uuid.uuid4()),
         'from': user_email,
@@ -2295,18 +2300,18 @@ def schedule_email():
         'status': 'scheduled',
         'created_at': datetime.now().isoformat()
     }
-    
+
     # Salvar em arquivo de emails agendados
     scheduled_emails = []
     if os.path.exists('scheduled_emails.json'):
         with open('scheduled_emails.json', 'r', encoding='utf-8') as f:
             scheduled_emails = json.load(f)
-    
+
     scheduled_emails.append(scheduled_email)
-    
+
     with open('scheduled_emails.json', 'w', encoding='utf-8') as f:
         json.dump(scheduled_emails, f, ensure_ascii=False, indent=2)
-    
+
     return jsonify({'success': True, 'scheduled_id': scheduled_email['id']})
 
 @app.route('/api/smart-compose', methods=['POST'])
@@ -2315,13 +2320,13 @@ def smart_compose():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     context = data.get('context', '')
-    
+
     # Sugestões inteligentes baseadas no contexto
     suggestions = []
-    
+
     if 'reunião' in context.lower() or 'meeting' in context.lower():
         suggestions = [
             "Vamos agendar uma reunião para discutir este assunto.",
@@ -2346,7 +2351,7 @@ def smart_compose():
             "Fico à disposição para qualquer esclarecimento.",
             "Aguardo seu retorno quando possível."
         ]
-    
+
     return jsonify({'suggestions': suggestions})
 
 @app.route('/api/smart-reply', methods=['POST'])
@@ -2355,13 +2360,13 @@ def smart_reply():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     email_content = data.get('email_content', '').lower()
-    
+
     # Gerar respostas inteligentes baseadas no conteúdo
     replies = []
-    
+
     if 'pergunta' in email_content or '?' in email_content:
         replies = [
             "Sim, posso ajudar com isso.",
@@ -2386,7 +2391,7 @@ def smart_reply():
             "Recebi e vou analisar.",
             "Perfeito, entendi!"
         ]
-    
+
     return jsonify({'replies': replies})
 
 @app.route('/api/themes')
@@ -2422,7 +2427,7 @@ def get_themes():
             'text_color': '#2e7d32'
         }
     }
-    
+
     return jsonify(themes)
 
 @app.route('/api/user/theme', methods=['POST'])
@@ -2431,14 +2436,14 @@ def set_user_theme():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
     theme = data.get('theme', 'default')
-    
+
     user_email = session.get('user_email')
     users_db[user_email]['theme'] = theme
     save_data()
-    
+
     return jsonify({'success': True, 'theme': theme})
 
 @app.route('/api/filters')
@@ -2447,11 +2452,11 @@ def get_filters():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     user_email = session.get('user_email')
     user_data = users_db.get(user_email, {})
     filters = user_data.get('filters', [])
-    
+
     return jsonify(filters)
 
 @app.route('/api/filters', methods=['POST'])
@@ -2460,9 +2465,9 @@ def create_filter():
     user = get_current_user()
     if not user:
         return jsonify({'error': 'Usuário não logado'}), 401
-    
+
     data = request.get_json()
-    
+
     filter_config = {
         'id': str(uuid.uuid4()),
         'name': data.get('name'),
@@ -2470,14 +2475,14 @@ def create_filter():
         'action': data.get('action'),      # mark_read, star, label, etc.
         'created_at': datetime.now().isoformat()
     }
-    
+
     user_email = session.get('user_email')
     if 'filters' not in users_db[user_email]:
         users_db[user_email]['filters'] = []
-    
+
     users_db[user_email]['filters'].append(filter_config)
     save_data()
-    
+
     return jsonify({'success': True, 'filter': filter_config})
 
 @app.route('/api/features')
@@ -2495,5 +2500,5 @@ if __name__ == '__main__':
     print(f"🤖 IA para composição inteligente ativa!")
     print(f"📝 Para solicitar token: envie email para {ADMIN_EMAIL} com assunto 'token'")
     print(f"🌐 Acesse: http://0.0.0.0:5000")
-    
+
     app.run(host='0.0.0.0', port=5000, debug=True)

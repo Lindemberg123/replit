@@ -1970,6 +1970,408 @@ button {
     }
 }
 
+/* ========== SISTEMA DE ANÚNCIOS EMPRESAS FAMOSAS ========== */
+
+/* Banner principal de anúncios */
+.sponsor-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 12px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    animation: slideDown 0.5s ease;
+}
+
+.sponsor-banner-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-radius: 12px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.sponsor-banner-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shine 3s infinite;
+}
+
+.sponsor-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.sponsor-banner-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+    background: rgba(255,255,255,0.1);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.sponsor-banner-text h3 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.sponsor-banner-text p {
+    font-size: 16px;
+    margin-bottom: 2px;
+    opacity: 0.9;
+}
+
+.sponsor-banner-text small {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.sponsor-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.sponsor-banner-cta {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+.sponsor-banner-cta:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.sponsor-banner-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.sponsor-banner-close:hover {
+    background: rgba(255,255,255,0.3);
+    transform: scale(1.1);
+}
+
+/* Anúncios da sidebar */
+.sidebar-ads {
+    margin: 20px 16px;
+    padding: 0;
+}
+
+.sidebar-ad-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-ad-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.sidebar-ad-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.sidebar-ad-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.sidebar-ad-badge {
+    background: #f0f0f0;
+    color: #666;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.sidebar-ad-content h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.sidebar-ad-content p {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.sidebar-ad-btn {
+    display: inline-block;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.sidebar-ad-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Anúncios embarcados na lista de emails */
+.embedded-ad {
+    margin: 8px 0;
+    padding: 0 24px;
+}
+
+.embedded-ad-content {
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.embedded-ad-content:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.embedded-ad-label {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #f0f0f0;
+    color: #666;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.embedded-ad-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.embedded-ad-logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.embedded-ad-text {
+    flex: 1;
+}
+
+.embedded-ad-text h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #333;
+}
+
+.embedded-ad-text p {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    color: #555;
+}
+
+.embedded-ad-description {
+    font-size: 12px;
+    color: #777;
+    line-height: 1.3;
+}
+
+.embedded-ad-cta {
+    padding: 10px 20px;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+    transition: all 0.3s;
+}
+
+.embedded-ad-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Popup de anúncios */
+.ad-popup {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1001;
+    animation: slideUp 0.5s ease;
+    max-width: 300px;
+}
+
+.ad-popup-content {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    position: relative;
+    text-align: center;
+}
+
+.ad-popup-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.ad-popup-close:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.ad-popup-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+
+.ad-popup-content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.ad-popup-content p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.ad-popup-btn {
+    display: inline-block;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.ad-popup-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Animações */
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Ajustes para mobile */
+@media (max-width: 768px) {
+    .sponsor-banner-content {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+    
+    .sponsor-banner-left {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .embedded-ad-body {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .ad-popup {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
 /* Adicionando estilos para o banner da IA */
 .ai-banner {
     position: relative;

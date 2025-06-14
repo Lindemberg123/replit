@@ -1,56 +1,101 @@
 // Sistema Gmail Independente - JavaScript Frontend
 
-// Sistema de Patrocínio
+// Sistema de Anúncios de Empresas Famosas
 const SPONSORS = {
-    gmail: {
-        name: 'Gmail',
-        logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg',
-        tagline: 'O melhor email do mundo',
-        cta: 'Criar conta Gmail',
-        url: 'https://gmail.com',
-        color: '#ea4335'
-    },
-    google: {
-        name: 'Google',
-        logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
-        tagline: 'Busque tudo com Google',
-        cta: 'Pesquisar no Google',
-        url: 'https://google.com',
-        color: '#4285f4'
-    },
     cocacola: {
         name: 'Coca-Cola',
         logo: 'https://upload.wikimedia.org/wikipedia/commons/c/ce/Coca-Cola_logo.svg',
-        tagline: 'Abra a felicidade',
-        cta: 'Saiba mais',
+        tagline: 'Abra a felicidade com Coca-Cola!',
+        cta: 'Experimente agora',
         url: 'https://coca-cola.com',
-        color: '#ed1c16'
+        color: '#ed1c16',
+        description: 'A bebida que une pessoas ao redor do mundo há mais de 130 anos.',
+        category: 'bebidas'
     },
-    callofduty: {
-        name: 'Call of Duty',
-        logo: 'https://logos-world.net/wp-content/uploads/2021/02/Call-of-Duty-Logo.png',
-        tagline: 'Entre na batalha',
-        cta: 'Jogar agora',
-        url: 'https://callofduty.com',
-        color: '#000000'
+    uber: {
+        name: 'Uber',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png',
+        tagline: 'Chegue onde quiser, quando quiser',
+        cta: 'Baixar app',
+        url: 'https://uber.com',
+        color: '#000000',
+        description: 'Transporte rápido, seguro e conveniente na palma da sua mão.',
+        category: 'transporte'
     },
-    stumbleguys: {
-        name: 'Stumble Guys',
-        logo: 'https://play-lh.googleusercontent.com/Kf8WTct65hFJxBUDm5E-EpYsiDoLQiGGbnuyP6HBNax43YShXti9THPon1YKB6zPYpA',
-        tagline: 'Diversão sem fim',
-        cta: 'Baixar jogo',
-        url: 'https://stumbleguys.com',
-        color: '#ff6b35'
+    nike: {
+        name: 'Nike',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg',
+        tagline: 'Just Do It',
+        cta: 'Comprar agora',
+        url: 'https://nike.com',
+        color: '#111111',
+        description: 'Inspire-se e alcance seus objetivos com os melhores produtos esportivos.',
+        category: 'esportes'
+    },
+    mcdonalds: {
+        name: "McDonald's",
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/3/36/McDonald%27s_Golden_Arches.svg',
+        tagline: "I'm Lovin' It",
+        cta: 'Peça já',
+        url: 'https://mcdonalds.com',
+        color: '#ffcc00',
+        description: 'Os sabores que você ama, agora mais perto de você.',
+        category: 'alimentacao'
+    },
+    spotify: {
+        name: 'Spotify',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg',
+        tagline: 'Música para todos',
+        cta: 'Ouça grátis',
+        url: 'https://spotify.com',
+        color: '#1db954',
+        description: 'Milhões de músicas e podcasts. Sem anúncios com Premium.',
+        category: 'entretenimento'
+    },
+    netflix: {
+        name: 'Netflix',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg',
+        tagline: 'Entretenimento ilimitado',
+        cta: 'Assista agora',
+        url: 'https://netflix.com',
+        color: '#e50914',
+        description: 'Filmes, séries e documentários premiados quando e onde quiser.',
+        category: 'entretenimento'
+    },
+    amazon: {
+        name: 'Amazon',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
+        tagline: 'Tudo o que você precisa',
+        cta: 'Comprar',
+        url: 'https://amazon.com',
+        color: '#ff9900',
+        description: 'Milhões de produtos com entrega rápida e segura.',
+        category: 'ecommerce'
+    },
+    samsung: {
+        name: 'Samsung',
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg',
+        tagline: 'Inovação que inspira',
+        cta: 'Descobrir',
+        url: 'https://samsung.com',
+        color: '#1428a0',
+        description: 'Tecnologia de ponta para facilitar sua vida.',
+        category: 'tecnologia'
     }
 };
 
 let sponsorSettings = {
-    showTopBanner: false,
-    showSidebarAds: false,
-    showEmailInserts: false,
-    showFooter: false,
+    showTopBanner: true,
+    showSidebarAds: true,
+    showEmailInserts: true,
+    showFooter: true,
+    showEmbeddedAds: true,
     closedBanners: JSON.parse(localStorage.getItem('gmail_closed_banners') || '[]')
 };
+
+// Sistema de rotação de anúncios
+let currentAdIndex = 0;
+let adRotationInterval = null;
 
 // Configurações do sistema
 USERS_FILE = 'users.json'
@@ -82,6 +127,7 @@ async function initializeApp() {
         if (userInfo) {
             await loadEmails();
             setupEventListeners();
+            initializeAdsSystem(); // Inicializar sistema de anúncios
             showNotification('NayEmail carregado com sucesso!', 'success');
         } else {
             // Se não há usuário logado, redirecionar
@@ -244,7 +290,38 @@ function displayEmails(emails) {
         return;
     }
 
-    container.innerHTML = emails.map(email => {
+    let emailsHTML = emails.map((email, index) => {
+        // Inserir anúncio a cada 5 emails
+        let adHTML = '';
+        if (index > 0 && index % 5 === 0 && sponsorSettings.showEmbeddedAds) {
+            const sponsors = Object.values(SPONSORS);
+            const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
+            adHTML = `
+                <div class="embedded-ad">
+                    <div class="embedded-ad-content" style="background: linear-gradient(135deg, ${randomSponsor.color}15, ${randomSponsor.color}05);">
+                        <div class="embedded-ad-label">Patrocinado</div>
+                        <div class="embedded-ad-body">
+                            <img src="${randomSponsor.logo}" alt="${randomSponsor.name}" class="embedded-ad-logo">
+                            <div class="embedded-ad-text">
+                                <h4>${randomSponsor.name}</h4>
+                                <p>${randomSponsor.tagline}</p>
+                                <span class="embedded-ad-description">${randomSponsor.description}</span>
+                            </div>
+                            <a href="${randomSponsor.url}" target="_blank" class="embedded-ad-cta" style="background: ${randomSponsor.color};">
+                                ${randomSponsor.cta}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        return adHTML + getEmailHTML(email);
+    }).join('');
+
+    container.innerHTML = emailsHTML;
+
+    function getEmailHTML(email) {
         let emailClass = email.read ? '' : 'unread';
         if (email.highlighted) emailClass += ' highlighted';
         if (email.verification) {
@@ -327,9 +404,7 @@ function displayEmails(emails) {
             <div class="email-date">${dateDisplay}</div>
         </div>
         `;
-    }).join('');
-
-        // Sistema de anúncios desabilitado
+    }
 }
 
 function showLoading() {
@@ -2595,10 +2670,29 @@ setTimeout(() => {
     }
 }, 3000);
 
-// --- Funções para o sistema de patrocínio ---
-function showSponsorBanner() {
-    if (!sponsorSettings.showTopBanner) return;
+// --- Sistema Avançado de Anúncios ---
+function initializeAdsSystem() {
+    if (sponsorSettings.showTopBanner) {
+        showSponsorBanner();
+    }
+    
+    if (sponsorSettings.showSidebarAds) {
+        showSidebarAds();
+    }
+    
+    if (sponsorSettings.showEmbeddedAds) {
+        startAdRotation();
+    }
+    
+    // Mostrar anúncios a cada 2 minutos
+    setInterval(() => {
+        if (Math.random() > 0.7) { // 30% de chance
+            showRandomAd();
+        }
+    }, 120000);
+}
 
+function showSponsorBanner() {
     const sponsorKeys = Object.keys(SPONSORS);
     const randomSponsorKey = sponsorKeys[Math.floor(Math.random() * sponsorKeys.length)];
     const sponsor = SPONSORS[randomSponsorKey];
@@ -2607,19 +2701,181 @@ function showSponsorBanner() {
 
     const banner = document.createElement('div');
     banner.className = 'sponsor-banner';
-    banner.style.backgroundColor = sponsor.color;
     banner.innerHTML = `
-        <div class="sponsor-banner-content">
-            <img src="${sponsor.logo}" alt="${sponsor.name} Logo" class="sponsor-banner-logo">
-            <div class="sponsor-banner-text">
-                <h3>${sponsor.name}</h3>
-                <p>${sponsor.tagline}</p>
+        <div class="sponsor-banner-content" style="background: linear-gradient(135deg, ${sponsor.color}, ${adjustColor(sponsor.color, 20)});">
+            <div class="sponsor-banner-left">
+                <img src="${sponsor.logo}" alt="${sponsor.name} Logo" class="sponsor-banner-logo">
+                <div class="sponsor-banner-text">
+                    <h3>${sponsor.name}</h3>
+                    <p>${sponsor.tagline}</p>
+                    <small>${sponsor.description}</small>
+                </div>
             </div>
-            <a href="${sponsor.url}" class="sponsor-banner-cta">${sponsor.cta}</a>
-            <button class="sponsor-banner-close" onclick="closeSponsorBanner('${sponsor.name}')">&times;</button>
+            <div class="sponsor-banner-actions">
+                <a href="${sponsor.url}" target="_blank" class="sponsor-banner-cta">${sponsor.cta}</a>
+                <button class="sponsor-banner-close" onclick="closeSponsorBanner('${sponsor.name}')">&times;</button>
+            </div>
         </div>
     `;
+    
     document.body.insertBefore(banner, document.body.firstChild);
+    
+    // Auto-remove após 10 segundos
+    setTimeout(() => {
+        if (banner.parentNode) {
+            banner.remove();
+        }
+    }, 10000);
+}
+
+function showSidebarAds() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    
+    const adContainer = document.createElement('div');
+    adContainer.className = 'sidebar-ads';
+    adContainer.innerHTML = getSidebarAdContent();
+    
+    sidebar.appendChild(adContainer);
+}
+
+function getSidebarAdContent() {
+    const sponsors = Object.values(SPONSORS);
+    const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
+    
+    return `
+        <div class="sidebar-ad-card" style="border-left: 4px solid ${randomSponsor.color};">
+            <div class="sidebar-ad-header">
+                <img src="${randomSponsor.logo}" alt="${randomSponsor.name}" class="sidebar-ad-logo">
+                <span class="sidebar-ad-badge">Anúncio</span>
+            </div>
+            <div class="sidebar-ad-content">
+                <h4>${randomSponsor.name}</h4>
+                <p>${randomSponsor.description}</p>
+                <a href="${randomSponsor.url}" target="_blank" class="sidebar-ad-btn" style="background: ${randomSponsor.color};">
+                    ${randomSponsor.cta}
+                </a>
+            </div>
+        </div>
+    `;
+}
+
+function showEmbeddedAd() {
+    const emailContainer = document.getElementById('emailsContainer');
+    if (!emailContainer) return;
+    
+    const emailItems = emailContainer.querySelectorAll('.email-item');
+    if (emailItems.length < 3) return;
+    
+    // Inserir anúncio após o 3º email
+    const thirdEmail = emailItems[2];
+    const adElement = createEmbeddedAd();
+    
+    thirdEmail.parentNode.insertBefore(adElement, thirdEmail.nextSibling);
+}
+
+function createEmbeddedAd() {
+    const sponsors = Object.values(SPONSORS);
+    const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
+    
+    const adElement = document.createElement('div');
+    adElement.className = 'embedded-ad';
+    adElement.innerHTML = `
+        <div class="embedded-ad-content" style="background: linear-gradient(135deg, ${randomSponsor.color}15, ${randomSponsor.color}05);">
+            <div class="embedded-ad-label">Patrocinado</div>
+            <div class="embedded-ad-body">
+                <img src="${randomSponsor.logo}" alt="${randomSponsor.name}" class="embedded-ad-logo">
+                <div class="embedded-ad-text">
+                    <h4>${randomSponsor.name}</h4>
+                    <p>${randomSponsor.tagline}</p>
+                    <span class="embedded-ad-description">${randomSponsor.description}</span>
+                </div>
+                <a href="${randomSponsor.url}" target="_blank" class="embedded-ad-cta" style="background: ${randomSponsor.color};">
+                    ${randomSponsor.cta}
+                </a>
+            </div>
+        </div>
+    `;
+    
+    return adElement;
+}
+
+function startAdRotation() {
+    if (adRotationInterval) {
+        clearInterval(adRotationInterval);
+    }
+    
+    adRotationInterval = setInterval(() => {
+        rotateAds();
+    }, 30000); // Rotacionar a cada 30 segundos
+}
+
+function rotateAds() {
+    const sidebarAd = document.querySelector('.sidebar-ads');
+    if (sidebarAd) {
+        sidebarAd.innerHTML = getSidebarAdContent();
+    }
+    
+    // Adicionar efeito de transição
+    if (sidebarAd) {
+        sidebarAd.style.opacity = '0';
+        setTimeout(() => {
+            sidebarAd.innerHTML = getSidebarAdContent();
+            sidebarAd.style.opacity = '1';
+        }, 300);
+    }
+}
+
+function showRandomAd() {
+    const adTypes = ['banner', 'notification', 'popup'];
+    const randomType = adTypes[Math.floor(Math.random() * adTypes.length)];
+    
+    switch(randomType) {
+        case 'banner':
+            showSponsorBanner();
+            break;
+        case 'notification':
+            showAdNotification();
+            break;
+        case 'popup':
+            showAdPopup();
+            break;
+    }
+}
+
+function showAdNotification() {
+    const sponsors = Object.values(SPONSORS);
+    const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
+    
+    showNotification(`🎯 ${randomSponsor.name}: ${randomSponsor.tagline}`, 'info');
+}
+
+function showAdPopup() {
+    const sponsors = Object.values(SPONSORS);
+    const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
+    
+    const popup = document.createElement('div');
+    popup.className = 'ad-popup';
+    popup.innerHTML = `
+        <div class="ad-popup-content" style="border-top: 4px solid ${randomSponsor.color};">
+            <button class="ad-popup-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+            <img src="${randomSponsor.logo}" alt="${randomSponsor.name}" class="ad-popup-logo">
+            <h3>${randomSponsor.name}</h3>
+            <p>${randomSponsor.description}</p>
+            <a href="${randomSponsor.url}" target="_blank" class="ad-popup-btn" style="background: ${randomSponsor.color};">
+                ${randomSponsor.cta}
+            </a>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    // Auto-remove após 8 segundos
+    setTimeout(() => {
+        if (popup.parentNode) {
+            popup.remove();
+        }
+    }, 8000);
 }
 
 function closeSponsorBanner(sponsorName) {
@@ -2640,6 +2896,10 @@ function getSponsorFooter() {
             <p>Patrocinado por <a href="${sponsor.url}" style="color: ${sponsor.color};">${sponsor.name}</a></p>
         </div>
     `;
+}
+
+function adjustColor(color, amount) {
+    return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
 }
 
 //Improved error handling in AI chat, including specific messages for connection and session issues.
