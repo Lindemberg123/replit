@@ -9,8 +9,8 @@ import hashlib
 import uuid
 
 app = Flask(__name__)
-# Configurar CORS para produção
-CORS(app, supports_credentials=True, origins=["*"])
+# Configurar CORS para produção (incluindo subdomínios)
+CORS(app, supports_credentials=True, origins=["*"], allow_headers=["*"], methods=["*"])
 app.secret_key = 'gmail-system-secret-key-2024'
 
 # Configurações do sistema
