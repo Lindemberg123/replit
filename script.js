@@ -2675,15 +2675,15 @@ function initializeAdsSystem() {
     if (sponsorSettings.showTopBanner) {
         showSponsorBanner();
     }
-    
+
     if (sponsorSettings.showSidebarAds) {
         showSidebarAds();
     }
-    
+
     if (sponsorSettings.showEmbeddedAds) {
         startAdRotation();
     }
-    
+
     // Mostrar anúncios a cada 2 minutos
     setInterval(() => {
         if (Math.random() > 0.7) { // 30% de chance
@@ -2717,9 +2717,9 @@ function showSponsorBanner() {
             </div>
         </div>
     `;
-    
+
     document.body.insertBefore(banner, document.body.firstChild);
-    
+
     // Auto-remove após 10 segundos
     setTimeout(() => {
         if (banner.parentNode) {
@@ -2731,18 +2731,18 @@ function showSponsorBanner() {
 function showSidebarAds() {
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar) return;
-    
+
     const adContainer = document.createElement('div');
     adContainer.className = 'sidebar-ads';
     adContainer.innerHTML = getSidebarAdContent();
-    
+
     sidebar.appendChild(adContainer);
 }
 
 function getSidebarAdContent() {
     const sponsors = Object.values(SPONSORS);
     const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
-    
+
     return `
         <div class="sidebar-ad-card" style="border-left: 4px solid ${randomSponsor.color};">
             <div class="sidebar-ad-header">
@@ -2763,21 +2763,21 @@ function getSidebarAdContent() {
 function showEmbeddedAd() {
     const emailContainer = document.getElementById('emailsContainer');
     if (!emailContainer) return;
-    
+
     const emailItems = emailContainer.querySelectorAll('.email-item');
     if (emailItems.length < 3) return;
-    
+
     // Inserir anúncio após o 3º email
     const thirdEmail = emailItems[2];
     const adElement = createEmbeddedAd();
-    
+
     thirdEmail.parentNode.insertBefore(adElement, thirdEmail.nextSibling);
 }
 
 function createEmbeddedAd() {
     const sponsors = Object.values(SPONSORS);
     const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
-    
+
     const adElement = document.createElement('div');
     adElement.className = 'embedded-ad';
     adElement.innerHTML = `
@@ -2796,7 +2796,7 @@ function createEmbeddedAd() {
             </div>
         </div>
     `;
-    
+
     return adElement;
 }
 
@@ -2804,7 +2804,7 @@ function startAdRotation() {
     if (adRotationInterval) {
         clearInterval(adRotationInterval);
     }
-    
+
     adRotationInterval = setInterval(() => {
         rotateAds();
     }, 30000); // Rotacionar a cada 30 segundos
@@ -2815,7 +2815,7 @@ function rotateAds() {
     if (sidebarAd) {
         sidebarAd.innerHTML = getSidebarAdContent();
     }
-    
+
     // Adicionar efeito de transição
     if (sidebarAd) {
         sidebarAd.style.opacity = '0';
@@ -2829,7 +2829,7 @@ function rotateAds() {
 function showRandomAd() {
     const adTypes = ['banner', 'notification', 'popup'];
     const randomType = adTypes[Math.floor(Math.random() * adTypes.length)];
-    
+
     switch(randomType) {
         case 'banner':
             showSponsorBanner();
@@ -2846,14 +2846,14 @@ function showRandomAd() {
 function showAdNotification() {
     const sponsors = Object.values(SPONSORS);
     const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
-    
+
     showNotification(`🎯 ${randomSponsor.name}: ${randomSponsor.tagline}`, 'info');
 }
 
 function showAdPopup() {
     const sponsors = Object.values(SPONSORS);
     const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
-    
+
     const popup = document.createElement('div');
     popup.className = 'ad-popup';
     popup.innerHTML = `
@@ -2867,9 +2867,9 @@ function showAdPopup() {
             </a>
         </div>
     `;
-    
+
     document.body.appendChild(popup);
-    
+
     // Auto-remove após 8 segundos
     setTimeout(() => {
         if (popup.parentNode) {
@@ -2902,4 +2902,74 @@ function adjustColor(color, amount) {
     return '#' + color.replace(/^#/, '').replace(/../g, color => ('0'+Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
 }
 
-//Improved error handling in AI chat, including specific messages for connection and session issues.
+// Improved error handling in AI chat, including specific messages for connection and session issues.
+
+// 9. NayAI - Sistema de IA Conversacional
+// Replacing the original function with the improved version
+function generateNayAIResponse(user_message, should_close = false) {
+    const message_lower = user_message.toLowerCase();
+
+    // Detectar solicitação de atendimento humano
+    if (message_lower.includes('atendente') || message_lower.includes('suporte') || 
+        message_lower.includes('humano') || message_lower.includes('pessoa') ||
+        message_lower.includes('falar com alguem') || message_lower.includes('ajuda humana')) {
+        return "🔄 Entendido! Vou conectar você com um atendente humano. Aguarde um momento enquanto transfiro sua conversa...";
+    }
+
+    // Detectar comando para fechar chat
+    if (should_close || ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar', 'fim', 'tchau', 'bye'].some(word => message_lower.includes(word))) {
+        return "🔄 Entendido! Finalizando nossa conversa e enviando relatório completo por email. Obrigada por usar a NayAI! 👋";
+    }
+
+    // Problemas com API ou sistema
+    if (message_lower.includes('api') && (message_lower.includes('bug') || message_lower.includes('erro') || message_lower.includes('problema'))) {
+        return "🔧 Detectei um problema com a API! Vou encaminhar isso para nossa equipe técnica.\n\n📋 Detalhes que posso verificar:\n• Status da API: Operacional\n• Última atualização: Hoje\n• Endpoints disponíveis: /api/emails, /api/send-email, /api/user-info\n\nPrecisa de ajuda específica com algum endpoint ou quer falar com um atendente?";
+    }
+
+    // Recuperação de emails
+    if ((message_lower.includes('recuperar') || message_lower.includes('devolução') || message_lower.includes('restore')) && message_lower.includes('email')) {
+        return "🔄 Para recuperar emails deletados:\n\n📧 **Processo de Recuperação:**\n• Emails deletados ficam 30 dias na lixeira\n• Acesse: Configurações > Lixeira\n• Selecione os emails e clique 'Restaurar'\n\n⚠️ **Importante:**\n• Após 30 dias, emails são deletados permanentemente\n• Backups automáticos são feitos diariamente\n\n🔧 Precisa de ajuda técnica específica? Posso conectar com um atendente!";
+    }
+
+    // Envio de emails
+    if (message_lower.includes('enviar') && message_lower.includes('email')) {
+        return "📨 **Como enviar emails no NayEmail:**\n\n✨ **Método Rápido:**\n• Clique no botão 'Escrever' (azul)\n• Preencha destinatário, assunto e mensagem\n• Clique 'Enviar'\n\n🎯 **Recursos Avançados:**\n• Agendar envio: botão do relógio\n• Templates inteligentes: botão da lâmpada\n• Composição com IA: Ctrl+K\n\n📋 **Dicas:**\n• Use ; para separar múltiplos emails\n• Salve rascunhos automaticamente\n• Verificação ortográfica ativa\n\nPrecisa de ajuda com algo específico?";
+    }
+
+    // Funcionalidades do sistema
+    if (['sistema', 'nayemail', 'funcionalidade', 'como usar', 'help', 'ajuda'].some(word => message_lower.includes(word))) {
+        return "🎯 **NayEmail - Suas principais funcionalidades:**\n\n📧 **Gestão de Emails:**\n• Caixa de entrada inteligente\n• Organização por pastas\n• Sistema de favoritos e destaques\n• Busca avançada\n\n🤖 **IA Integrada:**\n• Chat inteligente (comigo!)\n• Composição automática\n• Respostas sugeridas\n• Análise de sentimentos\n\n🛡️ **Segurança:**\n• Verificações avançadas\n• Autenticação 2FA\n• Emails criptografados\n\n⚙️ **Admin:**\n• Painel de controle\n• Broadcast para usuários\n• Logs do sistema\n\nSobre qual área quer saber mais?";
+    }
+
+    // Saudações
+    if (['olá', 'oi', 'hello', 'hey', 'bom dia', 'boa tarde', 'boa noite'].some(word => message_lower.includes(word))) {
+        return "Olá! 👋 Sou a **NayAI**, assistente inteligente do NayEmail!\n\n🎯 **Posso ajudar com:**\n• Dúvidas sobre o sistema\n• Problemas técnicos\n• Recuperação de emails\n• Configurações\n• Conectar com atendente humano\n\n💬 Como posso ajudar você hoje?";
+    }
+
+    // Resposta padrão mais inteligente
+    return "🤖 **NayAI sempre pronta para ajudar!**\n\nAnalisei sua mensagem e posso ajudar com:\n\n📧 **Problemas com emails?** → Posso resolver\n🔧 **Questões técnicas?** → Vou diagnosticar\n👤 **Precisa de atendente?** → Digite 'atendente'\n❓ **Dúvidas gerais?** → Estou aqui!\n\n💡 **Dica:** Seja específico sobre seu problema para eu poder ajudar melhor!\n\nO que exatamente precisa resolver?";
+}
+
+//---The python code will stay the same ---
+//---The python code will stay the same ---
+//---The python code will stay the same ---
+
+// Auto-refresh para verificações com expiração
+function startVerificationAutoRefresh() {
+    setInterval(() => {
+        // Atualizar apenas se houver emails de verificação visíveis
+        const currentEmailsContainer = document.getElementById('emailsContainer');
+        const hasVerificationEmails = currentEmailsContainer &&
+            currentEmailsContainer.innerHTML.includes('verification-status-indicator');
+
+        if (hasVerificationEmails) {
+            // Recarregar emails silenciosamente para atualizar status de expiração
+            loadEmails();
+        }
+    }, 30000); // A cada 30 segundos
+}
+
+// Inicializar auto-refresh quando o app carregar
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(startVerificationAutoRefresh, 5000); // Iniciar após 5s
+});

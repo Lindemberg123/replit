@@ -129,6 +129,36 @@
             transform: scale(1.1);
         }
 
+        .human-support-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            margin-right: 10px;
+        }
+
+        .human-support-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-blocked {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid #ff6b35;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px;
+            text-align: center;
+            color: #ff6b35;
+            font-weight: 600;
+        }
+
         .typing-indicator {
             align-self: flex-start;
             background: rgba(255, 255, 255, 0.9);
@@ -171,6 +201,9 @@
 
     <div class="chat-input">
         <input type="text" id="messageInput" placeholder="Digite sua mensagem..." maxlength="500">
+        <button class="human-support-btn" onclick="requestHumanSupport()" title="Falar com atendente humano">
+            <i class="fas fa-user-headset"></i>
+        </button>
         <button class="send-btn" onclick="sendMessage()">
             <i class="fas fa-paper-plane"></i>
         </button>
@@ -309,6 +342,67 @@
 
         // Foco automático no input
         document.getElementById('messageInput').focus();
+
+        let chatBlocked = false;
+        let humanSupportRequested = false;
+
+        async function requestHumanSupport() {
+            if (chatBlocked) return;
+            
+            humanSupportRequested = true;
+            
+            // Mostrar mensagem da IA
+            displayMessage('🔄 Conectando você com um atendente humano. Aguarde um momento...', 'ai');
+            
+            try {
+                // Enviar solicitação ao servidor
+                const response = await fetch('/api/request-human-support', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        message: 'Usuário solicitou atendimento humano'
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    displayMessage('✅ Atendente notificado! Em breve você será atendido por um humano. Continue a conversa normalmente.', 'ai');
+                    
+                    // Atualizar título para indicar atendimento humano
+                    document.querySelector('.chat-title').textContent = 'Aguardando Atendente Humano';
+                    document.querySelector('.chat-subtitle').textContent = 'Conectando com suporte...';
+                } else {
+                    displayMessage('❌ Erro ao solicitar atendimento. Tente novamente.', 'ai');
+                }
+            } catch (error) {
+                displayMessage('❌ Erro de conexão. Verifique sua internet.', 'ai');
+            }
+        }
+
+        function blockChat() {
+            chatBlocked = true;
+            
+            // Desabilitar input
+            const messageInput = document.getElementById('messageInput');
+            messageInput.disabled = true;
+            messageInput.placeholder = '🚫 Chat fechado - Agora você está falando com a IA';
+            
+            // Mostrar aviso
+            const chatMessages = document.getElementById('chatMessages');
+            const blockedDiv = document.createElement('div');
+            blockedDiv.className = 'chat-blocked';
+            blockedDiv.innerHTML = '🚫 Chat com atendente encerrado. A partir de agora você está falando com a IA.';
+            chatMessages.appendChild(blockedDiv);
+            
+            // Atualizar título
+            document.querySelector('.chat-title').textContent = 'NayAI - Assistente Inteligente';
+            document.querySelector('.chat-subtitle').textContent = 'Online • Respondendo rapidamente';
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
     </script>
 </body>
 </html>

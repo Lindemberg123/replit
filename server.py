@@ -1592,8 +1592,8 @@ def ai_chat_api():
     # Salvar mensagem do usuário
     save_chat_message(chat_id, user['email'], 'user', user_message)
 
-    # Gerar resposta da IA
-    ai_response = generate_ai_response(user_message, should_close)
+    # Gerar resposta da IA melhorada
+    ai_response = generate_ai_response_improved(user_message, should_close)
 
     # Salvar resposta da IA
     save_chat_message(chat_id, 'IA@nayemail.com', 'ai', ai_response)
@@ -1615,72 +1615,147 @@ def ai_chat_api():
         'close_chat': should_close
     })
 
-def generate_ai_response(user_message, should_close=False):
-    """Gera resposta inteligente baseada na mensagem do usuário"""
+@app.route('/api/request-human-support', methods=['POST'])
+def request_human_support():
+    """API para solicitar atendimento humano"""
+    user = get_current_user()
+    
+    if not user:
+        user = {
+            'email': 'temp_user@nayemail.com',
+            'name': 'Usuário Temporário',
+            'user_id': 'temp_001'
+        }
+
+    data = request.get_json()
+    chat_id = data.get('chat_id')
+    user_message = data.get('message', 'Solicitação de atendimento humano')
+
+    if not chat_id:
+        return jsonify({'error': 'Chat ID é obrigatório'}), 400
+
+    # Criar ticket de atendimento
+    support_ticket_id = str(uuid.uuid4())[:8]
+    
+    # Enviar email para administrador
+    support_email = {
+        'id': str(uuid.uuid4()),
+        'from': 'sistema@nayemail.com',
+        'to': ADMIN_EMAIL,
+        'subject': f'🆘 Solicitação de Atendimento Humano - Ticket #{support_ticket_id}',
+        'body': f"""
+🆘 SOLICITAÇÃO DE ATENDIMENTO HUMANO
+
+👤 **Informações do Usuário:**
+• Nome: {user['name']}
+• Email: {user['email']}
+• ID: {user['user_id']}
+
+💬 **Detalhes da Conversa:**
+• Chat ID: {chat_id}
+• Ticket: #{support_ticket_id}
+• Data: {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}
+
+📝 **Mensagem:**
+{user_message}
+
+🔗 **Ações Disponíveis:**
+• Responder este email para atender o usuário
+• Usar o painel admin para ver histórico completo
+• Fechar ticket quando finalizado
+
+⚠️ **IMPORTANTE:**
+O usuário está aguardando atendimento humano.
+Tempo de resposta recomendado: 15 minutos.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 Sistema NayEmail - Atendimento Automatizado
+📧 Este email foi gerado automaticamente
+        """.strip(),
+        'date': datetime.now().isoformat(),
+        'read': False,
+        'starred': True,
+        'folder': 'inbox',
+        'human_support_request': True,
+        'support_ticket_id': support_ticket_id,
+        'chat_id': chat_id,
+        'user_requesting': user['email'],
+        'priority': 'high'
+    }
+
+    emails_db.append(support_email)
+    save_data()
+
+    return jsonify({
+        'success': True,
+        'message': 'Atendente notificado com sucesso',
+        'ticket_id': support_ticket_id
+    })
+
+@app.route('/api/close-support-ticket', methods=['POST'])
+def close_support_ticket():
+    """API para fechar ticket de atendimento (apenas admin)"""
+    user = get_current_user()
+    if not user or not user.get('is_admin'):
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    data = request.get_json()
+    ticket_id = data.get('ticket_id')
+    chat_id = data.get('chat_id')
+
+    if not ticket_id or not chat_id:
+        return jsonify({'error': 'Ticket ID e Chat ID são obrigatórios'}), 400
+
+    # Marcar ticket como fechado
+    # Aqui você enviaria uma notificação para o frontend fechar o chat
+    
+    return jsonify({
+        'success': True,
+        'message': 'Ticket fechado com sucesso',
+        'action': 'block_chat',
+        'chat_id': chat_id
+    })
+
+def generate_ai_response_improved(user_message, should_close=False):
+    """Gera resposta melhorada e mais inteligente focada no NayEmail"""
     message_lower = user_message.lower()
+
+    # Detectar solicitação de atendimento humano
+    if any(word in message_lower for word in ['atendente', 'suporte', 'humano', 'pessoa', 'falar com alguem', 'ajuda humana']):
+        return "🔄 Entendido! Vou conectar você com um atendente humano. Aguarde um momento enquanto transfiro sua conversa..."
 
     # Detectar comando para fechar chat
     if should_close or any(word in message_lower for word in ['fechar', 'finalizar', 'encerrar', 'sair', 'terminar', 'acabar', 'fim', 'tchau', 'bye']):
         return "🔄 Entendido! Finalizando nossa conversa e enviando relatório completo por email. Obrigada por usar a NayAI! 👋"
 
-    # Perguntas sobre o sistema NayEmail
-    elif any(word in message_lower for word in ['sistema', 'nayemail', 'funcionalidade', 'como usar', 'rotas', 'acesso']):
-        system_responses = [
-            "📧 O NayEmail é um sistema completo de emails! Principais funcionalidades:\n• Envio e recebimento de emails\n• Organização por pastas\n• Sistema de favoritos\n• Chat com IA (eu!)\n• Painel administrativo\n• Verificações de segurança\n\nQual funcionalidade específica te interessa?",
-            "🎯 Sobre o sistema NayEmail posso explicar:\n• Para enviar emails: use o botão 'Escrever'\n• Para organizar: arraste emails para pastas\n• Para conversar comigo: clique no banner da IA\n• Admin: acesse com admin@nayemail.com\n\nPrecisa de ajuda com algo específico?",
-            "⚡ O NayEmail tem muitas funcionalidades:\n• Emails com verificação avançada\n• Sistema de tokens para API\n• Chat inteligente (comigo!)\n• Temas personalizáveis\n• Modo offline\n• Filtros automáticos\n\nSobre qual quer saber mais?"
-        ]
-        import random
-        return random.choice(system_responses)
+    # Problemas com API ou sistema
+    if 'api' in message_lower and any(word in message_lower for word in ['bug', 'erro', 'problema']):
+        return "🔧 Detectei um problema com a API! Vou encaminhar isso para nossa equipe técnica.\n\n📋 Detalhes que posso verificar:\n• Status da API: Operacional\n• Última atualização: Hoje\n• Endpoints disponíveis: /api/emails, /api/send-email, /api/user-info\n\nPrecisa de ajuda específica com algum endpoint ou quer falar com um atendente?"
 
-    # Respostas contextuais
-    elif any(word in message_lower for word in ['olá', 'oi', 'hello', 'hey']):
-        responses = [
-            "Olá! 👋 Sou a NayAI, assistente do sistema NayEmail. Como posso ajudar você hoje?",
-            "Oi! 😊 Bem-vindo ao chat com a NayAI! Posso ajudar com dúvidas sobre o sistema ou só conversar.",
-            "Hey! 🤖 Sou sua assistente inteligente do NayEmail. Em que posso ser útil?"
-        ]
-    elif any(word in message_lower for word in ['ajuda', 'help', 'socorro', 'duvida', 'dúvida']):
-        responses = [
-            "🆘 Claro! Posso ajudar com:\n• Como usar o NayEmail\n• Enviar/receber emails\n• Funcionalidades do sistema\n• Ou qualquer dúvida!\n\nO que precisa saber?",
-            "💡 Estou aqui para ajudar! Sou especialista em:\n• Sistema NayEmail\n• Envio de emails\n• Organização de mensagens\n• Funcionalidades avançadas\n\nQual sua dúvida?",
-            "🚀 Sempre pronta para ajudar! Posso explicar sobre:\n• Como navegar no sistema\n• Recursos disponíveis\n• Dicas e truques\n• Resolução de problemas\n\nMe conte o que precisa!"
-        ]
-    elif any(word in message_lower for word in ['email', 'e-mail', 'gmail', 'enviar', 'receber']):
-        responses = [
-            "📬 Sobre emails no NayEmail:\n• Para enviar: clique em 'Escrever'\n• Para organizar: use as pastas da barra lateral\n• Para favoritar: clique na estrela\n• Para buscar: use a caixa de pesquisa\n\nQual operação específica quer fazer?",
-            "✉️ O sistema de emails é bem completo:\n• Caixa de entrada, enviados, rascunhos\n• Sistema de estrelas e destaques\n• Verificações de segurança\n• Recuperação de senha\n\nPrecisa de ajuda com alguma função?",
-            "📧 No NayEmail você pode:\n• Compor emails ricos\n• Agendar envios\n• Usar respostas inteligentes\n• Organizar por categorias\n• Fazer backup das conversas\n\nQuer saber como fazer algo específico?"
-        ]
-    elif any(word in message_lower for word in ['obrigado', 'obrigada', 'thanks', 'valeu', 'brigadão']):
-        responses = [
-            "😊 De nada! Fico feliz em ajudar com o NayEmail. Se tiver mais dúvidas, é só chamar!",
-            "🌟 Por nada! É um prazer ser sua assistente. Estou sempre aqui quando precisar!",
-            "💙 Que bom que pude ajudar! Continue explorando o NayEmail, tem muitas funcionalidades legais!"
-        ]
-    elif any(word in message_lower for word in ['tchau', 'bye', 'até', 'fui', 'xau']):
-        responses = [
-            "👋 Até logo! Foi ótimo conversar com você. Volte sempre que quiser usar a NayAI!",
-            "😊 Tchau! Estarei aqui quando precisar de ajuda com o NayEmail. Tenha um ótimo dia!",
-            "🌟 Até mais! Espero ter ajudado. Continue aproveitando o sistema NayEmail!"
-        ]
-    elif '?' in user_message:
-        responses = [
-            "🤔 Interessante pergunta! Vou fazer o meu melhor para responder sobre o NayEmail ou qualquer dúvida que tenha.",
-            "💭 Boa pergunta! Como assistente do NayEmail, posso ajudar com informações do sistema ou outras questões.",
-            "🧠 Deixe-me pensar na melhor resposta... Sobre o que especificamente quer saber?"
-        ]
+    # Recuperação de emails
+    if any(word in message_lower for word in ['recuperar', 'devolução', 'restore']) and 'email' in message_lower:
+        return "🔄 Para recuperar emails deletados:\n\n📧 **Processo de Recuperação:**\n• Emails deletados ficam 30 dias na lixeira\n• Acesse: Configurações > Lixeira\n• Selecione os emails e clique 'Restaurar'\n\n⚠️ **Importante:**\n• Após 30 dias, emails são deletados permanentemente\n• Backups automáticos são feitos diariamente\n\n🔧 Precisa de ajuda técnica específica? Posso conectar com um atendente!"
+
+    # Envio de emails
+    if 'enviar' in message_lower and 'email' in message_lower:
+        return "📨 **Como enviar emails no NayEmail:**\n\n✨ **Método Rápido:**\n• Clique no botão 'Escrever' (azul)\n• Preencha destinatário, assunto e mensagem\n• Clique 'Enviar'\n\n🎯 **Recursos Avançados:**\n• Agendar envio: botão do relógio\n• Templates inteligentes: botão da lâmpada\n• Composição com IA: Ctrl+K\n\n📋 **Dicas:**\n• Use ; para separar múltiplos emails\n• Salve rascunhos automaticamente\n• Verificação ortográfica ativa\n\nPrecisa de ajuda com algo específico?"
+
+    # Funcionalidades do sistema
+    if any(word in message_lower for word in ['sistema', 'nayemail', 'funcionalidade', 'como usar', 'help', 'ajuda']):
+        return "🎯 **NayEmail - Suas principais funcionalidades:**\n\n📧 **Gestão de Emails:**\n• Caixa de entrada inteligente\n• Organização por pastas\n• Sistema de favoritos e destaques\n• Busca avançada\n\n🤖 **IA Integrada:**\n• Chat inteligente (comigo!)\n• Composição automática\n• Respostas sugeridas\n• Análise de sentimentos\n\n🛡️ **Segurança:**\n• Verificações avançadas\n• Autenticação 2FA\n• Emails criptografados\n\n⚙️ **Admin:**\n• Painel de controle\n• Broadcast para usuários\n• Logs do sistema\n\nSobre qual área quer saber mais?"
+
+    # Saudações
+    elif any(word in message_lower for word in ['olá', 'oi', 'hello', 'hey', 'bom dia', 'boa tarde', 'boa noite']):
+        return "Olá! 👋 Sou a **NayAI**, assistente inteligente do NayEmail!\n\n🎯 **Posso ajudar com:**\n• Dúvidas sobre o sistema\n• Problemas técnicos\n• Recuperação de emails\n• Configurações\n• Conectar com atendente humano\n\n💬 Como posso ajudar você hoje?"
+
+    # Resposta padrão mais inteligente
     else:
-        responses = [
-            "💭 Interessante! Pode me contar mais? Sou especialista no NayEmail e adoro conversar!",
-            "😊 Entendi! Como posso ajudar melhor? Posso explicar sobre o sistema ou só bater papo.",
-            "🤝 Compreendo. Há algo específico sobre o NayEmail que posso esclarecer?",
-            "✨ Legal! Quer saber algo sobre o sistema de emails ou prefere conversar sobre outro assunto?",
-            "🎯 Entendo seu ponto! Como assistente do NayEmail, posso ajudar com qualquer dúvida do sistema."
-        ]
+        return "🤖 **NayAI sempre pronta para ajudar!**\n\nAnalisei sua mensagem e posso ajudar com:\n\n📧 **Problemas com emails?** → Posso resolver\n🔧 **Questões técnicas?** → Vou diagnosticar\n👤 **Precisa de atendente?** → Digite 'atendente'\n❓ **Dúvidas gerais?** → Estou aqui!\n\n💡 **Dica:** Seja específico sobre seu problema para eu poder ajudar melhor!\n\nO que exatamente precisa resolver?"
 
-    import random
-    return random.choice(responses)
+# Manter função original para compatibilidade
+def generate_ai_response(user_message, should_close=False):
+    return generate_ai_response_improved(user_message, should_close)
 
 def save_chat_message(chat_id, user_email, sender_type, message):
     """Salvar mensagem do chat"""
