@@ -581,5 +581,17 @@
     "folder": "inbox",
     "ai_chat_log": true,
     "demo_email": true
+  },
+  {
+    "id": "60c60c05-aeb0-45c5-bac6-7cf2e89e6aaa",
+    "from": "suport.com@gmail.oficial",
+    "to": "IA@nayemail.com",
+    "subject": "Usuário iniciou conversa com IA",
+    "body": "Usuário Administrador Sistema (suport.com@gmail.oficial) iniciou uma nova conversa com a IA.\nID da Conversa: chat_1749749367066_4yf8exwnu",
+    "date": "2025-06-12T17:29:29.095317",
+    "read": true,
+    "starred": false,
+    "folder": "sent",
+    "highlighted": false
   }
 ]
