@@ -61,6 +61,7 @@ let currentFolder = 'inbox';
 let currentEmail = null;
 let userInfo = null;
 let searchTimeout = null;
+let emails_db = []; // Initialize emails_db
 
 // Inicializar aplicação
 document.addEventListener('DOMContentLoaded', function() {
@@ -124,6 +125,11 @@ async function loadUserInfo() {
         const response = await fetch('/api/user-info');
         if (response.ok) {
             userInfo = await response.json();
+
+            // Garantir que emails_db está inicializado
+            if (!emails_db) {
+                emails_db = [];
+            }
 
             const userEmailEl = document.getElementById('userEmail');
             const userIdEl = document.getElementById('userId');
@@ -975,6 +981,7 @@ function setupTouchGestures() {
     document.addEventListener('touchstart', function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
+    .touches[0].clientY;
     });
 
     document.addEventListener('touchend', function(e) {
@@ -1319,6 +1326,11 @@ async function loadUserInfo() {
         const response = await fetch('/api/user-info');
         if (response.ok) {
             userInfo = await response.json();
+
+            // Garantir que emails_db está inicializado
+            if (!emails_db) {
+                emails_db = [];
+            }
 
             const userEmailEl = document.getElementById('userEmail');
             const userIdEl = document.getElementById('userId');
@@ -1945,7 +1957,6 @@ let cloudSync = {
 // 7. Sistema de Analytics Avançado
 let emailAnalytics = {
     getStats: function() {
-```text
         const stats = {
             totalEmails: emails_db?.length || 0,
             readRate: 0,

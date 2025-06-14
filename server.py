@@ -255,8 +255,18 @@ def load_companies_data():
 def get_user_emails(user_email, folder='inbox'):
     """Obtém emails do usuário por pasta"""
     user_emails = []
+    
+    # Verificar se emails_db existe e é uma lista
+    if not emails_db or not isinstance(emails_db, list):
+        print(f"emails_db não inicializado corretamente: {type(emails_db)}")
+        return []
+    
     for email in emails_db:
         try:
+            # Verificar se email é um dicionário válido
+            if not isinstance(email, dict):
+                continue
+                
             if folder == 'inbox' and email.get('to') == user_email:
                 user_emails.append(email)
             elif folder == 'sent' and email.get('from') == user_email:
@@ -269,7 +279,11 @@ def get_user_emails(user_email, folder='inbox'):
             print(f"Erro ao processar email: {e}")
             continue
     
-    return sorted(user_emails, key=lambda x: x.get('date', ''), reverse=True)
+    try:
+        return sorted(user_emails, key=lambda x: x.get('date', ''), reverse=True)
+    except Exception as e:
+        print(f"Erro ao ordenar emails: {e}")
+        return user_emails
 
 # Inicializar dados
 load_data()
@@ -398,25 +412,35 @@ def clear_saved_accounts():
 @app.route('/api/user-info')
 def get_user_info():
     """Obter informações do usuário logado"""
-    user = get_current_user()
-    if not user:
-        return jsonify({'error': 'Usuário não logado'}), 401
-    
-    user_email = session.get('user_email')
-    inbox_count = len([e for e in get_user_emails(user_email, 'inbox') if not e.get('read')])
-    sent_count = len(get_user_emails(user_email, 'sent'))
-    drafts_count = len(get_user_emails(user_email, 'drafts'))
-    
-    return jsonify({
-        'email': user_email,
-        'name': user['name'],
-        'user_id': user['user_id'],
-        'inbox_count': inbox_count,
-        'sent_count': sent_count,
-        'drafts_count': drafts_count,
-        'profile_pic': user.get('profile_pic', ''),
-        'is_admin': user.get('is_admin', False)
-    })
+    try:
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'Usuário não logado'}), 401
+        
+        user_email = session.get('user_email')
+        
+        # Calcular contadores com tratamento de erro
+        try:
+            inbox_count = len([e for e in get_user_emails(user_email, 'inbox') if not e.get('read')])
+            sent_count = len(get_user_emails(user_email, 'sent'))
+            drafts_count = len(get_user_emails(user_email, 'drafts'))
+        except Exception as e:
+            print(f"Erro ao calcular contadores: {e}")
+            inbox_count = sent_count = drafts_count = 0
+        
+        return jsonify({
+            'email': user_email,
+            'name': user['name'],
+            'user_id': user['user_id'],
+            'inbox_count': inbox_count,
+            'sent_count': sent_count,
+            'drafts_count': drafts_count,
+            'profile_pic': user.get('profile_pic', ''),
+            'is_admin': user.get('is_admin', False)
+        })
+    except Exception as e:
+        print(f"Erro em get_user_info: {e}")
+        return jsonify({'error': 'Erro interno do servidor'}), 500
 
 @app.route('/api/emails/<folder>')
 def get_emails(folder):
