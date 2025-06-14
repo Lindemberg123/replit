@@ -965,7 +965,8 @@ function setupMobileNavigation() {
         menuIcon.addEventListener('click', toggleMobileSidebar);
     }
 
-    // Fechar sidebar ao clicar no overlay
+    // Fechar sidebar```tool_code
+ ao clicar no overlay
     overlay.addEventListener('click', closeMobileSidebar);
 
     // Fechar sidebar ao selecionar item
@@ -2641,3 +2642,5 @@ function getSponsorFooter() {
         </div>
     `;
 }
+
+//Improved error handling in AI chat, including specific messages for connection and session issues.

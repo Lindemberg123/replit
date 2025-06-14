@@ -224,10 +224,14 @@
                     })
                 });
                 
-                const result = await response.json();
-                
                 // Remover indicador de digitação
                 hideTypingIndicator();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
                 
                 if (result.success) {
                     // Mostrar resposta da IA
@@ -241,13 +245,24 @@
                         }, 1500);
                     }
                 } else {
-                    displayMessage('Desculpe, houve um erro. Tente novamente.', 'ai');
+                    const errorMsg = result.error || 'Erro desconhecido no servidor';
+                    displayMessage(`❌ ${errorMsg}`, 'ai');
+                    console.error('Erro da API:', result);
                 }
                 
             } catch (error) {
                 hideTypingIndicator();
-                displayMessage('Erro de conexão. Verifique sua internet.', 'ai');
                 console.error('Erro ao enviar mensagem:', error);
+                
+                if (error.message.includes('401')) {
+                    displayMessage('🔐 Sessão expirada. Faça login na página principal e tente novamente.', 'ai');
+                } else if (error.message.includes('500')) {
+                    displayMessage('🔧 Erro interno do servidor. Tente novamente em alguns segundos.', 'ai');
+                } else if (error.name === 'TypeError') {
+                    displayMessage('🌐 Erro de conexão. Verifique sua internet e tente novamente.', 'ai');
+                } else {
+                    displayMessage(`❌ Erro: ${error.message}`, 'ai');
+                }
             }
         }
 
