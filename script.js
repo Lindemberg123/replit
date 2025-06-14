@@ -291,27 +291,17 @@ function displayEmails(emails) {
     }
 
     let emailsHTML = emails.map((email, index) => {
-        // Inserir anúncio a cada 5 emails
+        // Inserir anúncio do Google a cada 5 emails
         let adHTML = '';
-        if (index > 0 && index % 5 === 0 && sponsorSettings.showEmbeddedAds) {
-            const sponsors = Object.values(SPONSORS);
-            const randomSponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
+        if (index > 0 && index % 5 === 0) {
             adHTML = `
-                <div class="embedded-ad">
-                    <div class="embedded-ad-content" style="background: linear-gradient(135deg, ${randomSponsor.color}15, ${randomSponsor.color}05);">
-                        <div class="embedded-ad-label">Patrocinado</div>
-                        <div class="embedded-ad-body">
-                            <img src="${randomSponsor.logo}" alt="${randomSponsor.name}" class="embedded-ad-logo">
-                            <div class="embedded-ad-text">
-                                <h4>${randomSponsor.name}</h4>
-                                <p>${randomSponsor.tagline}</p>
-                                <span class="embedded-ad-description">${randomSponsor.description}</span>
-                            </div>
-                            <a href="${randomSponsor.url}" target="_blank" class="embedded-ad-cta" style="background: ${randomSponsor.color};">
-                                ${randomSponsor.cta}
-                            </a>
-                        </div>
-                    </div>
+                <div class="google-ad-embedded">
+                    <ins class="adsbygoogle"
+                         style="display:block; width:100%; height:280px;"
+                         data-ad-client="ca-pub-7407644640365147"
+                         data-ad-slot="auto"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
                 </div>
             `;
         }
@@ -320,6 +310,9 @@ function displayEmails(emails) {
     }).join('');
 
     container.innerHTML = emailsHTML;
+    
+    // Carregar anúncios do Google após inserir HTML
+    addGoogleAdsToEmails();
 
     function getEmailHTML(email) {
         let emailClass = email.read ? '' : 'unread';
@@ -2473,6 +2466,88 @@ let aiChatWindow = null;
 let currentChatId = null;
 let chatHistory = [];
 
+// Carregar Google AdSense
+function loadGoogleAds() {
+    // Verificar se já foi carregado
+    if (document.querySelector('script[src*="googlesyndication.com"]')) {
+        return;
+    }
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7407644640365147';
+    script.crossOrigin = 'anonymous';
+    document.head.appendChild(script);
+
+    // Aguardar carregamento e inicializar anúncios
+    script.onload = function() {
+        initializeGoogleAds();
+    };
+}
+
+// Inicializar anúncios do Google
+function initializeGoogleAds() {
+    // Criar anúncios em locais estratégicos
+    createGoogleAdUnit('google-ad-sidebar', 'sidebar');
+    createGoogleAdUnit('google-ad-header', 'header');
+    createGoogleAdUnit('google-ad-embedded', 'embedded');
+}
+
+// Criar unidade de anúncio do Google
+function createGoogleAdUnit(id, type) {
+    let container, adSize, adSlot;
+
+    switch(type) {
+        case 'sidebar':
+            container = document.querySelector('.sidebar');
+            adSize = 'width: 300px; height: 250px;';
+            adSlot = 'ca-pub-7407644640365147';
+            break;
+        case 'header':
+            container = document.querySelector('.gmail-header');
+            adSize = 'width: 728px; height: 90px;';
+            adSlot = 'ca-pub-7407644640365147';
+            break;
+        case 'embedded':
+            container = document.getElementById('emailsContainer');
+            adSize = 'width: 100%; height: 280px;';
+            adSlot = 'ca-pub-7407644640365147';
+            break;
+    }
+
+    if (!container) return;
+
+    const adUnit = document.createElement('div');
+    adUnit.className = `google-ad-unit google-ad-${type}`;
+    adUnit.innerHTML = `
+        <ins class="adsbygoogle"
+             style="display:block; ${adSize}"
+             data-ad-client="ca-pub-7407644640365147"
+             data-ad-slot="${adSlot}"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+    `;
+
+    if (type === 'sidebar') {
+        container.appendChild(adUnit);
+    } else if (type === 'header') {
+        container.appendChild(adUnit);
+    } else if (type === 'embedded') {
+        // Inserir a cada 5 emails
+        const emailItems = container.querySelectorAll('.email-item');
+        if (emailItems.length >= 3) {
+            emailItems[2].insertAdjacentElement('afterend', adUnit);
+        }
+    }
+
+    // Carregar anúncio
+    try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+        console.log('Erro ao carregar anúncio:', e);
+    }
+}
+
 // Mostrar banner da IA
 function showAIBanner() {
     const banner = document.createElement('div');
@@ -2672,24 +2747,13 @@ setTimeout(() => {
 
 // --- Sistema Avançado de Anúncios ---
 function initializeAdsSystem() {
-    if (sponsorSettings.showTopBanner) {
-        showSponsorBanner();
-    }
-
-    if (sponsorSettings.showSidebarAds) {
-        showSidebarAds();
-    }
-
-    if (sponsorSettings.showEmbeddedAds) {
-        startAdRotation();
-    }
-
-    // Mostrar anúncios a cada 2 minutos
-    setInterval(() => {
-        if (Math.random() > 0.7) { // 30% de chance
-            showRandomAd();
-        }
-    }, 120000);
+    // Carregar Google AdSense
+    loadGoogleAds();
+    
+    // Adicionar anúncios em pontos estratégicos após carregamento
+    setTimeout(() => {
+        addGoogleAdsToEmails();
+    }, 2000);
 }
 
 function showSponsorBanner() {
@@ -2953,6 +3017,19 @@ function generateNayAIResponse(user_message, should_close = false) {
 //---The python code will stay the same ---
 //---The python code will stay the same ---
 //---The python code will stay the same ---
+
+// Adicionar anúncios do Google aos emails
+function addGoogleAdsToEmails() {
+    // Carregar anúncios que foram inseridos dinamicamente
+    const newAds = document.querySelectorAll('.google-ad-embedded .adsbygoogle:not([data-ad-status])');
+    newAds.forEach(ad => {
+        try {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {
+            console.log('Erro ao carregar anúncio:', e);
+        }
+    });
+}
 
 // Auto-refresh para verificações com expiração
 function startVerificationAutoRefresh() {

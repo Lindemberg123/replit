@@ -2038,42 +2038,65 @@ button {
     letter-spacing: 0.5px;
 }
 
-/* Google Ads embarcados */
-.embedded-google-ad {
-    margin: 12px 0;
-    padding: 0 24px;
+/* Google AdSense - Anúncios reais */
+.google-ad-unit {
+    margin: 16px 0;
+    display: flex;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #dadce0;
 }
 
-.embedded-google-ad .embedded-ad-content {
+.google-ad-embedded {
+    margin: 16px 0;
+    padding: 12px;
     background: #f8f9fa;
-    border: 1px solid #dadce0;
     border-radius: 8px;
-    padding: 16px;
+    border: 1px solid #dadce0;
     text-align: center;
 }
 
-.embedded-google-ad .embedded-ad-label {
-    font-size: 10px;
-    color: #5f6368;
-    text-transform: uppercase;
-    font-weight: 600;
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
+.google-ad-sidebar {
+    margin: 16px 8px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #dadce0;
 }
 
-/* Responsividade para Google Ads */
+.google-ad-header {
+    margin: 8px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px;
+    backdrop-filter: blur(10px);
+}
+
+/* Anúncios responsivos */
+.adsbygoogle {
+    display: block;
+}
+
+/* Responsividade para Google AdSense */
 @media (max-width: 768px) {
-    .google-ads-content {
-        padding: 8px 16px;
+    .google-ad-unit {
+        margin: 12px 0;
+        padding: 6px;
     }
     
-    .google-ads-sidebar {
-        margin: 16px 12px;
+    .google-ad-sidebar {
+        margin: 12px 6px;
     }
     
-    .embedded-google-ad {
-        margin: 8px 0;
-        padding: 0 16px;
+    .google-ad-embedded {
+        margin: 12px 0;
+        padding: 8px;
+    }
+    
+    .google-ad-header {
+        display: none; /* Ocultar anúncios do header no mobile */
     }
 }
 
